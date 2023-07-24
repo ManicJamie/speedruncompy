@@ -10,8 +10,8 @@ def doRequest(endpoint: str, params: dict = {}, method = "GET"):
     _cookies = {"PHPSESSID" : phpSESSID}
     # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
     # We will do the same in case param support is retracted.
-    paramsjson = bytes(json.dumps(params, separators=(",", ":")), "utf-8")
-    _r = base64.encodebytes(paramsjson).strip().removesuffix(b"==")
+    paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
+    _r = base64.urlsafe_b64encode(paramsjson).removesuffix(b"=")
     return requests.request(method, url=f"{API_URI}{endpoint}", headers=_header, cookies=_cookies, params={"_r": _r})
 
 class BaseRequest():
@@ -22,4 +22,5 @@ class BaseRequest():
 
     def perform(self):
         r = doRequest(self.endpoint, self.params, self.method)
+        if r.status_code != 200: raise Exception
         return json.loads(r.content)

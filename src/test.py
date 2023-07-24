@@ -4,8 +4,13 @@ from endpoints import *
 print("WARN: This tool should only be used for testing purposes")
 
 params = {
-    "gameId": "o1ymwk1q"
+    "params": {
+        "gameID": "76rqmld8",
+        "categoryID": "zdn80q9d",
+        "verified": 0
+    },
+    "page": 1
     }
 
-r = BaseRequest("GetGameData",params, method="GET").perform()
+r = BaseRequest("GetGameLeaderboard2",params, method="GET").perform()
 print(r)
