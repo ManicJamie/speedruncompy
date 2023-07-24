@@ -2,25 +2,27 @@
 
 A WIP python wrapper for speedrun.com's new backend API. This should also double as basic documentation for these endpoints.
 
+I believe that where calls are paginated, parameter structure becomes `{params: {...}, page: 1}`.
+
 ## TODO:
-Endpoints that should be supported:
+Endpoints that should be documented:
 
 - [ ] GetSearch
-- [ ] GetCommentList
+- [ ] GetCommentList (POST)
 - [ ] PutAuthSignup
 - [ ] PutGameBoostGrant
-- [ ] GetGameData
+- [x] GetGameData
 - [ ] GetConversations
 - [ ] GetNotifications
-- [ ] GetModerationGames
+- [ ] GetModerationGames (POST)
 - [ ] GetSession
 - [ ] GetGameSettings
 - [ ] PutGameSettings
 - [ ] GetThemeSettings
 - [ ] GetAuditLogList
 - [ ] GetModerationRuns
-- [ ] PutSessionPing
-- [ ] GetGameLeaderboard2
+- [ ] PutSessionPing (POST)
+- [x] GetGameLeaderboard2
 - [ ] GetGameRecordHistory
 - [ ] GetConversationMessages
 - [ ] GetForumList
