@@ -1,0 +1,1 @@
+Ping the server to maintain your session. Unsure if this is currently necessary, as sessions don't appear to expire.

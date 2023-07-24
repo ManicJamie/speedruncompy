@@ -1,3 +1,5 @@
+Get game settings.
+
 # Parameters
 - gameId
 
@@ -19,6 +21,27 @@ settings
     emulator
     verification
     requireVideo
+    autoVerify
+    regionsObsolete
+    platformsObsolete
+    discordUrl
+    websiteUrl
+    rules
+    showOnStreamsPage
+    touchDate
+    noEvents
+    promoted
+    runCommentsMode
+    noPromote
+    platformIds[str]
+    regionIds[str]
+    gameTypeIds[int]
+    guidePermissionType
+    resourcePermissionType
+    staticAssets[]
+        assetType
+        path
+    staticAssetUpdates[]
 moderatorList[]
     gameId
     userId
@@ -43,7 +66,46 @@ theme
     staticAssets[]
         assetType
         path
-gameList[] // Will this ever contain items?
+gameList[]
+    id
+    name
+    url
+    type
+    loadtimes
+    milliseconds
+    igt
+    verification
+    autoVerify
+    requireVideo
+    emulator
+    defaultTimer
+    validTimers[int]
+    releaseDate
+    addedDate
+    touchDate
+    coverPath
+    trophy1stPath
+    trophy2ndPath
+    trophy3rdPath
+    runCommentsMode
+    runCount
+    activePlayerCount
+    totalPlayerCount
+    boostReceivedCount
+    boostDistinctDonorsCount
+    rules
+    viewPowerLevel
+    platformIds[str]
+    regionIds[str]
+    gameTypeIds[int]
+    websiteUrl
+    discordUrl
+    defaultView
+    guidePermissionType
+    resourcePermissionType
+    staticAssets[]
+        assetType
+        path
 userList[]
     id
     name

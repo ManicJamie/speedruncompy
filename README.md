@@ -5,10 +5,13 @@ A WIP python wrapper for speedrun.com's new backend API. This should also double
 I believe that where calls are paginated, parameter structure becomes `{params: {...}, page: 1}`. Only confirmed this for one endpoint so far, but would make a little sense.
 
 ## TODO:
+Enums that need to be documented:
+- itemType (eg. GetCommentable)
+
 Endpoints that should be documented:
 
 - [ ] GetAuditLogList
-- [ ] GetCommentable
+- [x] GetCommentable (POST)
 - [x] GetCommentList (POST)
 - [x] GetConversationMessages (POST)
 - [x] GetConversations (POST)
@@ -21,18 +24,23 @@ Endpoints that should be documented:
 - [x] GetModerationGames (POST)
 - [x] GetModerationRuns (POST)
 - [x] GetNotifications (POST)
+- [x] GetRunSettings (POST)
 - [x] GetSearch
 - [x] GetSession (POST)
-- [ ] GetThemeSettings
+- [x] GetThemeSettings (POST)
 - [ ] GetThread
-- [ ] GetThreadReadStatus
+- [x] GetThreadReadStatus (POST)
 - [x] GetUserBlocks (POST)
 - [x] GetUserSettings (POST)
 - [ ] PutAuthSignup (POST)
+- [x] PutAuthLogin (POST)
+- [x] PutAuthLogout (POST)
 - [ ] PutCommentableSettings (POST)
 - [ ] PutGameBoostGrant (POST)
-- [ ] PutGameSettings (POST)
-- [ ] PutRunAssignee (POST)
-- [ ] PutRunSettings (POST)
-- [ ] PutSessionPing (POST)
-- [ ] PutThreadRead (POST)
+- [x] PutGameSettings (POST)
+- [x] PutRunAssignee (POST)
+- [x] PutRunSettings (POST)
+- [x] PutSessionPing (POST)
+- [x] PutThreadRead (POST)
+
+Please note that any documented endpoints are documented entirely by trial & error. They may be missing potential arguments, or edge response cases.
