@@ -1,0 +1,63 @@
+# Parameters
+- gameId
+
+# Response
+```
+settings
+    id
+    name
+    url
+    twitchName
+    releaseDate
+    milliseconds
+    defaultView
+    loadTimes
+    igt
+    defaultTimer
+    showEmptyTimes
+    rulesView
+    emulator
+    verification
+    requireVideo
+moderatorList[]
+    gameId
+    userId
+    level
+theme
+    id
+    url
+    primaryColor
+    panelColor
+    panelOpacity
+    navbarColor
+    backgroundColor
+    backgroundFit
+    backgroundPosition
+    backgroundRepeat
+    backgroundScrolling
+    foregroundFit
+    foregrountPosition
+    foregroundRepeat
+    foregroundScrolling
+    touchDate
+    staticAssets[]
+        assetType
+        path
+gameList[] // Will this ever contain items?
+userList[]
+    id
+    name
+    url
+    powerLevel
+    pronouns[str]
+    areaId
+    color1Id
+    color2Id
+    iconType
+    onlineDate
+    signupDate
+    touchDate
+    staticAssets[]
+        assetType
+        path
+```

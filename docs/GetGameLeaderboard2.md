@@ -1,12 +1,12 @@
-Paramaters are wrapped inside `params`, except `page`.
+Parameters are wrapped inside `params`, except `page`.
 
 ## Required parameters:
 - gameID
 - categoryID
 
 ## Optional parameters
-- values[]
-- video
+- values[] TODO: document value structure
+- video `0 = any, 1 = present, 2 = missing`
 - verified
 - timer
 - obsolete

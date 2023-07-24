@@ -16,7 +16,7 @@ game
     requireVideo
     emulator
     defaultTimer
-    validTimers
+    validTimers[int]
     releaseDate
 categories[]
     id
@@ -51,7 +51,10 @@ platforms[]
     url
     year
 regions[]
-    TODO: find a game with regions
+    id
+    name
+    url
+    flag
 runCounts[]
     gameId
     categoryId

@@ -4,8 +4,8 @@ from endpoints import *
 print("WARN: This tool should only be used for testing purposes")
 
 params = {
-    "gameId" : "76rqmld8"
+    "gameId": "o1ymwk1q"
     }
 
-r = BaseRequest("GetModerationRuns",params, method="PUT").perform()
+r = BaseRequest("GetGameData",params, method="GET").perform()
 print(r)
