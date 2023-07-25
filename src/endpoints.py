@@ -1,4 +1,8 @@
-from api import GetRequest, PostRequest, LoginRequest, AuthedRequest
+from api import GetRequest, PostRequest
+
+"""
+GET requests are all unauthed & do not require PHPSESSID.
+"""
 
 class GetGameLeaderboard2(GetRequest):
     def __init__(self, gameId, categoryId, **params: str) -> None:
@@ -27,3 +31,22 @@ class GetSearch(GetRequest):
     def __init__(self, query, **params) -> None:
         params["query"] = query
         super().__init__("GetSearch", **params)
+
+"""
+POST requests may require auth
+"""
+
+class PutAuthLogin(PostRequest):
+    def __init__(self, name, password, token=None, **params) -> None:
+        params["name"] = name
+        params["password"] = password
+        params["token"] = token
+        super().__init__("PutAuthLogin", **params)
+
+class PutAuthLogout(PostRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("PutAuthLogout", **params)
+
+class GetSession(PostRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetSession", **params)
