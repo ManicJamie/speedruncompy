@@ -1,1 +1,0 @@
-Logs the user out. No params, no response.
