@@ -1,9 +1,11 @@
+Unauthed requests return a reduced response with `signedIn = true`
+
 # Response
 ```
 session
     signedIn
     showAds
-    user
+    user <OPT: if signedIn>
         id
         name
         url
@@ -19,7 +21,7 @@ session
         staticAssets[]
             assetType
             path
-    theme
+    theme <Opt: if signedIn>
         id
         url
         primaryColor
@@ -47,7 +49,7 @@ session
     homepageStream
     disableThemes
     csrfToken
-    networkToken
+    networkToken <Opt: if signedIn>
     gameList[]
         id
         name
@@ -104,7 +106,7 @@ session
         runcount
     seriesList[] TODO
     seriesModeratorList[] TODO
-    boostAvailableTokens
+    boostAvailableTokens <Opt: if signedIn>
     boostNextTokenDate
     boostNextTokenAmount
     userFollowerList[] TODO
