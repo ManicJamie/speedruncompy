@@ -1,16 +1,22 @@
+Returns a list of world record runs, from lowest time to highest.
+
 Parameters are wrapped inside `params`, except `page`.
 
-# Parameters (some may be opt.)
-- categoryId
-- emulator
+Note that parameters gameId and categoryId are not required for a successful response, but without them the response will be empty. For this reason, this wrapper will consider them mandatory.
+
+# Parameters (required)
 - gameId
+- categoryId
+
+# Parameters (some may be opt.)
+- values[]
+    {variableId, valueIds[]}
+- emulator
 - obsolete
 - platformIds[]
 - regionIds[]
 - timer
 - verified
-- values[]
-    {variableId, valueIds[]}
 - video
 - page
 
