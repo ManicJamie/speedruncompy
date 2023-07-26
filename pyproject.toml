@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "speedruncom2"
+name = "speedruncompy"
 version = "0.0.1"
 authors = [
   { name="Jamie Bloomfield", email="jamiebloomfield8@gmail.com" },
@@ -18,5 +18,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/ManicJamie/speedruncomv2"
+"Bug Tracker" = "https://github.com/ManicJamie/speedruncomv2/issues"

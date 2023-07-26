@@ -6,7 +6,7 @@ WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://g
 
 ## TODO:
 Implementation:
-- [ ] GetAuditLogList
+- [x] GetAuditLogList (POST)
 - [ ] GetCommentable (POST)
 - [ ] GetCommentList (POST)
 - [ ] GetConversationMessages (POST)
@@ -17,24 +17,26 @@ Implementation:
 - [x] GetGameLeaderboard2
 - [x] GetGameRecordHistory
 - [ ] GetGameSettings (POST)
-- [ ] GetModerationGames (POST)
-- [ ] GetModerationRuns (POST)
+- [x] GetModerationGames (POST)
+- [x] GetModerationRuns (POST)
 - [ ] GetNotifications (POST)
-- [ ] GetRunSettings (POST)
+- [x] GetRunSettings (POST)
 - [x] GetSearch
 - [x] GetSession (POST)
 - [ ] GetThemeSettings (POST)
-- [ ] GetThread
+- [ ] GetThread (POST)
 - [ ] GetThreadReadStatus (POST)
 - [ ] GetUserBlocks (POST)
-- [ ] GetUserSettings (POST)
+- [x] GetUserSettings (POST)
 - [ ] PutAuthSignup (POST)
 - [x] PutAuthLogin (POST)
 - [x] PutAuthLogout (POST)
 - [ ] PutCommentableSettings (POST)
 - [ ] PutGameBoostGrant (POST)
 - [ ] PutGameSettings (POST)
-- [ ] PutRunAssignee (POST)
-- [ ] PutRunSettings (POST)
-- [ ] PutSessionPing (POST)
+- [x] PutRunAssignee (POST)
+- [x] PutRunSettings (POST)
+- [x] PutRunVerification (POST)
+- [x] PutSessionPing (POST)
 - [ ] PutThreadRead (POST)
+- [x] PutUserSettings (POST)

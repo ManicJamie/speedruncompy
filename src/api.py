@@ -31,7 +31,7 @@ def doPost(endpoint:str, params: dict = {}, _setCookie=True):
     return response
 
 class BaseRequest():
-    def perform(self):
+    def perform(self) -> requests.Response:
         pass
 
 class GetRequest(BaseRequest):
@@ -42,7 +42,7 @@ class GetRequest(BaseRequest):
     def perform(self):
         self.response = doGet(self.endpoint, self.params)
         if self.response.status_code != 200: 
-            raise APIException(self.response.status_code, self.response.content)
+            raise APIException(self.response.status_code, self.response.content, self.response.request)
         return json.loads(self.response.content)
 
 class PostRequest(BaseRequest):
@@ -53,5 +53,5 @@ class PostRequest(BaseRequest):
     def perform(self):
         self.response = doPost(self.endpoint, params=self.params)
         if self.response.status_code != 200:
-            raise APIException(self.response.status_code, self.response.content)
+            raise APIException(self.response.status_code, self.response.content, self.response.request)
         return json.loads(self.response.content)
