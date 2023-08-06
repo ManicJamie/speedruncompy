@@ -4,6 +4,9 @@ A WIP python wrapper for speedrun.com's new backend API.
 
 WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://github.com/ManicJamie/speedruncom-apiv2-docs)
 
+## Usage
+Do `pip install .`. Package can then be imported as `speedruncompy`.
+
 ## TODO:
 Implementation:
 - [x] GetAuditLogList
@@ -16,14 +19,14 @@ Implementation:
 - [x] GetGameData (GET)
 - [x] GetGameLeaderboard2 (GET)
 - [x] GetGameRecordHistory (GET)
-- [ ] GetGameSettings
+- [x] GetGameSettings
 - [x] GetModerationGames
 - [x] GetModerationRuns
 - [x] GetNotifications
 - [x] GetRunSettings
 - [x] GetSearch (GET)
 - [x] GetSession
-- [ ] GetThemeSettings
+- [x] GetThemeSettings
 - [x] GetThread
 - [x] GetThreadReadStatus
 - [ ] GetUserBlocks
@@ -34,7 +37,7 @@ Implementation:
 - [x] PutComment
 - [x] PutCommentableSettings (TODO: test)
 - [ ] PutGameBoostGrant
-- [ ] PutGameSettings
+- [x] PutGameSettings
 - [x] PutRunAssignee
 - [x] PutRunSettings
 - [x] PutRunVerification

@@ -14,6 +14,8 @@ def login(username: str, pwd: str, token:str = None):
         if result.get("loggedIn"):
             api._log.info("Logged in using 2fa")
             return True
+        else:
+            api._log.error("2FA code rejected! Not logged in")
     return False
 
 def loginSessID(sessID: str):

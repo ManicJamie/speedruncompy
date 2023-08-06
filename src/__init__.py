@@ -1,2 +1,2 @@
 from .endpoints import *
-from . import auth, data_structures, enums, exceptions
+from . import api, auth, data_structures, enums, exceptions

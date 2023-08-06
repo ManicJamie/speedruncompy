@@ -33,6 +33,7 @@ class GetSearch(GetRequest):
 class GetLatestLeaderboard(GetRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetLatestLeaderboard", **params)
+
 """
 POST requests may require auth
 """
@@ -54,7 +55,21 @@ class PutSessionPing(PostRequest):
     def __init__(self, **params) -> None:
         super().__init__("PutSessionPing", **params)
 
-# Moderation
+# Supermod actions
+class GetAuditLogList(PostRequest):
+    def __init__(self, gameId: str, **params) -> None:
+        super().__init__("GetAuditLogList", gameId=gameId, **params)
+
+# Mod actions
+class GetGameSettings(PostRequest):
+    def __init__(self, gameId: str, **params) -> None:
+        super().__init__("GetGameSettings", gameId=gameId, **params)
+
+class PutGameSettings(PostRequest):
+    def __init__(self, gameId: str, settings: dict, **params) -> None:
+        super().__init__("PutGameSettings", gameId=gameId, settings=settings, **params)
+
+# Run verification
 class GetModerationGames(PostRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetModerationGames", **params)
@@ -105,11 +120,6 @@ class PutUserSettings(PostRequest):
     def __init__(self, userUrl: str, settings: dict, **params) -> None:
         super().__init__("PutUserSettings", userUrl=userUrl, settings=settings, **params)
 
-# Supermod Actions
-class GetAuditLogList(PostRequest):
-    def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetAuditLogList", gameId=gameId, **params)
-
 # Comment Actions
 class GetCommentList(PostRequest):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
@@ -149,3 +159,9 @@ class GetForumList(PostRequest):
 class GetForumReadStatus(PostRequest):
     def __init__(self, forumIds: list[str], **params) -> None:
         super().__init__("GetForumReadStatus", forumIds=forumIds, **params)
+
+# Theme actions
+class GetThemeSettings(PostRequest):
+    def __init__(self, **params) -> None:
+        """Provide either userId or gameId"""
+        super().__init__("GetThemeSettings", **params)
