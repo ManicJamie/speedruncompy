@@ -1,6 +1,6 @@
-from api import *
-import api as api
-from endpoints import *
+import src as speedruncompy
+from src.api import *
+from src.endpoints import *
 import logging, json
 
 from secret import USER_NAME, PASSWORD, SESSID, CSRF
@@ -20,15 +20,15 @@ def test_endpoint(request: BaseRequest):
     except APIException as e:
         _log.error("API Error!", exc_info=e)
         return e
-"""
+
 test_endpoint(GetGameLeaderboard2("76rqmld8", "zdn80q9d", verified=2, page=1))
 
 test_endpoint(GetGameData("76rqmld8"))
-
-test_endpoint(GetGameRecordHistory(gameId="76rqmld8", categoryId="02q8o4p2", verified=1))
-
-test_endpoint(GetSearch("Hollow Knight", includeGames=True))
 """
+test_endpoint(GetGameRecordHistory(gameId="76rqmld8", categoryId="02q8o4p2", verified=1))
+"""
+test_endpoint(GetSearch("Celeste", includeGames=True))
+
 if USER_NAME == "" and SESSID == "":
     _log.warning("No auth details set; terminating test early")
     exit()
@@ -54,12 +54,12 @@ if SESSID is None:
     token = input("Enter token:")
     test_endpoint(PutAuthLogin(USER_NAME, PASSWORD, token))
 else:
-    api.setSessId(SESSID)
+    setSessId(SESSID)
 
 session = test_endpoint(GetSession())
 csrf = session["session"]["csrfToken"]
 
-test_endpoint(GetModerationRuns(gameId="76rqmld8", limit=100, page=1))
+test_endpoint(GetModerationRuns(gameId="76rqmld8", limit=10, page=1))
 
 test_endpoint(GetModerationGames())
 """
@@ -82,4 +82,18 @@ test_endpoint(PutSessionPing())
 
 test_endpoint(GetLatestLeaderboard(gameId="76rqmld8", limit=999))
 
-test_endpoint(GetAuditLogList(gameId="76rqmld8"))
+test_endpoint(GetThread(id="7p1bg"))
+
+#test_endpoint(GetThreadReadStatus())
+
+test_endpoint(GetCommentList(itemId="mr80v32y", itemType=2))
+
+test_endpoint(GetForumList())
+
+test_endpoint(GetConversationMessages(conversationId="Fb7Ay"))
+
+test_endpoint(GetSearch(query=USER_NAME, includeUsers=True))
+
+test_endpoint(GetUserSettings(USER_NAME))
+
+test_endpoint(GetNotifications())

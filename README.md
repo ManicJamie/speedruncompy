@@ -6,37 +6,38 @@ WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://g
 
 ## TODO:
 Implementation:
-- [x] GetAuditLogList (POST)
-- [ ] GetCommentable (POST)
-- [ ] GetCommentList (POST)
-- [ ] GetConversationMessages (POST)
-- [ ] GetConversations (POST)
-- [ ] GetForumList (POST)
-- [ ] GetForumReadStatus (POST)
-- [x] GetGameData
-- [x] GetGameLeaderboard2
-- [x] GetGameRecordHistory
-- [ ] GetGameSettings (POST)
-- [x] GetModerationGames (POST)
-- [x] GetModerationRuns (POST)
-- [ ] GetNotifications (POST)
-- [x] GetRunSettings (POST)
-- [x] GetSearch
-- [x] GetSession (POST)
-- [ ] GetThemeSettings (POST)
-- [ ] GetThread (POST)
-- [ ] GetThreadReadStatus (POST)
-- [ ] GetUserBlocks (POST)
-- [x] GetUserSettings (POST)
-- [ ] PutAuthSignup (POST)
-- [x] PutAuthLogin (POST)
-- [x] PutAuthLogout (POST)
-- [ ] PutCommentableSettings (POST)
-- [ ] PutGameBoostGrant (POST)
-- [ ] PutGameSettings (POST)
-- [x] PutRunAssignee (POST)
-- [x] PutRunSettings (POST)
-- [x] PutRunVerification (POST)
-- [x] PutSessionPing (POST)
-- [ ] PutThreadRead (POST)
-- [x] PutUserSettings (POST)
+- [x] GetAuditLogList
+- [x] GetCommentable
+- [x] GetCommentList
+- [x] GetConversationMessages
+- [x] GetConversations
+- [x] GetForumList
+- [x] GetForumReadStatus
+- [x] GetGameData (GET)
+- [x] GetGameLeaderboard2 (GET)
+- [x] GetGameRecordHistory (GET)
+- [ ] GetGameSettings
+- [x] GetModerationGames
+- [x] GetModerationRuns
+- [x] GetNotifications
+- [x] GetRunSettings
+- [x] GetSearch (GET)
+- [x] GetSession
+- [ ] GetThemeSettings
+- [x] GetThread
+- [x] GetThreadReadStatus
+- [ ] GetUserBlocks
+- [x] GetUserSettings
+- [ ] PutAuthSignup
+- [x] PutAuthLogin
+- [x] PutAuthLogout
+- [x] PutComment
+- [x] PutCommentableSettings (TODO: test)
+- [ ] PutGameBoostGrant
+- [ ] PutGameSettings
+- [x] PutRunAssignee
+- [x] PutRunSettings
+- [x] PutRunVerification
+- [x] PutSessionPing
+- [x] PutThreadRead
+- [x] PutUserSettings

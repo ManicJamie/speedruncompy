@@ -1,5 +1,5 @@
 import requests, base64, json
-from exceptions import *
+from .exceptions import *
 import logging
 
 API_URI = "https://www.speedrun.com/api/v2/"
@@ -12,7 +12,7 @@ _log = logging.getLogger("speedruncompy")
 
 def setSessId(phpsessionid):
     global cookie
-    cookie = {"PHPSESSID": phpsessionid}
+    cookie.update({"PHPSESSID": phpsessionid})
 
 def doGet(endpoint: str, params: dict = {}):
     _header = {"Accept-Language": LANG, "Accept": ACCEPT}
@@ -39,7 +39,7 @@ class GetRequest(BaseRequest):
         self.endpoint = endpoint
         self.params = params
 
-    def perform(self):
+    def perform(self) -> dict:
         self.response = doGet(self.endpoint, self.params)
         if self.response.status_code != 200: 
             raise APIException(self.response.status_code, self.response.content, self.response.request)
@@ -50,7 +50,7 @@ class PostRequest(BaseRequest):
         self.endpoint = endpoint
         self.params = params
 
-    def perform(self):
+    def perform(self) -> dict:
         self.response = doPost(self.endpoint, params=self.params)
         if self.response.status_code != 200:
             raise APIException(self.response.status_code, self.response.content, self.response.request)
