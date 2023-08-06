@@ -21,7 +21,7 @@ setup(
         "Operating System :: OS Independent"
     ],
     python_requires=">=3.0",
-    packages=['src'],
+    packages=['speedruncompy'],
     package_data={'': ['.version']},
     include_package_data=True,
     install_requires=[
