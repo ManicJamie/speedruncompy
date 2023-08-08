@@ -1,6 +1,9 @@
-import requests, base64, json
+import base64, json
 from .exceptions import *
 import logging
+from requests import Response, get, post
+from time import sleep
+from typing import Callable, Any
 
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
@@ -20,38 +23,62 @@ def doGet(endpoint: str, params: dict = {}):
     # We will do the same in case param support is retracted.
     paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
     _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"")
-    return requests.get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r})
+    _log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
+    return get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r})
 
 def doPost(endpoint:str, params: dict = {}, _setCookie=True):
     global cookie
     _header = {"Accept-Language": LANG, "Accept": ACCEPT}
-    response = requests.post(url=f"{API_URI}{endpoint}", headers=_header, cookies=cookie, json=params)
+    _log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
+    response = post(url=f"{API_URI}{endpoint}", headers=_header, cookies=cookie, json=params)
     if _setCookie and response.cookies:
         cookie = response.cookies
     return response
 
 class BaseRequest():
-    def perform(self) -> requests.Response:
-        pass
+    def __init__(self, method: Callable[[str, dict[str, Any]], Response], endpoint, **params):
+        self.method = method
+        self.endpoint = endpoint
+        self.params = params
+    
+    def updateParams(self, **kwargs):
+        """Updates parameters using values set in kwargs"""
+        self.params.update(kwargs)
+
+    def perform(self, retries=5, delay=1) -> dict:
+        self.response = self.method(self.endpoint, self.params)
+
+        if (self.response.status_code >= 500 and self.response.status_code <= 599) or self.response.status_code == 408:
+            if retries > 0:
+                _log.error(f"SRC returned error {self.response.status_code} {self.response.content}. Retrying with delay {delay}:")
+                for attempt in range(attempt, retries+1):
+                    self.response = self.method(self.endpoint, self.params)
+                    if not (self.response.status_code >= 500 and self.response.status_code <= 599) or self.response.status_code == 408: 
+                        break
+                    _log.error(f"Retry {attempt} returned error {self.response.status_code} {self.response.content}")
+                    sleep(delay)                      
+                else:
+                    if self.response.status_code == 408: raise RequestTimeout(self)
+                    else: raise ServerException(self)
+
+        if self.response.status_code == 400: raise BadRequest(self)
+        if self.response.status_code == 401: raise Unauthorized(self)
+        if self.response.status_code == 403: raise Forbidden(self)
+        if self.response.status_code == 404: raise NotFound(self)
+        if self.response.status_code == 405: raise MethodNotAllowed(self)
+        if self.response.status_code == 408: raise RequestTimeout(self)
+        if self.response.status_code == 429: raise RateLimitExceeded(self)
+
+        if self.response.status_code < 200 or self.response.status_code > 299:
+            _log.error(f"Unknown response error returned from SRC! {self.response.status_code} {self.response.content}")
+            raise APIException(self)
+
+        return json.loads(self.response.content)
 
 class GetRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
-        self.endpoint = endpoint
-        self.params = params
-
-    def perform(self) -> dict:
-        self.response = doGet(self.endpoint, self.params)
-        if self.response.status_code != 200: 
-            raise APIException(self.response.status_code, self.response.content, self.response.request)
-        return json.loads(self.response.content)
+        super().__init__(method=doGet, endpoint=endpoint, **params)
 
 class PostRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
-        self.endpoint = endpoint
-        self.params = params
-
-    def perform(self) -> dict:
-        self.response = doPost(self.endpoint, params=self.params)
-        if self.response.status_code != 200:
-            raise APIException(self.response.status_code, self.response.content, self.response.request)
-        return json.loads(self.response.content)
+        super().__init__(method=doPost, endpoint=endpoint, **params)

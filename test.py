@@ -1,6 +1,6 @@
-import src as speedruncompy
-from src.api import *
-from src.endpoints import *
+import speedruncompy as speedruncompy
+from speedruncompy.api import *
+from speedruncompy.endpoints import *
 import logging, json
 
 from secret import USER_NAME, PASSWORD, SESSID, CSRF
@@ -59,9 +59,9 @@ else:
 session = test_endpoint(GetSession())
 csrf = session["session"]["csrfToken"]
 
-test_endpoint(GetModerationRuns(gameId="76rqmld8", limit=10, page=1))
+test_endpoint(GetModerationRuns(gameId="76rqmld8", limit=100, page=1, verified=0))
 
-test_endpoint(GetModerationGames())
+#test_endpoint(GetModerationGames())
 """
 run_settings = test_endpoint(GetRunSettings("y2gko66z"))["settings"]
 
@@ -77,6 +77,7 @@ test_endpoint(GetRunSettings("y2gko66z"))
 output = test_endpoint(GetUserSettings(userUrl="manicjamie"))
 
 test_endpoint(PutUserSettings("manicjamie", output["settings"]))
+"""
 """
 test_endpoint(PutSessionPing())
 
@@ -97,3 +98,5 @@ test_endpoint(GetSearch(query=USER_NAME, includeUsers=True))
 test_endpoint(GetUserSettings(USER_NAME))
 
 test_endpoint(GetNotifications())
+"""
+test_endpoint(GetRunSettings("yvp75n6y"))
