@@ -5,42 +5,17 @@ A WIP python wrapper for speedrun.com's new backend API.
 WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://github.com/ManicJamie/speedruncom-apiv2-docs)
 
 ## Usage
-Do `pip install .`. Package can then be imported as `speedruncompy`.
+`pip install speedruncompy`, then `import speedruncompy`.
 
-## TODO:
-Implementation:
-- [x] GetAuditLogList
-- [x] GetCommentable
-- [x] GetCommentList
-- [x] GetConversationMessages
-- [x] GetConversations
-- [x] GetForumList
-- [x] GetForumReadStatus
-- [x] GetGameData (GET)
-- [x] GetGameLeaderboard2 (GET)
-- [x] GetGameRecordHistory (GET)
-- [x] GetGameSettings
-- [x] GetModerationGames
-- [x] GetModerationRuns
-- [x] GetNotifications
-- [x] GetRunSettings
-- [x] GetSearch (GET)
-- [x] GetSession
-- [x] GetThemeSettings
-- [x] GetThread
-- [x] GetThreadReadStatus
-- [ ] GetUserBlocks
-- [x] GetUserSettings
-- [ ] PutAuthSignup
-- [x] PutAuthLogin
-- [x] PutAuthLogout
-- [x] PutComment
-- [x] PutCommentableSettings (TODO: test)
-- [ ] PutGameBoostGrant
-- [x] PutGameSettings
-- [x] PutRunAssignee
-- [x] PutRunSettings
-- [x] PutRunVerification
-- [x] PutSessionPing
-- [x] PutThreadRead
-- [x] PutUserSettings
+Default namespace contains all endpoints. Login flow in `speedruncompy.auth`. Other notable fields include `enums` and `exceptions`. `data_structures` is currently unused, but may be useful to help construct common data structures.
+
+## Authorisation
+Note that this uses the API in the same way as https://speedrun.com. The v2 API does not currently accept the Bearer token the v1 API can use - but v2 is also not half-broken, and contains most of the new features SRC has added over the years.
+
+As such, authorisation requires your username & password (and 2FA token). ***This means logging in requires a massive leap of trust***, and so I encourage you to [inspect the auth module](/speedruncompy/auth.py), and if you're very concerned consider either changing your SRC password or manually get an authed PHPSESSID with your own requests, then use `auth.loginSESSID`. 
+
+## Goals
+Future versions will aim to assist further in development;
+- Flesh out data_structures to include most desired structures
+- Document more enums
+- Automatic pagination handling
