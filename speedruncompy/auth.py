@@ -1,9 +1,9 @@
 from . import api
 from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
 
-def login(username: str, pwd: str, token:str = None):
+def login(username: str, pwd: str):
     """Quick workflow to set sessid using username & pwd. Will prompt for auth token if required."""
-    result: dict = PutAuthLogin(username, pwd, token=token).perform()
+    result: dict = PutAuthLogin(username, pwd).perform()
     if result.get("loggedIn"):
         api._log.info("Logged in using username & password")
         return True
