@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name='speedruncompy',
-    version="0.0.1",
+    version="0.0.2",
     author="Jamie",
     author_email="jamiebloomfield8@gmail.com",
     description="A wrapper for speedrun.com's new v2 API, as used by their new site",
