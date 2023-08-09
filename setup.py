@@ -20,7 +20,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
-    python_requires=">=3.0",
+    python_requires=">=3.11",
     packages=['speedruncompy'],
     package_data={'': ['.version']},
     include_package_data=True,
