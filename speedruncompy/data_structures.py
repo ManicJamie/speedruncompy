@@ -1,55 +1,47 @@
-class VariableValue():
-    variableId = ""
-    valueId = ""
+from typing import Union, Any
 
-    def __init__(self, dict:dict = {}) -> None:
-        self.variableId = dict.get("variableId")
-        self.valueId = dict.get("valueId")
+class Datatype():
+    def __repr__(self) -> str:
+        return str(self.__dict__)
 
-class RuntimeTuple():
-    hour = 0
-    minute = 0
-    second = 0
-    millisecond = 0
+class VariableValue(Datatype):
+    def __init__(self, construct:Union[tuple[str, str], dict[str, str]]) -> None:
+        if type(construct) is tuple:
+            self.variableId = construct[0]
+            self.valueId = construct[1]
+        elif type(construct) is dict:
+            self.variableId = dict.get("variableId", "")
+            self.valueId = dict.get("valueId", "")
+        
+    def __str__(self):
+        return f"Var {self.variableId} = {self.valueId}"
 
-    def __init__(self, tuple:tuple[int]) -> None:
-        self.hour = tuple[0]
-        self.minute = tuple[1]
-        self.second = tuple[2]
-        self.millisecond = tuple[3]
+class RuntimeTuple(Datatype):
+    def __init__(self, construct:Union[tuple[int, int, int, int], dict[str, int]]):
+        if type(construct) is tuple:
+            self.hour = construct[0]
+            self.minute = construct[1]
+            self.second = construct[2]
+            self.millisecond = construct[3]
+        elif type(construct) is dict:
+            self.hour = construct.get("hour", 0)
+            self.minute = construct.get("minute", 0)
+            self.second = construct.get("second", 0)
+            self.millisecond = construct.get("millisecond", 0)
     
-    def __init__(self, dict:dict) -> None:
-        self.hour = dict.get("hour")
-        self.minute = dict.get("minute")
-        self.second = dict.get("second")
-        self.millisecond = dict.get("millisecond")
-"""
-class RunSettings():
-    runId = ""
-    gameId = ""
-    categoryId = ""
-    playerNames: list[str] = []
-    time = (0, 0, 0, 0)
-    platformId = 0
-    emulator = 0
-    video = 0
-    comment = ""
-    date = ""
-    values: list[VariableValue] = []
+    def __str__(self):
+        return ("" if self.hour == 0 else f"{self.hour}:") + f"{self.minute:02}:{self.second:02}.{self.millisecond:03}" 
 
-    def __init__(self, dict:dict = {}) -> None:
-        self.runId = dict.get("runId")
-        self.gameId = dict.get("gameId")
-        self.categoryId = dict.get("categoryId")
-        self.playerNames: list[str] = dict.get("playerNames")
-        self.time = dict.get("time")
-        self.platformId = dict.get("platformId")
-        self.emulator = dict.get("emulator")
-        self.video = dict.get("video")
-        self.comment = dict.get("cpmment")
-        self.date = dict.get("date")
-        self.values: list[VariableValue] = dict.get("values")
-"""
-class RunSettings():
-    def __init__(self, dict:dict = {}) -> None:
-        self.__dict__ = dict
+class RunSettings(Datatype):
+    def __init__(self, dict:dict[str, Any] = {}) -> None:
+        self.runId = dict.get("runId", "")
+        self.gameId = dict.get("gameId", "")
+        self.categoryId = dict.get("categoryId", "")
+        self.playerNames: list[str] = dict.get("playerNames", [])
+        self.time = RuntimeTuple(dict.get("time", (0,0,0,0)))
+        self.platformId = dict.get("platformId", 0)
+        self.emulator = dict.get("emulator", 0)
+        self.video = dict.get("video", 0)
+        self.comment = dict.get("comment", "")
+        self.date = dict.get("date", "")
+        self.values: list[VariableValue] = dict.get("values", [])
