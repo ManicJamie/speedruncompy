@@ -2,6 +2,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .api import BaseRequest
 
+class SrcpyException(Exception):
+    """speedruncompy found an issue with your request during initialisation (eg. bad arguments)"""
+
 class APIException(Exception):
     def __init__(self, caller: 'BaseRequest', *args) -> None:
         self.caller = caller
@@ -11,22 +14,22 @@ class ClientException(APIException):
     """There was an issue with your request that the client must handle."""
 
 class BadRequest(ClientException):
-    pass
+    """The server could not recognise your request - fix your request parameters"""
 
 class Unauthorized(ClientException):
-    pass
+    """You are not signed in"""
 
 class Forbidden(ClientException):
-    pass
+    """Your account does not have the privileges to perform this action"""
 
 class NotFound(ClientException):
-    pass
+    """Your request could not locate any matching resource"""
 
 class MethodNotAllowed(ClientException):
-    pass
+    """This endpoint does not accept this HTTP method - try POST"""
 
 class RequestTimeout(ClientException):
-    """Server waited too long to receive request. This should probably be retryable."""
+    """Server waited too long to receive request. Only called after retries."""
     pass
 
 class RateLimitExceeded(ClientException):
