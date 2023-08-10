@@ -2,6 +2,7 @@ import speedruncompy as speedruncompy
 from speedruncompy.api import *
 from speedruncompy.endpoints import *
 import logging, json
+from speedruncompy.enums import *
 
 from secret import USER_NAME, PASSWORD, SESSID, CSRF
 
@@ -21,7 +22,7 @@ def test_endpoint(request: BaseRequest):
         _log.error("API Error!", exc_info=e)
         return e
 
-test_endpoint(GetGameLeaderboard2("76rqmld8", "zdn80q9d", verified=2, page=1))
+test_endpoint(GetGameLeaderboard2("76rqmld8", "02q8o4p2", verified=1, page=15))
 
 test_endpoint(GetGameData("76rqmld8"))
 """

@@ -18,8 +18,12 @@ class forumType(IntEnum):
     GAME = 2
 
 class timerType(IntEnum):
+    """DO NOT USE!
+    
+    Hollow Knight has default 0, valid [0,1], which suggests 0 = LRT and 1 = RTA,
+       but Celeste has default 2 and allowed [0,2], which suggests 2 = IGT and 0 = RTA? but this is listed as just Time"""
     RTA = 0
-    LRT = 1 # i forgot to check this
+    LRT = 1
     IGT = 2
 
 class modLevel(IntEnum):
@@ -54,11 +58,16 @@ class resourceType(IntEnum):
     SPLITS = 3
     PATCH = 4
 
+class GamePowerLevel(IntEnum):
+    VERIFIER = -1
+    MOD = 0
+    SUPERMOD = 1
+
 class PowerLevel(IntEnum):
-    BANNED = 0,
-    USER = 1,
-    CONTENT_MOD = 2,
-    SITE_MOD = 3,
+    BANNED = 0
+    USER = 1
+    CONTENT_MOD = 2
+    SITE_MOD = 3
     SITE_ADMIN = 4
 
 class eventType(StrEnum):

@@ -3,7 +3,7 @@ from .exceptions import *
 import logging
 from requests import Response, get, post
 from time import sleep
-from typing import Callable, Any
+from typing import Callable, Any, Optional
 
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
@@ -74,11 +74,43 @@ class BaseRequest():
             raise APIException(self)
 
         return json.loads(self.response.content)
+    
+class BasePaginatedRequest(BaseRequest):
+    def __init__(self, method: Callable[[str, dict[str, Any]], Response], endpoint, **params):
+        self.pages = {}
+        super().__init__(method, endpoint, **params)
+
+    def performAll(self, retries=5, delay=1) -> dict:
+        """Get all pages and return a dict of {pageNo : pageData}. Subclasses may merge this into a combined result."""
+        self.params.update(page=1)
+        while True:
+            page = self.params["page"]
+            data = self.performPage(retries=retries, delay=delay) # this post-increments page
+            self.pages[page] = data
+            if page >= data.get("pagination", {}).get("pages", 1): 
+                return self.pages
+    
+    def performPage(self, retries=5, delay=1) -> Optional[dict]:
+        """Get the current page & advance counter to next page. Returns None if beyond the final page."""
+        if "page" not in self.params: self.params["page"] = 1
+
+        data = self.perform(retries, delay)
+        if data["pagination"]["page"] != self.params["page"]:
+            return None # Gone past the last page, don't give result
+        
+        self.params.update(page=(self.params.get("page", 0) + 1)) # advance page
+        return data
 
 class GetRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
         super().__init__(method=doGet, endpoint=endpoint, **params)
 
+class GetPaginatedRequest(GetRequest, BasePaginatedRequest):
+    pass
+
 class PostRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
         super().__init__(method=doPost, endpoint=endpoint, **params)
+
+class PostPaginatedRequest(PostRequest, BasePaginatedRequest):
+    pass

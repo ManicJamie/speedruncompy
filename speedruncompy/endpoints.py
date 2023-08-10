@@ -1,10 +1,13 @@
-from .api import GetRequest, PostRequest
+from tkinter import PAGES
+from .api import GetPaginatedRequest, GetRequest, PostPaginatedRequest, PostRequest
+from .exceptions import SrcpyException
+from .enums import *
 
 """
 GET requests are all unauthed & do not require PHPSESSID.
 """
 
-class GetGameLeaderboard2(GetRequest):
+class GetGameLeaderboard2(GetPaginatedRequest):
     def __init__(self, gameId: str, categoryId: str, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
@@ -17,14 +20,15 @@ class GetGameData(GetRequest):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGameData", gameId=gameId, **params)
 
-class GetGameRecordHistory(GetRequest):
+class GetGameRecordHistory(GetPaginatedRequest):
+    """This takes a page field, but does not return a pagination object, and does not appear to be paginated."""
     def __init__(self, gameId: str, categoryId: str, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         if page is not None: 
             param_construct["page"] = page
-        super().__init__("GetGameLeaderboard2", **param_construct)
+        super().__init__("GetGameRecordHistory", **param_construct)
 
 class GetSearch(GetRequest):
     def __init__(self, query: str, **params) -> None:
@@ -57,8 +61,9 @@ class PutSessionPing(PostRequest):
 
 # Supermod actions
 class GetAuditLogList(PostRequest):
-    def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetAuditLogList", gameId=gameId, **params)
+    def __init__(self, gameId: str = None, seriesId: str = None, eventType: eventType = eventType.NONE, page: int = 1, **params) -> None:
+        if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
+        super().__init__("GetAuditLogList", gameId=gameId, eventType=eventType, page=page, **params)
 
 # Mod actions
 class GetGameSettings(PostRequest):
@@ -74,8 +79,8 @@ class GetModerationGames(PostRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetModerationGames", **params)
 
-class GetModerationRuns(PostRequest):
-    def __init__(self, gameId: str, limit: int, page: int, **params) -> None:
+class GetModerationRuns(PostPaginatedRequest):
+    def __init__(self, gameId: str, limit: int = 100, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", gameId=gameId, limit=limit, page=page, **params)
 
 class PutRunAssignee(PostRequest):
@@ -92,9 +97,9 @@ class GetRunSettings(PostRequest):
         super().__init__("GetRunSettings", runId=runId, **params)
 
 class PutRunSettings(PostRequest):
-    def __init__(self, settings: dict, **params) -> None:
+    def __init__(self, csrfToken: str, settings: dict, **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
-        super().__init__("PutRunSettings", settings=settings, **params)
+        super().__init__("PutRunSettings", csrfToken=csrfToken, settings=settings, **params)
 
 # User inbox actions
 class GetConversations(PostRequest):
@@ -106,7 +111,7 @@ class GetConversationMessages(PostRequest):
         super().__init__("GetConversationMessages", **params)
 
 # User notifications
-class GetNotifications(PostRequest):
+class GetNotifications(PostPaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", **params)
 
@@ -139,7 +144,7 @@ class PutCommentableSettings(PostRequest):
         super().__init__("PutCommentableSettings", itemId=itemId, itemType=itemType, **params)
 
 # Thread Actions
-class GetThread(PostRequest):
+class GetThread(PostPaginatedRequest):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", id=id, **params)
 
