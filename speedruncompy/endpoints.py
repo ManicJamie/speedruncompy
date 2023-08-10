@@ -20,7 +20,7 @@ class GetGameData(GetRequest):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGameData", gameId=gameId, **params)
 
-class GetGameRecordHistory(GetPaginatedRequest):
+class GetGameRecordHistory(GetRequest):
     """This takes a page field, but does not return a pagination object, and does not appear to be paginated."""
     def __init__(self, gameId: str, categoryId: str, **params) -> None:
         page = params.pop("page", None)
