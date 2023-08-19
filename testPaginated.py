@@ -17,14 +17,14 @@ _log.addHandler(logging.StreamHandler())
 def test_endpoint(request: BasePaginatedRequest):
     _log.info(type(request).__name__)
     try:
-        response = request.performAll()
+        response = request.perform_all()
         _log.info(json.dumps(response))
         return response
     except APIException as e:
         _log.error("API Error!", exc_info=e)
         return e
 
-auth.loginSessID(SESSID)
+auth.login_PHPSESSID(SESSID)
 
 test_endpoint(GetGameLeaderboard2("76rqmld8", "02q8o4p2", verified=1))
 # test_endpoint(GetAuditLogList("76rqmld8")) # Requires supermod

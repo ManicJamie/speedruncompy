@@ -1,5 +1,4 @@
-from tkinter import PAGES
-from .api import GetPaginatedRequest, GetRequest, PostPaginatedRequest, PostRequest
+from .api import BasePaginatedRequest, GetRequest, PostRequest
 from .exceptions import SrcpyException
 from .enums import *
 
@@ -7,7 +6,7 @@ from .enums import *
 GET requests are all unauthed & do not require PHPSESSID.
 """
 
-class GetGameLeaderboard2(GetPaginatedRequest):
+class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
     def __init__(self, gameId: str, categoryId: str, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
@@ -79,7 +78,7 @@ class GetModerationGames(PostRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetModerationGames", **params)
 
-class GetModerationRuns(PostPaginatedRequest):
+class GetModerationRuns(PostRequest, BasePaginatedRequest):
     def __init__(self, gameId: str, limit: int = 100, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", gameId=gameId, limit=limit, page=page, **params)
 
@@ -111,7 +110,7 @@ class GetConversationMessages(PostRequest):
         super().__init__("GetConversationMessages", **params)
 
 # User notifications
-class GetNotifications(PostPaginatedRequest):
+class GetNotifications(PostRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", **params)
 
@@ -144,7 +143,7 @@ class PutCommentableSettings(PostRequest):
         super().__init__("PutCommentableSettings", itemId=itemId, itemType=itemType, **params)
 
 # Thread Actions
-class GetThread(PostPaginatedRequest):
+class GetThread(PostRequest, BasePaginatedRequest):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", id=id, **params)
 

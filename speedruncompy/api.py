@@ -13,11 +13,11 @@ cookie = {}
 
 _log = logging.getLogger("speedruncompy")
 
-def setSessId(phpsessionid):
+def set_PHPSESSID(phpsessionid):
     global cookie
     cookie.update({"PHPSESSID": phpsessionid})
 
-def doGet(endpoint: str, params: dict = {}):
+def do_get(endpoint: str, params: dict = {}):
     _header = {"Accept-Language": LANG, "Accept": ACCEPT}
     # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
     # We will do the same in case param support is retracted.
@@ -26,7 +26,7 @@ def doGet(endpoint: str, params: dict = {}):
     _log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
     return get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r})
 
-def doPost(endpoint:str, params: dict = {}, _setCookie=True):
+def do_post(endpoint:str, params: dict = {}, _setCookie=True):
     global cookie
     _header = {"Accept-Language": LANG, "Accept": ACCEPT}
     _log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
@@ -41,7 +41,7 @@ class BaseRequest():
         self.endpoint = endpoint
         self.params = params
     
-    def updateParams(self, **kwargs):
+    def update_params(self, **kwargs):
         """Updates parameters using values set in kwargs"""
         self.params.update(kwargs)
 
@@ -80,17 +80,17 @@ class BasePaginatedRequest(BaseRequest):
         self.pages = {}
         super().__init__(method, endpoint, **params)
 
-    def performAll(self, retries=5, delay=1) -> dict:
+    def perform_all(self, retries=5, delay=1) -> dict:
         """Get all pages and return a dict of {pageNo : pageData}. Subclasses may merge this into a combined result."""
         self.params.update(page=1)
         while True:
             page = self.params["page"]
-            data = self.performPage(retries=retries, delay=delay) # this post-increments page
+            data = self.perform_page(retries=retries, delay=delay) # this post-increments page
             self.pages[page] = data
             if page >= data.get("pagination", {}).get("pages", 1): 
                 return self.pages
     
-    def performPage(self, retries=5, delay=1) -> Optional[dict]:
+    def perform_page(self, retries=5, delay=1) -> Optional[dict]:
         """Get the current page & advance counter to next page. Returns None if beyond the final page."""
         if "page" not in self.params: self.params["page"] = 1
 
@@ -103,14 +103,8 @@ class BasePaginatedRequest(BaseRequest):
 
 class GetRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
-        super().__init__(method=doGet, endpoint=endpoint, **params)
-
-class GetPaginatedRequest(GetRequest, BasePaginatedRequest):
-    pass
+        super().__init__(method=do_get, endpoint=endpoint, **params)
 
 class PostRequest(BaseRequest):
     def __init__(self, endpoint, **params) -> None:
-        super().__init__(method=doPost, endpoint=endpoint, **params)
-
-class PostPaginatedRequest(PostRequest, BasePaginatedRequest):
-    pass
+        super().__init__(method=do_post, endpoint=endpoint, **params)

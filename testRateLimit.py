@@ -4,7 +4,7 @@ from time import time
 
 from secret import SESSID
 
-speedruncompy.api.setSessId(SESSID)
+speedruncompy.api.set_PHPSESSID(SESSID)
 
 session = speedruncompy.GetSession().perform()
 

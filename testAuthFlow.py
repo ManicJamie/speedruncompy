@@ -3,10 +3,10 @@ from speedruncompy import GetSession
 
 from secret import USER_NAME, PASSWORD, SESSID
 
-auth.loginSessID("SESSID")
+auth.login_PHPSESSID("SESSID")
 
 response = GetSession().perform()
 
-csrf = auth.getCSRF()
+csrf = auth.get_CSRF()
 
 auth.logout()

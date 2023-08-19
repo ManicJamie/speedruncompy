@@ -55,7 +55,7 @@ if SESSID is None:
     token = input("Enter token:")
     test_endpoint(PutAuthLogin(USER_NAME, PASSWORD, token))
 else:
-    setSessId(SESSID)
+    set_PHPSESSID(SESSID)
 
 session = test_endpoint(GetSession())
 csrf = session["session"]["csrfToken"]

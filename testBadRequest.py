@@ -3,7 +3,7 @@ from speedruncompy.exceptions import *
 
 from secret import SESSID
 
-speedruncompy.auth.loginSessID(SESSID)
+speedruncompy.auth.login_PHPSESSID(SESSID)
 
 try:
     speedruncompy.GetSearch(query=True).perform()
