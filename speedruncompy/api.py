@@ -51,7 +51,7 @@ class BaseRequest():
         if (self.response.status_code >= 500 and self.response.status_code <= 599) or self.response.status_code == 408:
             if retries > 0:
                 _log.error(f"SRC returned error {self.response.status_code} {self.response.content}. Retrying with delay {delay}:")
-                for attempt in range(attempt, retries+1):
+                for attempt in range(0, retries+1):
                     self.response = self.method(self.endpoint, self.params)
                     if not (self.response.status_code >= 500 and self.response.status_code <= 599) or self.response.status_code == 408: 
                         break
