@@ -12,6 +12,16 @@ class verified(IntEnum):
     VERIFIED = 1
     REJECTED = 2
 
+class obsoleteFilter(IntEnum):
+    HIDDEN = 0,
+    SHOWN = 1,
+    EXCLUSIVE = 2
+
+class verifiedFilter(IntEnum):
+    OPTIONAL = 0,
+    REQUIRED = 1,
+    MISSING = 2
+
 class forumType(IntEnum):
     FRONT_PAGE = 0
     SUPPORTER = 1
@@ -91,3 +101,62 @@ class eventType(StrEnum):
     GAME_UPDATED = "game-updated"
     GAMEREQUEST_REVIEWED = "gamerequest-reviewed"
     LEVEL_CREATED = "level-created"
+
+class VariableLevelScope(IntEnum):
+    FULL_GAME = 0,
+    SINGLE_LEVEL = 1,
+    ALL_LEVELS = -1,
+    FULL_GAME_AND_ALL_LEVELS = -2
+
+class TicketQueueType(IntEnum):
+    GAME_REQUESTS = 1 
+    SERIES_REQUESTS = 2 
+    MOD_REPORTS = 3 
+    MARATHON_REQUESTS = 4 
+    CONTENT_REPORTS = 5 
+    USER_REPORTS = 6 
+    BUG_REPORTS = 7 
+    FRONT_PAGE_REQUESTS = 8 
+    FEEDBACK = 9 
+    STAFF_APPLICATIONS = 10
+    SUPPORT = 11
+    CONTENT_REQUESTS = 12
+    SUPPORTER = 13
+
+class TicketType(IntEnum):
+    GAME_REQUEST = 1,
+    SERIES_REQUEST = 2,
+    MOD_REQUEST = 3,
+    MARATHON_REQUEST = 4,
+    CONTENT_REPORT = 5,
+    USER_REPORT = 6,
+    BUG_REPORT = 7,
+    FRONT_PAGE_REQUEST = 8,
+    FEEDBACK = 9,
+    STAFF_APPLICATION = 10,
+    OTHER_SUPPORT = 11,
+    GAME_TYPE_UPDATE = 12,
+    ADD_TO_SERIES_REQUEST = 13,
+    ADD_PLATFORM_REQUEST = 14,
+    OTHER_GAME_REQUEST = 15,
+    SUPPORTER_HELP = 16
+
+class TicketStatus(IntEnum):
+    PENDING = 0,
+    APPROVED = 1,
+    DENIED = 2,
+    REVIEWING = 3,
+    WITHDRAWN = 4
+
+class NetworkId(IntEnum):
+    """NB: does not include deprecated values that may still be visible to the API"""
+    BILIBILI = 3,
+    DISCORD = 5,
+    FACEBOOK = 8,
+    INSTAGRAM = 11,
+    NICONICO = 15,
+    REDDIT = 18,
+    TWITCH = 29,
+    TWITTER = 30,
+    URL = 31,
+    YOUTUBE = 32
