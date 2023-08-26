@@ -1,4 +1,4 @@
-from .api import BasePaginatedRequest, GetRequest, PostRequest
+from .api import BasePaginatedRequest, GetRequest, PostRequest, _log
 from .exceptions import SrcpyException
 from .enums import *
 
@@ -14,6 +14,14 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         if page is not None: 
             param_construct["page"] = page
         super().__init__("GetGameLeaderboard2", **param_construct)
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        runList = []
+        for p in pages.values():
+            runList += p["runList"]
+        return {"runList": runList, "playerList": [player for player in pages[1]["playerList"]]}
 
 class GetGameData(GetRequest):
     def __init__(self, gameId: str, **params) -> None:
@@ -81,6 +89,24 @@ class GetModerationGames(PostRequest):
 class GetModerationRuns(PostRequest, BasePaginatedRequest):
     def __init__(self, gameId: str, limit: int = 100, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", gameId=gameId, limit=limit, page=page, **params)
+    
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        games = [pages[1]["games"][0]]
+        categories, levels, platforms, players, regions, runs, users, values, variables = ([] for i in range(9))
+        for page in pages.values():
+            for c in (c for c in page["categories"] if c not in categories): categories.append(c)
+            for l in (l for l in page["levels"] if l not in levels): levels.append(l)
+            for p in (p for p in page["platforms"] if p not in platforms): platforms.append(p)
+            for p in (p for p in page["players"] if p not in players): players.append(p)
+            for r in (r for r in page["regions"] if r not in regions): regions.append(r)
+            for u in (u for u in page["users"] if u not in users): users.append(u)
+            for v in (v for v in page["values"] if v not in values): values.append(v)
+            for v in (v for v in page["variables"] if v not in variables): variables.append(v)
+            runs += page["runs"]
+        return {"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
+                "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}
 
 class PutRunAssignee(PostRequest):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
@@ -113,6 +139,14 @@ class GetConversationMessages(PostRequest):
 class GetNotifications(PostRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", **params)
+    
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        notifications = []
+        for p in pages.values():
+            notifications += p["notifications"]
+        return {"unreadCount": pages[1]["unreadCount"], "notifications": notifications}
 
 # User settings
 class GetUserSettings(PostRequest):
@@ -146,6 +180,14 @@ class PutCommentableSettings(PostRequest):
 class GetThread(PostRequest, BasePaginatedRequest):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", id=id, **params)
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        commentList = []
+        for p in pages.values():
+            commentList += p["commentList"]
+        return {"thread": pages[1]["thread"], "commentList": commentList, "userList": pages[1]["userList"], "likeList": pages[1]["likeList"]}
 
 class GetThreadReadStatus(PostRequest):
     def __init__(self, threadIds: list[str], **params) -> None:

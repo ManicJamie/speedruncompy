@@ -8,17 +8,19 @@ from typing import Callable, Any, Optional
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
 ACCEPT = "application/json"
-
-cookie = {}
+DEFAULT_USER_AGENT = "speedruncompy/"
 
 _log = logging.getLogger("speedruncompy")
+
+cookie = {}
+user_agent = ""
 
 def set_PHPSESSID(phpsessionid):
     global cookie
     cookie.update({"PHPSESSID": phpsessionid})
 
 def do_get(endpoint: str, params: dict = {}):
-    _header = {"Accept-Language": LANG, "Accept": ACCEPT}
+    _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
     # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
     # We will do the same in case param support is retracted.
     paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
@@ -28,7 +30,7 @@ def do_get(endpoint: str, params: dict = {}):
 
 def do_post(endpoint:str, params: dict = {}, _setCookie=True):
     global cookie
-    _header = {"Accept-Language": LANG, "Accept": ACCEPT}
+    _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
     _log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
     response = post(url=f"{API_URI}{endpoint}", headers=_header, cookies=cookie, json=params)
     if _setCookie and response.cookies:
@@ -69,6 +71,8 @@ class BaseRequest():
         if self.response.status_code == 408: raise RequestTimeout(self)
         if self.response.status_code == 429: raise RateLimitExceeded(self)
 
+        if (self.response.status_code >= 500 and self.response.status_code <= 599): raise ServerException(self)
+
         if self.response.status_code < 200 or self.response.status_code > 299:
             _log.error(f"Unknown response error returned from SRC! {self.response.status_code} {self.response.content}")
             raise APIException(self)
@@ -82,15 +86,19 @@ class BasePaginatedRequest(BaseRequest):
 
     def perform_all(self, retries=5, delay=1) -> dict:
         """Get all pages and return a dict of {pageNo : pageData}. Subclasses may merge this into a combined result."""
+        return self._perform_all_raw(retries, delay)
+    
+    def _perform_all_raw(self, retries=5, delay=1):
+        """Get all pages and return a dict of {pageNo : pageData}."""
         self.params.update(page=1)
         while True:
             page = self.params["page"]
-            data = self.perform_page(retries=retries, delay=delay) # this post-increments page
+            data = self._perform_page(retries=retries, delay=delay) # this post-increments page
             self.pages[page] = data
             if page >= data.get("pagination", {}).get("pages", 1): 
                 return self.pages
     
-    def perform_page(self, retries=5, delay=1) -> Optional[dict]:
+    def _perform_page(self, retries=5, delay=1) -> Optional[dict]:
         """Get the current page & advance counter to next page. Returns None if beyond the final page."""
         if "page" not in self.params: self.params["page"] = 1
 

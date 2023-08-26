@@ -6,3 +6,4 @@ secret.*
 build
 dist
 playground.py
+probeEndpoints.py
