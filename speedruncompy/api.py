@@ -2,6 +2,7 @@ import base64, json
 from .exceptions import *
 import logging
 from requests import Response, get, post
+from requests.cookies import RequestsCookieJar
 from time import sleep
 from typing import Callable, Any, Optional
 
@@ -12,30 +13,43 @@ DEFAULT_USER_AGENT = "speedruncompy/"
 
 _log = logging.getLogger("speedruncompy")
 
-cookie = {}
-user_agent = ""
+class SpeedrunComPy():
+    """Api class. Holds a unique PHPSESSID and user_agent, as well as its own logger."""
+    def __init__(self, user_agent = None) -> None:
+        self.cookie_jar = RequestsCookieJar()
+        self.user_agent = user_agent
+        if user_agent is None:
+            self._log = _log
+        else:
+            self._log = _log.getChild(user_agent)
+    
+    def do_get(self, endpoint: str, params: dict = {}):
+        _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
+        # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
+        # We will do the same in case param support is retracted.
+        paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
+        _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"")
+        self._log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
+        return get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r})
+
+    def do_post(self, endpoint:str, params: dict = {}, _setCookie=True):
+        _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
+        self._log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
+        response = post(url=f"{API_URI}{endpoint}", headers=_header, cookies=self.cookie_jar, json=params)
+        if _setCookie and response.cookies:
+            self.cookie_jar.update(response.cookies)
+        return response
+
+_default = SpeedrunComPy()
 
 def set_PHPSESSID(phpsessionid):
-    global cookie
-    cookie.update({"PHPSESSID": phpsessionid})
+    _default.cookie_jar.update({"PHPSESSID": phpsessionid})
 
 def do_get(endpoint: str, params: dict = {}):
-    _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
-    # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
-    # We will do the same in case param support is retracted.
-    paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
-    _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"")
-    _log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
-    return get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r})
+    return _default.do_get(endpoint, params)
 
 def do_post(endpoint:str, params: dict = {}, _setCookie=True):
-    global cookie
-    _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
-    _log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
-    response = post(url=f"{API_URI}{endpoint}", headers=_header, cookies=cookie, json=params)
-    if _setCookie and response.cookies:
-        cookie = response.cookies
-    return response
+    return _default.do_post(endpoint, params)
 
 class BaseRequest():
     def __init__(self, method: Callable[[str, dict[str, Any]], Response], endpoint, **params):
@@ -110,9 +124,15 @@ class BasePaginatedRequest(BaseRequest):
         return data
 
 class GetRequest(BaseRequest):
-    def __init__(self, endpoint, **params) -> None:
-        super().__init__(method=do_get, endpoint=endpoint, **params)
+    def __init__(self, endpoint, api:SpeedrunComPy=None, **params) -> None:
+        if api is not None:
+            super().__init__(method=api.do_get, endpoint=endpoint, **params)
+        else:
+            super().__init__(method=do_get, endpoint=endpoint, **params)
 
 class PostRequest(BaseRequest):
-    def __init__(self, endpoint, **params) -> None:
-        super().__init__(method=do_post, endpoint=endpoint, **params)
+    def __init__(self, endpoint, api:SpeedrunComPy=None, **params) -> None:
+        if api is not None:
+            super().__init__(method=api.do_post, endpoint=endpoint, **params)
+        else:
+            super().__init__(method=do_post, endpoint=endpoint, **params)

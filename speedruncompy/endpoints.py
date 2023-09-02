@@ -1,4 +1,4 @@
-from .api import BasePaginatedRequest, GetRequest, PostRequest, _log
+from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log
 from .exceptions import SrcpyException
 from .enums import *
 
@@ -7,13 +7,13 @@ GET requests are all unauthed & do not require PHPSESSID.
 """
 
 class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
-    def __init__(self, gameId: str, categoryId: str, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         if page is not None: 
             param_construct["page"] = page
-        super().__init__("GetGameLeaderboard2", **param_construct)
+        super().__init__("GetGameLeaderboard2", api=_api, **param_construct)
 
     def perform_all(self, retries=5, delay=1) -> dict:
         """Returns a combined dict of all pages. `pagination` is removed."""
@@ -29,13 +29,13 @@ class GetGameData(GetRequest):
 
 class GetGameRecordHistory(GetRequest):
     """This takes a page field, but does not return a pagination object, and does not appear to be paginated."""
-    def __init__(self, gameId: str, categoryId: str, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         if page is not None: 
             param_construct["page"] = page
-        super().__init__("GetGameRecordHistory", **param_construct)
+        super().__init__("GetGameRecordHistory", api=_api, **param_construct)
 
 class GetSearch(GetRequest):
     def __init__(self, query: str, **params) -> None:
