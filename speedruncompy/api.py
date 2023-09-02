@@ -124,15 +124,15 @@ class BasePaginatedRequest(BaseRequest):
         return data
 
 class GetRequest(BaseRequest):
-    def __init__(self, endpoint, api:SpeedrunComPy=None, **params) -> None:
-        if api is not None:
-            super().__init__(method=api.do_get, endpoint=endpoint, **params)
+    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
+        if _api is not None:
+            super().__init__(method=_api.do_get, endpoint=endpoint, **params)
         else:
             super().__init__(method=do_get, endpoint=endpoint, **params)
 
 class PostRequest(BaseRequest):
-    def __init__(self, endpoint, api:SpeedrunComPy=None, **params) -> None:
-        if api is not None:
-            super().__init__(method=api.do_post, endpoint=endpoint, **params)
+    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
+        if _api is not None:
+            super().__init__(method=_api.do_post, endpoint=endpoint, **params)
         else:
             super().__init__(method=do_post, endpoint=endpoint, **params)

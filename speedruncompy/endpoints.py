@@ -13,7 +13,7 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         param_construct["params"].update(params)
         if page is not None: 
             param_construct["page"] = page
-        super().__init__("GetGameLeaderboard2", api=_api, **param_construct)
+        super().__init__("GetGameLeaderboard2", _api=_api, **param_construct)
 
     def perform_all(self, retries=5, delay=1) -> dict:
         """Returns a combined dict of all pages. `pagination` is removed."""
@@ -35,7 +35,7 @@ class GetGameRecordHistory(GetRequest):
         param_construct["params"].update(params)
         if page is not None: 
             param_construct["page"] = page
-        super().__init__("GetGameRecordHistory", api=_api, **param_construct)
+        super().__init__("GetGameRecordHistory", _api=_api, **param_construct)
 
 class GetSearch(GetRequest):
     def __init__(self, query: str, **params) -> None:
