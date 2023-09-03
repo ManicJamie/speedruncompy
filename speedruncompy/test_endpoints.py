@@ -2,9 +2,12 @@ from speedruncompy.endpoints import *
 from speedruncompy.api import SpeedrunComPy
 from speedruncompy.exceptions import *
 
-import pytest
+import pytest, os
 
-from secret import SESSID # NB: must be a logged in SESSID
+if "HORNET_PHPSESSID" in os.environ: # Github action setup
+    SESSID = os.environ["HORNET_PHPSESSID"]
+else:
+    from secret import SESSID
 
 game_id = "76rqmld8" # Hollow Knight
 category_id = "02q8o4p2" # Any%
