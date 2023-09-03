@@ -45,12 +45,6 @@ _default = SpeedrunComPy()
 def set_PHPSESSID(phpsessionid):
     _default.cookie_jar.update({"PHPSESSID": phpsessionid})
 
-def do_get(endpoint: str, params: dict = {}):
-    return _default.do_get(endpoint, params)
-
-def do_post(endpoint:str, params: dict = {}, _setCookie=True):
-    return _default.do_post(endpoint, params)
-
 class BaseRequest():
     def __init__(self, method: Callable[[str, dict[str, Any]], Response], endpoint, **params):
         self.method = method
@@ -124,15 +118,9 @@ class BasePaginatedRequest(BaseRequest):
         return data
 
 class GetRequest(BaseRequest):
-    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
-        if _api is not None:
-            super().__init__(method=_api.do_get, endpoint=endpoint, **params)
-        else:
-            super().__init__(method=do_get, endpoint=endpoint, **params)
+    def __init__(self, endpoint, _api:SpeedrunComPy=_default, **params) -> None:
+        super().__init__(method=_api.do_get, endpoint=endpoint, **params)
 
 class PostRequest(BaseRequest):
-    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
-        if _api is not None:
+    def __init__(self, endpoint, _api:SpeedrunComPy=_default, **params) -> None:
             super().__init__(method=_api.do_post, endpoint=endpoint, **params)
-        else:
-            super().__init__(method=do_post, endpoint=endpoint, **params)
