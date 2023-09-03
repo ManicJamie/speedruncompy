@@ -7,13 +7,12 @@ GET requests are all unauthed & do not require PHPSESSID.
 """
 
 class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
+    """The default leaderboard view."""
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        if page is not None: 
-            param_construct["page"] = page
-        super().__init__("GetGameLeaderboard2", _api=_api, **param_construct)
+        super().__init__("GetGameLeaderboard2", _api=_api, page=page, **param_construct)
 
     def perform_all(self, retries=5, delay=1) -> dict:
         """Returns a combined dict of all pages. `pagination` is removed."""
@@ -23,21 +22,45 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
             runList += p["runList"]
         return {"runList": runList, "playerList": [player for player in pages[1]["playerList"]]}
 
-class GetGameData(GetRequest):
-    def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetGameData", gameId=gameId, **params)
+class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
+    """WARN: This is NOT the view used by SRC! It may be removed at any time!
 
-class GetGameRecordHistory(GetRequest):
-    """This takes a page field, but does not return a pagination object, and does not appear to be paginated."""
+    This view is included as it is special & returns a bunch of extra information that may be useful."""
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        if page is not None: 
-            param_construct["page"] = page
-        super().__init__("GetGameRecordHistory", _api=_api, **param_construct)
+        super().__init__("GetGameLeaderboard", _api=_api, page=page, **param_construct)
+
+class GetGameData(GetRequest):
+    def __init__(self, gameId: str = None, gameUrl: str = None, **params) -> None:
+        if gameId is None and gameUrl is None: raise SrcpyException("GetGameData requires gameId or gameUrl")
+        super().__init__("GetGameData", gameId=gameId, gameUrl=gameUrl, **params)
+
+class GetGameRecordHistory(GetRequest):
+    """Get the record history of a category.
+    
+    #### Other parameters
+    - `values[]: list[variableId, valueIds[]]`
+    - `emulator: (bool?)` TODO: check
+    - `obsolete: bool`"""
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+        page = params.pop("page", None)
+        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
+        param_construct["params"].update(params)
+        super().__init__("GetGameRecordHistory", _api=_api, page=page, **param_construct)
 
 class GetSearch(GetRequest):
+    """Search for an object based on its name.
+
+    #### Other parameters:
+    - `limit: int` max. 500
+    - `includeGames: bool`
+    - `includeNews: bool`
+    - `includePages: bool`
+    - `includeSeries: bool`
+    - `includeUsers: bool`
+    """
     def __init__(self, query: str, **params) -> None:
         super().__init__("GetSearch", query=query, **params)
 
