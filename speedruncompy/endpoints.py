@@ -68,6 +68,10 @@ class GetLatestLeaderboard(GetRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetLatestLeaderboard", **params)
 
+class GetRun(GetRequest):
+    def __init__(self, runId: str, **params) -> None:
+        super().__init__("GetRun", runId=runId, **params)
+
 """
 POST requests may require auth
 """
