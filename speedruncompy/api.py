@@ -159,6 +159,7 @@ class BasePaginatedRequest(BaseRequest):
     
     def _perform_all_raw(self, retries=5, delay=1):
         """Get all pages and return a dict of {pageNo : pageData}."""
+        self.pages = {}
         self.params.update(page=1)
         while True:
             page = self.params["page"]
