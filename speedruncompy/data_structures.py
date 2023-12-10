@@ -4,6 +4,12 @@ class Datatype():
     def __repr__(self) -> str:
         return str(self.__dict__)
 
+    def __getitem__(self, key):
+        return self.__dict__[key]
+    
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
 class VariableValue(Datatype):
     def __init__(self, construct:Union[tuple[str, str], dict[str, str]]) -> None:
         if type(construct) is tuple:
@@ -44,4 +50,4 @@ class RunSettings(Datatype):
         self.video = dict.get("video", 0)
         self.comment = dict.get("comment", "")
         self.date = dict.get("date", "")
-        self.values: list[VariableValue] = dict.get("values", [])
+        self.values: list[VariableValue] = VariableValue(dict.get("values", []))
