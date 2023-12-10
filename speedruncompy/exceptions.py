@@ -1,4 +1,6 @@
 from typing import TYPE_CHECKING
+
+from requests import Response
 if TYPE_CHECKING:
     from .api import BaseRequest
 
@@ -8,7 +10,11 @@ class SrcpyException(Exception):
 class APIException(Exception):
     def __init__(self, caller: 'BaseRequest', *args) -> None:
         self.caller = caller
-        super().__init__(self.caller.response.status_code, self.caller.response.content, self.caller, *args)
+        if isinstance(self.caller.response, Response):
+            status = self.caller.response.status_code
+        else:
+            status = self.caller.response[1]
+        super().__init__(status, self.caller.response.content, self.caller, *args)
 
 class ClientException(APIException):
     """There was an issue with your request that the client must handle."""

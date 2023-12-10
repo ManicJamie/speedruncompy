@@ -14,13 +14,21 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard2", _api=_api, page=page, **param_construct)
 
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
+    def _combine_results(self, pages: dict):
         runList = []
         for p in pages.values():
             runList += p["runList"]
         return {"runList": runList, "playerList": [player for player in pages[1]["playerList"]]}
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        return self._combine_results(pages)
+
+    async def perform_all_async(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = await super().perform_all_async(retries, delay)
+        return self._combine_results(pages)
 
 class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
     """WARN: This is NOT the view used by SRC! It may be removed at any time!
@@ -117,9 +125,7 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
     def __init__(self, gameId: str, limit: int = 100, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", gameId=gameId, limit=limit, page=page, **params)
     
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
+    def _combine_results(self, pages: dict):
         games = [pages[1]["games"][0]]
         categories, levels, platforms, players, regions, runs, users, values, variables = ([] for i in range(9))
         for page in pages.values():
@@ -134,6 +140,16 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
             runs += page["runs"]
         return {"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
                 "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        return self._combine_results(pages)
+
+    async def perform_all_async(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = await super().perform_all_async(retries, delay)
+        return self._combine_results(pages)
 
 class PutRunAssignee(PostRequest):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
@@ -166,14 +182,22 @@ class GetConversationMessages(PostRequest):
 class GetNotifications(PostRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", **params)
-    
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
+
+    def _combine_results(self, pages: dict):
         notifications = []
         for p in pages.values():
             notifications += p["notifications"]
         return {"unreadCount": pages[1]["unreadCount"], "notifications": notifications}
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        return self._combine_results(pages)
+
+    async def perform_all_async(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = await super().perform_all_async(retries, delay)
+        return self._combine_results(pages)
 
 # User settings
 class GetUserSettings(PostRequest):
@@ -208,13 +232,21 @@ class GetThread(PostRequest, BasePaginatedRequest):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", id=id, **params)
 
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
+    def _combine_results(self, pages: dict):
         commentList = []
         for p in pages.values():
             commentList += p["commentList"]
         return {"thread": pages[1]["thread"], "commentList": commentList, "userList": pages[1]["userList"], "likeList": pages[1]["likeList"]}
+
+    def perform_all(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = super().perform_all(retries, delay)
+        return self._combine_results(pages)
+
+    async def perform_all_async(self, retries=5, delay=1) -> dict:
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = await super().perform_all_async(retries, delay)
+        return self._combine_results(pages)
 
 class GetThreadReadStatus(PostRequest):
     def __init__(self, threadIds: list[str], **params) -> None:
