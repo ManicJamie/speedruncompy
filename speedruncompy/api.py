@@ -122,11 +122,11 @@ class BaseRequest():
                 _log.error(f"SRC returned error {status} {content}. Retrying with delay {delay}:")
                 for attempt in range(0, retries+1):
                     self.response = await self.async_method(self.endpoint, self.params)
-                    status = self.response[0]
-                    content = self.response[1]
+                    content = self.response[0]
+                    status = self.response[1]
                     if not (status >= 500 and status <= 599) or status == 408: 
                         break
-                    _log.error(f"Retry {attempt} returned error {status} {self.response.content}")
+                    _log.error(f"Retry {attempt} returned error {status} {content}")
                     await asyncio.sleep(delay)
                 else:
                     if status == 408: raise RequestTimeout(self)
