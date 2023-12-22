@@ -128,7 +128,7 @@ class PutSessionPing(PostRequest):
         super().__init__("PutSessionPing", **params)
 
 # Supermod actions
-class GetAuditLogList(PostRequest):
+class GetAuditLogList(PostRequest, BasePaginatedRequest):
     def __init__(self, gameId: str = None, seriesId: str = None, eventType: eventType = eventType.NONE, page: int = 1, **params) -> None:
         if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
         super().__init__("GetAuditLogList", gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
