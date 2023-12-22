@@ -80,6 +80,32 @@ class GetRun(GetRequest):
     def __init__(self, runId: str, **params) -> None:
         super().__init__("GetRun", runId=runId, **params)
 
+class GetUserPopoverData(GetRequest):
+    def __init__(self, userId, **params) -> None:
+        super().__init__("GetUserPopoverData", userId=userId, **params)
+
+class GetArticleList(GetRequest, BasePaginatedRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetArticleList", **params)
+
+class GetArticle(GetRequest):
+    def __init__(self, id = None, slug = None, **params) -> None:
+        if id is None and slug is None: raise SrcpyException("GetArticle requires id or slug")
+        super().__init__("GetArticle", id=id, slug=slug, **params)
+
+class GetGameList(GetRequest, BasePaginatedRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetGameList", **params)
+
+class GetHomeSummary(GetRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetHomeSummary", **params)
+
+class GetSeriesList(GetRequest, BasePaginatedRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetSeriesList", **params)
+
+
 """
 POST requests may require auth
 """
@@ -105,7 +131,7 @@ class PutSessionPing(PostRequest):
 class GetAuditLogList(PostRequest):
     def __init__(self, gameId: str = None, seriesId: str = None, eventType: eventType = eventType.NONE, page: int = 1, **params) -> None:
         if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
-        super().__init__("GetAuditLogList", gameId=gameId, eventType=eventType, page=page, **params)
+        super().__init__("GetAuditLogList", gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
 
 # Mod actions
 class GetGameSettings(PostRequest):
