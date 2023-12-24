@@ -149,13 +149,21 @@ class BaseRequest():
         return json.loads(content.decode())
 
 class BasePaginatedRequest(BaseRequest):
+    def _combine_results(self, pages: dict):
+        _log.warning(f"""perform_all or perform_all_async on {type(self).__name__} is NOT yet implemented!
+                     
+                     Use _perform_all_raw() or _perform_all_async_raw() to protect against future updates.""")
+        return pages
+
     def perform_all(self, retries=5, delay=1) -> dict:
-        """Get all pages and return a dict of {pageNo : pageData}. Subclasses may merge this into a combined result."""
-        return self._perform_all_raw(retries, delay)
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = self._perform_all_raw(retries, delay)
+        return self._combine_results(pages)
     
     async def perform_all_async(self, retries=5, delay=1) -> dict:
-        """Get all pages and return a dict of {pageNo : pageData}. Subclasses may merge this into a combined result."""
-        return await self._perform_all_async_raw(retries, delay)
+        """Returns a combined dict of all pages. `pagination` is removed."""
+        pages = await self._perform_all_async_raw(retries, delay)
+        return self._combine_results(pages)
     
     def _perform_all_raw(self, retries=5, delay=1):
         """Get all pages and return a dict of {pageNo : pageData}."""
@@ -169,11 +177,12 @@ class BasePaginatedRequest(BaseRequest):
                 return self.pages
     
     async def _perform_all_async_raw(self, retries=5, delay=1):
+        """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages = {}
         self.pages[1] = await self.perform_async(retries, delay, page=1)
         numpages = self.pages[1]["pagination"]["pages"]
         if numpages > 1:
-            results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages)])
+            results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
             self.pages.update({p + 2:result for p, result in enumerate(results)})
         return self.pages
     
