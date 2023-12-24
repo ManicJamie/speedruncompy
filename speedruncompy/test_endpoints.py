@@ -13,7 +13,7 @@ import pytest, os, logging, json
 
     Please carefully test any functionality requiring supermod endpoints.
 
-    Also note that testing is omitted for POST actions that add data to the site:; this is to avoid spamming the site with data. 
+    Also note that testing is omitted for POST actions that add data to the site; this is to avoid spamming the site with data. 
     Be careful when modifying these endpoints.
 """
 
@@ -99,7 +99,7 @@ class TestPostRequests():
     api.cookie_jar.update({"PHPSESSID": SESSID})
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
-    api.cookie_jar.update({"PHPSESSID": LOW_SESSID})
+    low_api.cookie_jar.update({"PHPSESSID": LOW_SESSID})
 
     def test_DefaultAPI_separation(self):
         """Ensure separation between default api instance and the declared api instance"""
