@@ -2,7 +2,7 @@ from .endpoints import *
 from .api import SpeedrunComPy
 from .exceptions import *
 
-import pytest, os, logging, json
+import pytest, os, logging, json, asyncio
 
 """
     NB: you may not be able to perform some of these tests depending on account permissions.
@@ -52,7 +52,18 @@ class TestGetRequests():
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
         log_result(result)
         assert "runList" in result
-        assert len(result["runList"]) > 0    
+        assert len(result["runList"]) > 0
+    
+    def test_GetAsync(self):
+        result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_async())
+        standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
+        assert result == standard_result
+    
+    def test_PaginatedAsync(self):
+        result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_async_raw())
+        standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
+        assert result == standard_result
+    
     def test_GetGameLeaderboard2_paginated(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all()
         log_result(result)
