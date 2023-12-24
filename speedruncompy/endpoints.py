@@ -2,6 +2,8 @@ from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _
 from .exceptions import SrcpyException
 from .enums import *
 
+SUPPRESS_WARNINGS = False
+
 """
 GET requests are all unauthed & do not require PHPSESSID.
 """
@@ -18,17 +20,10 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         runList = []
         for p in pages.values():
             runList += p["runList"]
-        return {"runList": runList, "playerList": [player for player in pages[1]["playerList"]]}
-
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
-        return self._combine_results(pages)
-
-    async def perform_all_async(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await super().perform_all_async(retries, delay)
-        return self._combine_results(pages)
+        extras: dict = pages[1]
+        extras.pop("runList")
+        extras.pop("pagination")
+        return {"runList": runList} | extras
 
 class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
     """WARN: This is NOT the view used by SRC! It may be removed at any time!
@@ -39,6 +34,15 @@ class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard", _api=_api, page=page, **param_construct)
+
+    def _combine_results(self, pages: dict):
+        runList = []
+        for p in pages.values():
+            runList += p["runs"]
+        extras: dict = pages[1]
+        extras.pop("runs")
+        extras.pop("pagination")
+        return {"runs": runList} | extras
 
 class GetGameData(GetRequest):
     def __init__(self, gameId: str = None, gameUrl: str = None, **params) -> None:
@@ -88,6 +92,18 @@ class GetArticleList(GetRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetArticleList", **params)
 
+    def _combine_results(self, pages: dict):
+        """WARN: untested as currently fewer than 500 pages exist on the site"""
+        if not SUPPRESS_WARNINGS:
+            _log.warning("GetArticleList depagination is currently untested, as fewer than 500 pages exist on the site.")
+        articleList = []
+        for p in pages.values():
+            articleList += p["articleList"]
+        extras: dict = pages[1]
+        extras.pop("articleList")
+        extras.pop("pagination")
+        return {"articleList": articleList} | extras
+
 class GetArticle(GetRequest):
     def __init__(self, id = None, slug = None, **params) -> None:
         if id is None and slug is None: raise SrcpyException("GetArticle requires id or slug")
@@ -96,6 +112,15 @@ class GetArticle(GetRequest):
 class GetGameList(GetRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetGameList", **params)
+    
+    def _combine_results(self, pages: dict):
+        gameList = []
+        for p in pages.values():
+            gameList += p["gameList"]
+        extras: dict = pages[1]
+        extras.pop("gameList")
+        extras.pop("pagination")
+        return {"gameList": gameList} | extras
 
 class GetHomeSummary(GetRequest):
     def __init__(self, **params) -> None:
@@ -105,6 +130,14 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
     def __init__(self, **params) -> None:
         super().__init__("GetSeriesList", **params)
 
+    def _combine_results(self, pages: dict):
+        seriesList = []
+        for p in pages.values():
+            seriesList += p["seriesList"]
+        extras: dict = pages[1]
+        extras.pop("seriesList")
+        extras.pop("pagination")
+        return {"seriesList": seriesList} | extras
 
 """
 POST requests may require auth
@@ -129,9 +162,16 @@ class PutSessionPing(PostRequest):
 
 # Supermod actions
 class GetAuditLogList(PostRequest, BasePaginatedRequest):
+    """WARN: not currently depaginated due to lack of testing availaibility.
+    
+    To protect against future updates before v1.0, use `._perform_all_raw()`"""
     def __init__(self, gameId: str = None, seriesId: str = None, eventType: eventType = eventType.NONE, page: int = 1, **params) -> None:
         if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
         super().__init__("GetAuditLogList", gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
+    
+    def _combine_results(self, pages: dict):
+        #TODO: Method stub
+        return super()._combine_results(pages)
 
 # Mod actions
 class GetGameSettings(PostRequest):
@@ -152,6 +192,7 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
         super().__init__("GetModerationRuns", gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
+        #TODO: is this all really necessary?
         games = [pages[1]["games"][0]]
         categories, levels, platforms, players, regions, runs, users, values, variables = ([] for i in range(9))
         for page in pages.values():
@@ -166,16 +207,6 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
             runs += page["runs"]
         return {"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
                 "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}
-
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
-        return self._combine_results(pages)
-
-    async def perform_all_async(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await super().perform_all_async(retries, delay)
-        return self._combine_results(pages)
 
 class PutRunAssignee(PostRequest):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
@@ -213,17 +244,10 @@ class GetNotifications(PostRequest, BasePaginatedRequest):
         notifications = []
         for p in pages.values():
             notifications += p["notifications"]
-        return {"unreadCount": pages[1]["unreadCount"], "notifications": notifications}
-
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
-        return self._combine_results(pages)
-
-    async def perform_all_async(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await super().perform_all_async(retries, delay)
-        return self._combine_results(pages)
+        extras: dict = pages[1]
+        extras.pop("notifications")
+        extras.pop("pagination")
+        return {"notifications": notifications} | extras
 
 # User settings
 class GetUserSettings(PostRequest):
@@ -262,17 +286,10 @@ class GetThread(PostRequest, BasePaginatedRequest):
         commentList = []
         for p in pages.values():
             commentList += p["commentList"]
-        return {"thread": pages[1]["thread"], "commentList": commentList, "userList": pages[1]["userList"], "likeList": pages[1]["likeList"]}
-
-    def perform_all(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = super().perform_all(retries, delay)
-        return self._combine_results(pages)
-
-    async def perform_all_async(self, retries=5, delay=1) -> dict:
-        """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await super().perform_all_async(retries, delay)
-        return self._combine_results(pages)
+        extras: dict = pages[1]
+        extras.pop("commentList")
+        extras.pop("pagination")
+        return {"commentList": commentList} | extras
 
 class GetThreadReadStatus(PostRequest):
     def __init__(self, threadIds: list[str], **params) -> None:
