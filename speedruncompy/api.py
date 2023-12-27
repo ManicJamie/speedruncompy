@@ -24,6 +24,9 @@ class SpeedrunComPy():
         else:
             self._log = _log.getChild(user_agent)
     
+    def set_phpsessid(self, phpsessid):
+        self.cookie_jar.update({"PHPSESSID": phpsessid})
+    
     def do_get(self, endpoint: str, params: dict = {}):
         _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
         # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
@@ -64,7 +67,7 @@ class SpeedrunComPy():
 
 _default = SpeedrunComPy()
 
-def set_PHPSESSID(phpsessionid):
+def set_default_PHPSESSID(phpsessionid):
     _default.cookie_jar.update({"PHPSESSID": phpsessionid})
 
 class BaseRequest():

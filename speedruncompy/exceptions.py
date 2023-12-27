@@ -7,6 +7,9 @@ if TYPE_CHECKING:
 class SrcpyException(Exception):
     """speedruncompy found an issue with your request during initialisation (eg. bad arguments)"""
 
+class AuthException(Exception):
+    """speedruncompy found an issue within the auth module."""
+
 class APIException(Exception):
     def __init__(self, caller: 'BaseRequest', *args) -> None:
         self.caller = caller
