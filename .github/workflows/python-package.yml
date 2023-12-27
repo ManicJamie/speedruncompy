@@ -37,5 +37,8 @@ jobs:
     - name: Test with pytest
       env:
         HORNET_PHPSESSID: ${{secrets.HORNET_PHPSESSID}}
+        LOW_PHPSESSID: ${{secrets.LOW_PHPSESSID}}
+        LOW_USERNAME: ${{secrets.LOW_USERNAME}}
+        LOW_PASSWORD: ${{secrets.LOW_PASSWORD}}
       run: |
         pytest
