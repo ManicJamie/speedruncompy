@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from requests import Response
 if TYPE_CHECKING:
     from .api import BaseRequest
 
@@ -10,14 +9,14 @@ class SrcpyException(Exception):
 class AuthException(Exception):
     """speedruncompy found an issue within the auth module."""
 
+class AIOException(Exception):
+    """Synchronous interface called from asynchronous context - use `await perform_async` instead."""
+
 class APIException(Exception):
     def __init__(self, caller: 'BaseRequest', *args) -> None:
         self.caller = caller
-        if isinstance(self.caller.response, Response):
-            status = self.caller.response.status_code
-        else:
-            status = self.caller.response[1]
-        super().__init__(status, self.caller.response.content, self.caller, *args)
+        status = self.caller.response[1]
+        super().__init__(status, self.caller.response[0], self.caller, *args)
 
 class ClientException(APIException):
     """There was an issue with your request that the client must handle."""

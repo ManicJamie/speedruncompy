@@ -49,7 +49,7 @@ def log_result(result: dict):
 
 class TestGetRequests():
     api = SpeedrunComPy("Test")
-    api.cookie_jar.update({"PHPSESSID": SESSID})
+    api.set_phpsessid(SESSID)
 
     def test_GetGameLeaderboard2(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
@@ -66,6 +66,12 @@ class TestGetRequests():
         result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_async_raw())
         standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
         assert result == standard_result
+    
+    def test_AsyncSyncWarning(self):
+        """Calls to the synchronous interface from an asynchronous context should raise an error and tell you to use async interface"""
+        with pytest.raises(AIOException) as e:
+            async def main(): return GetGameLeaderboard2("76rqmld8", "02q8o4p2").perform_all()
+            asyncio.run(main())
     
     def test_GetGameLeaderboard2_paginated(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all()
@@ -165,10 +171,10 @@ class TestGetRequests():
 
 class TestPostRequests():
     api = SpeedrunComPy("Test")
-    api.cookie_jar.update({"PHPSESSID": SESSID})
+    api.set_phpsessid(SESSID)
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
-    low_api.cookie_jar.update({"PHPSESSID": LOW_SESSID})
+    low_api.set_phpsessid(LOW_SESSID)
 
     def test_DefaultAPI_separation(self):
         """Ensure separation between default api instance and the declared api instance"""
