@@ -38,6 +38,9 @@ IS_SUPERMOD = False # Set to True to activate full test suite including supermod
 game_id = "76rqmld8" # Hollow Knight
 category_id = "02q8o4p2" # Any%
 run_id = "" # Must be owned by logged in user; this one is owned by Hornet_Bot
+comment_list_source = "y8k99ndy" # Must have multiple pages of comments & match itemType below
+comment_list_type = itemType.RUN
+thread_id = "mbkmj"
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -93,6 +96,14 @@ class TestGetRequests():
         with pytest.raises(BadRequest) as e: # The ID not being found does NOT 404, but 400s. Good website
             GetGameData(_api=self.api, gameId="a").perform()
     
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetGameSummary(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetGameLevelSummary(self):
+        ...
+    
     def test_GetSearch(self):
         result = GetSearch("Hollow Knight", includeGames=True).perform()
         log_result(result)
@@ -104,6 +115,53 @@ class TestGetRequests():
         log_result(result)
         assert "runs" in result
         assert len(result["runs"]) > 0
+
+    def test_GetCommentList(self):
+        result = GetCommentList(comment_list_source, comment_list_type).perform()
+        log_result(result)
+        assert "commentList" in result
+        assert len(result["commentList"]) > 0
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetCommentList_paginated_raw(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetCommentList_paginated(self):
+        ...
+
+    def test_GetThread(self):
+        result = GetThread(thread_id).perform()
+        log_result(result)
+        assert "thread" in result
+        assert "commentList" in result
+        assert len(result["commentList"]) > 0
+        assert "pagination" in result
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetThread_paginated_raw(self):
+        ...
+
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetThread_paginated(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetUserLeaderboard(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetForumList(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetGuideList(self):
+        ...
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetGuide(self):
+        ...
+    
 
 class TestPostRequests():
     api = SpeedrunComPy("Test")
@@ -163,18 +221,6 @@ class TestPostRequests():
             GetAuditLogList(_api=self.low_api, gameId=game_id).perform()
 
     @pytest.mark.skip(reason="Test stub")
-    def test_GetCommentList(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
-    def test_GetCommentList_paginated_raw(self):
-        ...
-    
-    @pytest.mark.skip(reason="Not yet implemented")
-    def test_GetCommentList_paginated(self):
-        ...
-
-    @pytest.mark.skip(reason="Test stub")
     def test_GetCommentable(self):
         ...
     
@@ -198,10 +244,6 @@ class TestPostRequests():
     def test_GetConversations_unauthed(self):
         ...
 
-    @pytest.mark.skip(reason="Test stub")
-    def test_GetForumList(self):
-        ...
-    
     @pytest.mark.skip(reason="Test stub")
     def test_GetForumReadStatus(self):
         ...
@@ -252,10 +294,6 @@ class TestPostRequests():
 
     @pytest.mark.skip(reason="Test stub")
     def test_GetThemeSettings(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
-    def test_GetThread(self):
         ...
 
     @pytest.mark.skip(reason="Test stub")

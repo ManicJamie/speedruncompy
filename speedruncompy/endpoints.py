@@ -49,6 +49,10 @@ class GetGameData(GetRequest):
         if gameId is None and gameUrl is None: raise SrcpyException("GetGameData requires gameId or gameUrl")
         super().__init__("GetGameData", gameId=gameId, gameUrl=gameUrl, **params)
 
+class GetGameSummary(GetRequest):
+    def __init__(self, gameId:str, **params) -> None:
+        super().__init__("GetGameSummary", gameId=gameId, **params)
+
 class GetGameRecordHistory(GetRequest):
     """Get the record history of a category.
     
@@ -138,6 +142,67 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
         extras.pop("seriesList")
         extras.pop("pagination")
         return {"seriesList": seriesList} | extras
+
+class GetGameLevelSummary(GetRequest, BasePaginatedRequest):
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+        page = params.pop("page", None)
+        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
+        param_construct["params"].update(params)
+        super().__init__("GetGameRecordHistory", _api=_api, page=page, **param_construct)
+
+class GetGuideList(GetRequest):
+    def __init__(self, gameId: str, **params) -> None:
+        super().__init__("GetGuideList", gameId=gameId, **params)
+
+class GetGuide(GetRequest):
+    def __init__(self, id: str, **params) -> None:
+        super().__init__("GetGuide", id=id, **params)
+
+class GetNewsList(GetRequest):
+    def __init__(self, gameId: str, **params) -> None:
+        super().__init__("GetNewsList", gameId=gameId, **params)
+
+class GetNews(GetRequest):
+    def __init__(self, id: str, **params) -> None:
+        super().__init__("GetNews", id=id, **params)
+
+class GetResourceList(GetRequest):
+    def __init__(self, gameId: str, **params) -> None:
+        super().__init__("GetResourceList", gameId=gameId, **params)
+
+class GetStreamList(GetRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetStreamList", **params)
+
+class GetThreadList(GetRequest):
+    def __init__(self, forumId: str, **params) -> None:
+        super().__init__("GetThreadList", forumId=forumId, **params)
+
+# The below are POSTed by the site, but also accept GET so are placed here to separate from endpoints requiring auth.
+class GetUserLeaderboard(GetRequest):
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserLeaderboard", userId=userId, **params)
+
+class GetCommentList(GetRequest, BasePaginatedRequest):
+    def __init__(self, itemId: str, itemType: int, **params) -> None:
+        super().__init__("GetCommentList", itemId=itemId, itemType=itemType, **params)
+
+class GetThread(GetRequest , BasePaginatedRequest):
+    def __init__(self, id: str, **params) -> None:
+        super().__init__("GetThread", id=id, **params)
+
+    def _combine_results(self, pages: dict):
+        commentList = []
+        for p in pages.values():
+            commentList += p["commentList"]
+        extras: dict = pages[1]
+        extras.pop("commentList")
+        extras.pop("pagination")
+        return {"commentList": commentList} | extras
+
+class GetForumList(GetRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetForumList", **params)
 
 """
 POST requests may require auth
@@ -260,10 +325,6 @@ class PutUserSettings(PostRequest):
         super().__init__("PutUserSettings", userUrl=userUrl, settings=settings, **params)
 
 # Comment Actions
-class GetCommentList(PostRequest):
-    def __init__(self, itemId: str, itemType: int, **params) -> None:
-        super().__init__("GetCommentList", itemId=itemId, itemType=itemType, **params)
-
 class GetCommentable(PostRequest):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
         super().__init__("GetCommentable", itemId=itemId, itemType=itemType, **params)
@@ -278,19 +339,6 @@ class PutCommentableSettings(PostRequest):
         super().__init__("PutCommentableSettings", itemId=itemId, itemType=itemType, **params)
 
 # Thread Actions
-class GetThread(PostRequest, BasePaginatedRequest):
-    def __init__(self, id: str, **params) -> None:
-        super().__init__("GetThread", id=id, **params)
-
-    def _combine_results(self, pages: dict):
-        commentList = []
-        for p in pages.values():
-            commentList += p["commentList"]
-        extras: dict = pages[1]
-        extras.pop("commentList")
-        extras.pop("pagination")
-        return {"commentList": commentList} | extras
-
 class GetThreadReadStatus(PostRequest):
     def __init__(self, threadIds: list[str], **params) -> None:
         super().__init__("GetThreadReadStatus", threadIds=threadIds, **params)
@@ -300,10 +348,6 @@ class PutThreadRead(PostRequest):
         super().__init__("PutThreadRead", threadId=threadId, **params)
 
 # Forum actions
-class GetForumList(PostRequest):
-    def __init__(self, **params) -> None:
-        super().__init__("GetForumList", **params)
-
 class GetForumReadStatus(PostRequest):
     def __init__(self, forumIds: list[str], **params) -> None:
         super().__init__("GetForumReadStatus", forumIds=forumIds, **params)
