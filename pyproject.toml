@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "speedruncompy"
+authors = [
+    {name = "Jamie", email = "jamie.on.twitch@gmail.com"},
+]
+description = "A wrapper for speedrun.com's obscure new v2 API, as used by their new site"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["speedrun"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "aiohttp"
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/ManicJamie/speedruncompy"
+Repository = "https://github.com/ManicJamie/speedruncompy.git"
+"Bug Tracker" = "https://github.com/ManicJamie/speedruncompy/issues"
