@@ -2,8 +2,7 @@ import base64, json
 from .exceptions import *
 import logging
 import asyncio, aiohttp
-from time import sleep
-from typing import Awaitable, Callable, Any, Optional
+from typing import Awaitable, Callable, Any
 
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
