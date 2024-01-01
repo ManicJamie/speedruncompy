@@ -5,7 +5,7 @@ from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
 
 log = logging.getLogger("speedruncompy.auth")
 
-def login(username: str, pwd: str, _api: SpeedrunComPy = None):
+def login(username: str, pwd: str, _api: SpeedrunComPy = _default):
     """Quick workflow to set sessid using username & pwd. Will prompt for auth token if required."""
     result: dict = PutAuthLogin(username, pwd, _api).perform()
     if result.get("loggedIn"):
