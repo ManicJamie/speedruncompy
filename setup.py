@@ -1,11 +1,17 @@
 from setuptools import setup
+import os
+
+if "srcpy-version" in os.environ:
+    version = os.environ["srcpy-version"]
+
+# version = "v0.0.0" # For non-automated builds
 
 with open("README.md") as f:
     desc = f.read()
 
 setup(
     name='speedruncompy',
-    version="0.1.0",
+    version=version,
     author="Jamie",
     author_email="jamiebloomfield8@gmail.com",
     description="A wrapper for speedrun.com's new v2 API, as used by their new site",
