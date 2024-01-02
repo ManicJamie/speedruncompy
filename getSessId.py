@@ -1,5 +1,9 @@
 """
-Basic script to login a new SRC session & get its session ID. Useful if you do not want to bother adding standard login code to your program & storing a username/password.
+Basic script to login a new SRC session & get its session ID. 
+
+Useful if you do not want to bother adding standard login code to your program & storing a username/password.
+
+Especially useful if you have 2FA enabled!
 """
 
 from speedruncompy import auth, api
@@ -9,4 +13,4 @@ username = input("Enter username: ")
 password = getpass("Enter password: ")
 auth.login(username, password)
 
-print(api.cookie["PHPSESSID"])
+print(api._default.cookie_jar["PHPSESSID"])
