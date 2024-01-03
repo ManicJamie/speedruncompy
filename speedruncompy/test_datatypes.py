@@ -1,4 +1,5 @@
 import asyncio
+import os
 from random import randint, sample
 from .datatypes import *
 from . import datatypes
@@ -76,7 +77,7 @@ class TestDatatypes():
         
         assert isinstance(settings.values[0], VariableValue)
 
-#@pytest.mark.skip
+@pytest.mark.skipif("SESSID" in os.environ) # Skips on automated runs
 class TestDatatypes_Integration():
     @pytest.mark.asyncio
     async def test_Runs(self):
