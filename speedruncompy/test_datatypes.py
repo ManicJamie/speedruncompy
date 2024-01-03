@@ -77,9 +77,8 @@ class TestDatatypes():
         
         assert isinstance(settings.values[0], VariableValue)
 
-@pytest.mark.skipif("SESSID" in os.environ) # Skips on automated runs
+@pytest.mark.skipif("SKIP_HEAVY_TESTS" in os.environ, reason="Skip on automated runs")
 class TestDatatypes_Integration():
-    @pytest.mark.asyncio
     async def test_Runs(self):
         games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
 

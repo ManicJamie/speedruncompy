@@ -40,5 +40,6 @@ jobs:
         LOW_PHPSESSID: ${{secrets.LOW_PHPSESSID}}
         LOW_USERNAME: ${{secrets.LOW_USERNAME}}
         LOW_PASSWORD: ${{secrets.LOW_PASSWORD}}
+        SKIP_HEAVY_TESTS: true
       run: |
         pytest
