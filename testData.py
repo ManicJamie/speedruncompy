@@ -1,4 +1,4 @@
-from speedruncompy.data_structures import *
+from speedruncompy.datatypes import *
 from speedruncompy.enums import *
 from speedruncompy import *
 

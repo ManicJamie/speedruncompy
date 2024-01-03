@@ -4,6 +4,8 @@ import logging
 import asyncio, aiohttp
 from typing import Awaitable, Callable, Any
 
+from .datatypes import srcpyJSONEncoder
+
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
 ACCEPT = "application/json"
@@ -28,17 +30,17 @@ class SpeedrunComPy():
         _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
         # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
         # We will do the same in case param support is retracted.
-        paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
+        paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=srcpyJSONEncoder).strip(), "utf-8")
         _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
-        self._log.debug(f"async GET {API_URI}{endpoint} w/ params {paramsjson}")
+        self._log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
         async with aiohttp.ClientSession() as session:
             async with session.get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r}) as response:
                 return (await response.read(), response.status)
         
     async def do_post(self, endpoint:str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
         _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
-        self._log.debug(f"async POST {API_URI}{endpoint} w/ params {params}")
-        async with aiohttp.ClientSession() as session:
+        self._log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
+        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder)) as session:
             async with session.post(url=f"{API_URI}{endpoint}", headers=_header,
                                     cookies=self.cookie_jar, json=params) as response:
                 if _setCookie and response.cookies:

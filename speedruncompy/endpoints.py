@@ -97,7 +97,6 @@ class GetArticleList(GetRequest, BasePaginatedRequest):
         super().__init__("GetArticleList", **params)
 
     def _combine_results(self, pages: dict):
-        """WARN: untested as currently fewer than 500 pages exist on the site"""
         if not SUPPRESS_WARNINGS:
             _log.warning("GetArticleList depagination is currently untested, as fewer than 500 pages exist on the site.")
         articleList = []
@@ -177,6 +176,18 @@ class GetStreamList(GetRequest):
 class GetThreadList(GetRequest):
     def __init__(self, forumId: str, **params) -> None:
         super().__init__("GetThreadList", forumId=forumId, **params)
+
+class GetChallenge(GetRequest):
+    def __init__(self, id, **params) -> None:
+        super().__init__("GetChallenge", id=id, **params)
+
+class GetChallengeLeaderboard(GetRequest, BasePaginatedRequest):
+    def __init__(self, challengeId, **params) -> None:
+        super().__init__("GetChallengeLeaderboard", challengeId=challengeId, **params)
+
+class GetChallengeRun(GetRequest):
+    def __init__(self, id, **params) -> None:
+        super().__init__("GetChallengeRun", id=id, **params)
 
 # The below are POSTed by the site, but also accept GET so are placed here to separate from endpoints requiring auth.
 class GetUserLeaderboard(GetRequest):
