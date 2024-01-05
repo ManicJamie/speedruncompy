@@ -27,14 +27,19 @@ class forumType(IntEnum):
     SUPPORTER = 1
     GAME = 2
 
-class timerType(IntEnum):
-    """DO NOT USE!
-    
-    Hollow Knight has default 0, valid [0,1], which suggests 0 = LRT and 1 = RTA,
-       but Celeste has default 2 and allowed [0,2], which suggests 2 = IGT and 0 = RTA? but this is listed as just Time"""
-    RTA = 0
-    LRT = 1
-    IGT = 2
+class TimerName(IntEnum):
+    """`time`, `timeWithLoads` and `igt`.
+
+    `time` is LRT if present, otherwise RTA.
+    `timeWithLoads` is RTA if LRT is present.
+    `igt` is IGT
+    """
+    time = 0
+    """LRT if present, otherwise RTA"""
+    timeWithLoads = 1
+    """RTA if LRT is present"""
+    igt = 2
+    """IGT"""
 
 class modLevel(IntEnum):
     VERIFIER = -1
@@ -73,7 +78,7 @@ class GamePowerLevel(IntEnum):
     MOD = 0
     SUPERMOD = 1
 
-class PowerLevel(IntEnum):
+class SitePowerLevel(IntEnum):
     BANNED = 0
     USER = 1
     CONTENT_MOD = 2

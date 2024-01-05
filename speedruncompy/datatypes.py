@@ -8,10 +8,13 @@ Missing attributes should remain available through both objectlike and dictlike 
 so you can treat them as normal (albeit without type hinting).
 """
 
+from enum import Enum
 from numbers import Real
+from re import I, S
 from typing import Any, Optional, Union, get_type_hints, get_origin, get_args
 from json import JSONEncoder
 
+from .enums import *
 from .exceptions import IncompleteDatatype
 import logging
 
@@ -46,7 +49,7 @@ def get_true_type(hint):
     return get_args(hint)[0] if (get_origin(hint) is Union) or (get_origin(hint) is Optional) else hint
 
 class Datatype():
-    def __init__(self, template: Union[dict, tuple, "Datatype"] = None) -> None:
+    def __init__(self, template: Union[dict, tuple, "Datatype", None] = None, skipChecking: bool = False) -> None:
         if isinstance(template, dict): 
             self.__dict__ |= template
         elif isinstance(template, tuple):
@@ -55,7 +58,8 @@ class Datatype():
                 self.__dict__[name] = template[pos]
         elif isinstance(template, Datatype):
             self.__dict__ |= template.get_dict()
-        self.enforce_types()
+        if not skipChecking and not DISABLE_TYPE_CONFORMANCE: 
+            self.enforce_types()
     
     @classmethod
     def get_type_hints(cls) -> dict[str, Any]:
@@ -63,39 +67,62 @@ class Datatype():
         return get_type_hints(cls)
 
     def enforce_types(self):
-        if DISABLE_TYPE_CONFORMANCE: return
+        #TODO: This is the messiest function i've ever written. do better, me (to be fixed Soon(tm))
         hints = self.get_type_hints()
         missing_attrs = []
         for attr, hint in hints.items():
             base_hint = get_true_type(hint)
-
+            if get_origin(hint) is list: 
+                list_subhint = get_args(hint)[0]
+            else:
+                list_subhint = None
             if attr not in self.__dict__:
                 if is_optional(hint): continue
                 else: missing_attrs.append(attr)
-            elif issubclass(base_hint, Datatype):
-                if not isinstance(self[attr], hint):
+            elif issubclass(base_hint, Datatype) or issubclass(base_hint, Enum) or base_hint == float:
+                if not isinstance(self[attr], base_hint):
                     self[attr] = base_hint(self[attr]) # Force contained types to comply
             elif get_origin(hint) is list:
-                list_type = get_args(hint)[0]
-                if issubclass(list_type, Datatype):
+                list_subhint = get_args(hint)[0]
+                if issubclass(list_subhint, Datatype) or issubclass(list_subhint, Enum):
                     raw = self[attr]
                     self[attr] = []
                     for r in raw:
-                        self[attr].append(list_type(r))
+                        self[attr].append(list_subhint(r))
 
-        if len(missing_attrs) > 0:
-            if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(missing_attrs)
-            else: _log.warning(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
+            if len(missing_attrs) > 0:
+                if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
+                else: _log.warning(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
+
+            check = get_origin(base_hint) if get_origin(base_hint) is not None else base_hint
+            if not isinstance(self[attr], check):
+                if STRICT_TYPE_CONFORMANCE: 
+                    raise AttributeError(f"Datatype {type(self).__name__}'s attribute {attr} expects {check} but received {type(self[attr]).__name__}")
+                else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects {check} but received {type(self[attr]).__name__}")
+            if isinstance(self[attr], list) and len(self[attr]) > 0:
+                instance = self[attr][0]
+                subhints = get_args(hint)
+                list_subhint = subhints[0]
+                if not isinstance(instance, list_subhint):
+                    if STRICT_TYPE_CONFORMANCE: 
+                        raise AttributeError(f"Datatype {type(self).__name__}'s attribute {attr} expects list[{list_subhint}] but received {type(self[attr][0]).__name__}")
+                    else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects list[{list_subhint}] but received {type(self[attr][0]).__name__}")
+
+        
     
     # Allow interacting with these types as if they were dicts (in all reasonable ways)
     def __setitem__(self, key, value): self.__dict__[key] = value
     def get(self, key: str, _default: Any) -> Any: return self.__dict__.get(key, _default)
+    def pop(self, key: str): return self.__dict__.pop(key)
     def __eq__(self, __value: object) -> bool: return self.__dict__ == __value
     def keys(self): return self.__dict__.keys()
     def values(self): return self.__dict__.values()
     def items(self): return self.__dict__.items()
     def __contains__(self, item: object): return item in self.__dict__
     def __iter__(self): return iter(self.__dict__)
+    def __or__(self, __value: Any): 
+        self.__dict__.update(__value)
+        return self
 
     # Catch cases where an optional field is called but is missing
     def __getitem__(self, key): 
@@ -116,6 +143,10 @@ class Datatype():
     def __str__(self) -> str: return str(self.__dict__)
     def __repr__(self) -> str: return self.__str__()
 
+class LenientDatatype(Datatype):
+    """A default Datatype that skips typechecking and enforcement."""
+    def enforce_types(self):
+        pass
 """
 Type definitions
 """
@@ -125,13 +156,18 @@ class StaticAsset(Datatype):
     assetType: str
     path: str
 
-class VariableValue(Datatype):
+class VarValue(Datatype):
 
     variableId: str
     valueId: str
 
     def __str__(self):
         return f"Var {self.variableId} = {self.valueId}"
+
+class VarValues(Datatype):
+
+    variableId: str
+    valueIds: list[str]
 
 class RuntimeTuple(Datatype):
 
@@ -140,7 +176,7 @@ class RuntimeTuple(Datatype):
     second: int
     millisecond: int
 
-    def __init__(self, template: dict | tuple | Real = None) -> None:
+    def __init__(self, template: dict | tuple | Real | None = None) -> None:
         if isinstance(template, Real):
             self.hour = template // 3600
             self.minute = (template // 60) % 60
@@ -155,6 +191,63 @@ class RuntimeTuple(Datatype):
     def __repr__(self) -> str:
         return f"{self.hour}:{self.minute:02}:{self.second:02}.{self.millisecond:03}"
 
+class Commentable(Datatype):
+    itemType: int # enum
+    itemId: str
+    properties: dict # disabled, locked
+
+class CommentPermissions(Datatype):
+    canManage: bool
+    canViewComments: bool
+    canPostComments: bool
+    canEditComments: bool
+    canDeleteComments: bool
+    cannotViewReasons: list[str]
+    cannotPostReasons: list[str]
+
+class Comment(Datatype):
+    id: str
+    itemType: int # enum
+    itemId: str
+    date: int
+    userId: str
+    text: str
+    parentId: str
+    deleted: bool
+
+class Like(Datatype):
+    itemType: int # enum
+    itemId: str
+    userId: str
+    date: int
+
+class Forum(Datatype):
+    id: str
+    name: str
+    url: str
+    description: str
+    type: int # Enum, 3=Game
+    threadCount: int
+    postCount: int
+    lastPostId: str
+    lastPostUserId: str
+    lastPostDate: int
+    touchDate: int
+
+class Thread(Datatype):
+    id: str
+    name: str
+    gameId: str
+    forumId: str
+    userId: str
+    replies: int
+    created: str
+    lastCommentId: str
+    lastCommentUserId: str
+    lastCommentDate: int
+    sticky: bool
+    locked: bool
+
 class RunSettings(Datatype):
 
     runId: str
@@ -164,12 +257,12 @@ class RunSettings(Datatype):
     time: Optional[RuntimeTuple]  # Note: whichever timing method is primary to the game is required
     timeWithLoads: Optional[RuntimeTuple]
     igt: Optional[RuntimeTuple]
-    platformId: int #TODO: change to enum?
+    platformId: str
     emulator: bool
     video: str
     comment: str
     date: int
-    values: list[VariableValue]
+    values: list[VarValue]
     
     def _get_rta(self): return self.timeWithLoads if "timeWithLoads" in self else self.time
     #TODO: this only guarantees RTA if both time and timeWithLoads is present in the run, 
@@ -180,8 +273,24 @@ class RunSettings(Datatype):
             self.timeWithLoads = _val
         else:
             self.time = _val
-    rta = property(fget=_get_rta, fset=_set_rta)
-    """Decorator property that points to RTA, as this may be either `time` or `timeWithLoads`."""
+    _rta = property(fget=_get_rta, fset=_set_rta)
+    """Decorator property that points to RTA, as this may be either `time` or `timeWithLoads`.
+    
+    WARN: only guaranteed RTA if RTA is not None, otherwise may falsely return LRT."""
+
+class Series(Datatype):
+    id: str
+    name: str
+    url: str
+    addedDate: int
+    touchDate: int
+    websiteUrl: str
+    discordUrl: str
+    runCount: int
+    activePlayerCount: int
+    totalPlayerCount: int
+    officialGameCount: int
+    staticAssets: list[StaticAsset]
 
 class Game(Datatype):
 
@@ -196,8 +305,8 @@ class Game(Datatype):
     autoVerify: Optional[bool] # Why is this optional????? I hate SRC
     requireVideo: bool
     emulator: int # enum
-    defaultTimer: int # enum
-    validTimers: list[int] # enum
+    defaultTimer: TimerName # int enum
+    validTimers: list[TimerName] # int enum
     releaseDate: int
     addedDate: int
     touchDate: int
@@ -216,13 +325,36 @@ class Game(Datatype):
     viewPowerLevel: int # enum
     platformIds: list[str]
     regionIds: list[str]
-    gameTypeIds: list[int]
+    gameTypeIds: list[gameType] 
     websiteUrl: Optional[str]
     discordUrl: Optional[str]
     defaultView: int # enum
     guidePermissionType: int # enum
     resourcePermissionType: int # enum
-    staticAssets: list
+    staticAssets: list[StaticAsset]
+
+class GameStats(Datatype):
+    gameId: str
+    totalRuns: int
+    totalRunsFG: int
+    totalRunsIL: int
+    totalRunTime: int
+    recentRuns: int
+    recentRunsFG: int
+    recentRunsIL: int
+    totalPlayers: int
+    activePlayers: int
+    followers: int
+    guides: int
+    resources: int
+
+class RunCount(Datatype):
+
+    gameId: str
+    categoryId: str
+    variableId: Optional[str]
+    valueId: Optional[str]
+    count: int
 
 class Category(Datatype):
 
@@ -241,6 +373,36 @@ class Category(Datatype):
     rules: Optional[str]
     archived: Optional[bool]
 
+class Variable(Datatype):
+
+    id: str
+    name: str
+    url: str
+    pos: int
+    gameId: str
+    categoryScope: int # enum
+    categoryId: Optional[str]
+    levelScope: int # enum
+    levelId: Optional[str]
+    isMandatory: bool
+    isSubcategory: bool
+    isUserDefined: bool
+    isObsoleting: bool
+    defaultValue: Optional[str]
+    archived: bool
+    displayMode: Optional[int] # enum
+
+class Value(Datatype):
+    """Value of a variable. `VariableValue` is a selector on this type (and the underlying variable)"""
+    id: str
+    name: str
+    url: str
+    pos: int
+    variableId: str
+    isMisc: Optional[bool]
+    rules: Optional[str]
+    archived: bool
+
 class Level(Datatype):
 
     id: str
@@ -258,7 +420,33 @@ class Platform(Datatype):
     url: str
     year: int
 
+class Article(Datatype):
+
+    id: str
+    slug: str
+    title: str
+    summary: str
+    body: str
+    createDate: int
+    updateDate: int
+    publishDate: int
+    publishTarget: str # enum?
+    publishTags: list[str] # enum? probably not
+    coverImagePath: str
+    commentsCount: int
+    community: bool
+
+class News(Datatype):
+
+    id: str
+    gameId: str
+    userId: str
+    title: str
+    body: str
+    dateSubmitted: int
+
 class Player(Datatype):
+    """Fields from `User` present in `playerLists`. May also be an unregistered player, use property `_is_registered`"""
     # Actual optionals (always present in non-anon players) marked #OPT
     id: str
     name: str
@@ -266,9 +454,11 @@ class Player(Datatype):
     powerLevel: Optional[int]
     color1Id: Optional[str]
     color2Id: Optional[str] #OPT
+    """Optional even on full `player`"""
     colorAnimate: Optional[int]
     areaId: Optional[str]
     isSupporter: Optional[bool] #OPT
+    """Optional even on full `player`"""
 
     def _is_user(self): return not self.id.startswith("u")
     _is_registered = property(fget=_is_user)
@@ -279,21 +469,89 @@ class User(Datatype):
     name: str
     url: str
     pronouns: list[str]
-    powerLevel: int
+    powerLevel: SitePowerLevel
     """Site-level, 1 is default, Meta is 4"""
     color1Id: str
     color2Id: Optional[str]
     colorAnimate: Optional[int]
     areaId: str
     isSupporter: Optional[bool] # ?
-    avatarDecoration: Optional[Any] # Unknown type
-    iconType: Any
+    avatarDecoration: Optional[dict[str, bool]] # {enabled: bool}, add type for this later
+    iconType: int # enum 0-2?
     onlineDate: int
     signupDate: int
     touchDate: int
-    staticAssets: list
-    supporterIconType: Optional[Any]
-    supporterIconPosition: Optional[Any]
+    staticAssets: list[StaticAsset]
+    supporterIconType: Optional[int] # enum 0-2?
+    supporterIconPosition: Optional[int] # enum 0-1?
+
+class UserStats(Datatype):
+    userId: str
+    followers: int
+    runs: int
+    runsFg: int
+    runsIl: int
+    runsPending: int
+    runTime: int
+    minRunDate: int
+    maxRunDate: int
+    commentsPosted: int
+    guidesCreated: int
+    resourcesCreated: int
+    threadsCreated: int
+    gamesBoosted: int
+    usersBoosted: int
+    followingGames: int
+    followingUsers: int
+    challengeRuns: int
+    challengeRunsPending: int
+
+class UserSocialConnection(Datatype):
+    userId: str
+    networkId: int # enum
+    value: str
+    verified: bool
+
+class GameOrderGroup(Datatype):
+    id: str
+    name: str
+    sortType: int # enum
+    gameIds: list[str]
+
+class GameOrdering(Datatype):
+    defaultGroups: list[GameOrderGroup]
+    supporterGroups: list[GameOrderGroup]
+
+class UserProfile(Datatype):
+
+    userId: str
+    signupDate: int
+    defaultView: int # enum, assuming fg/level?
+    showMiscByDefault: bool
+    gameOrdering:GameOrdering #TODO: make better names for these
+    userStats: UserStats
+    userSocialConnectionList: list[UserSocialConnection]
+
+class GameModerator(Datatype):
+    gameId: str
+    userId: str
+    level: int # enum
+
+class ChallengeModerator(Datatype):
+    
+    challengeId: str
+    userId: str
+    level: GamePowerLevel
+
+class GameBoost(Datatype):
+    id: str
+    createdAt: int
+    updatedAt: int
+    gameId: str
+    donorUserId: str
+    anonymous: bool
+    recipientUserIds: list[str]
+    """Appears to always be empty"""
 
 class Region(Datatype):
 
@@ -329,9 +587,47 @@ class Run(Datatype):
     hasSplits: bool
     obsolete: bool
     place: int
-    issues: Optional[Any]
+    issues: Optional[None]
     playerIds: list[str]
     valueIds: list[str]
+
+class ChallengeStanding(Datatype):
+    place: int
+    registeredPlayerIds: list[str]
+
+class ChallengePrize(Datatype):
+    place: int
+    amount: int
+
+class ChallengePrizeConfig(Datatype):
+    prizePool: int
+    currency: str
+    prizes: list[ChallengePrize]
+
+class Challenge(Datatype):
+
+    id: str
+    name: str
+    url: str
+    gameId: str
+    createdate: int
+    updateDate: int
+    startDate: int
+    endDate: int
+    state: int # enum
+    description: str
+    rules: str
+    numPlayers: int
+    exactPlayers: int
+    playerMatchMode: int # enum
+    timeDirection: int
+    enforceMs: bool
+    coverImagePath: str
+    contest: bool
+    contestRules: str
+    runCommentsMode: int
+    prizeConfig: ChallengePrizeConfig
+    runsCommentsMode: int
 
 class ChallengeRun(Datatype):
 
@@ -358,8 +654,76 @@ class ChallengeRun(Datatype):
     dateSubmitted: int
     dateVerified: Optional[int]
     dateScreened: Optional[int]
-    issues: Optional[Any] # Unknown type
+    issues: Optional[Any] #TODO: Unknown type (Any)
     playerIds: list[str]
     commentsCount: int
     place: Optional[int]
     obsolete: Optional[bool]
+
+class Theme(Datatype):
+    id: str
+    url: str
+    primaryColor: str
+    panelColor: str
+    panelOpacity: int
+    navbarColor: int
+    backgroundColor: str
+    backgroundFit: int
+    backgroundPosition: int
+    backgroundRepeat: int
+    backgroundScrolling: int
+    foregroundFit: int
+    foregroundPosition: int
+    foregroundRepeat: int
+    foregroundScrolling: int
+    touchDate: int
+    staticAssets: list[StaticAsset]
+
+class Pagination(Datatype):
+    count: int
+    page: int
+    pages: int
+    per: int
+
+class Leaderboard(Datatype):
+    category: Category
+    game: Game
+    pagination: Pagination
+    platforms: list[Platform]
+    players: list[Player]
+    regions: list[Region]
+    runs: list[Run]
+    values: list[Value]
+    variables: list[Variable]
+
+class Guide(Datatype):
+    id: str
+    name: str
+    text: str
+    date: int
+    userId: str
+    gameId: str
+
+class Resource(Datatype):
+    id: str
+    type: int # Enum
+    name: str
+    description: str
+    date: int
+    userId: str
+    gameId: str
+    path: Optional[str]
+    link: Optional[str]
+    fileName: str
+    authorNames: str #TODO: exhaustive check for lists
+
+class Stream(Datatype):
+    id: str
+    gameId: str
+    url: str
+    title: str
+    previewUrl: str
+    channelName: str
+    viewers: int
+    hasPb: bool
+    """If the stream has a PB on SRC (and has their account linked)""" #TODO: check

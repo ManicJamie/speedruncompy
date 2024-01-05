@@ -4,7 +4,7 @@ import logging
 import asyncio, aiohttp
 from typing import Awaitable, Callable, Any
 
-from .datatypes import srcpyJSONEncoder
+from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype
 
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
@@ -32,14 +32,14 @@ class SpeedrunComPy():
         # We will do the same in case param support is retracted.
         paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=srcpyJSONEncoder).strip(), "utf-8")
         _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
-        self._log.debug(f"GET {API_URI}{endpoint} w/ params {paramsjson}")
+        self._log.debug(f"GET {endpoint} w/ params {paramsjson}")
         async with aiohttp.ClientSession() as session:
             async with session.get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r}) as response:
                 return (await response.read(), response.status)
         
     async def do_post(self, endpoint:str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
         _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
-        self._log.debug(f"POST {API_URI}{endpoint} w/ params {params}")
+        self._log.debug(f"POST {endpoint} w/ params {params}")
         async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder)) as session:
             async with session.post(url=f"{API_URI}{endpoint}", headers=_header,
                                     cookies=self.cookie_jar, json=params) as response:
@@ -56,22 +56,28 @@ class BaseRequest():
     def __init__(self, 
                  method: Callable[[str, dict[str, Any]], Awaitable[tuple[bytes, int]]],
                  endpoint: str, 
+                 returns: type = LenientDatatype,
                  **params):
         self.method = method
         self.endpoint = endpoint
         self.params = params
+        self.return_type = returns
     
     def update_params(self, **kwargs):
         """Updates parameters using values set in kwargs"""
         self.params.update(kwargs)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> dict:
+    def perform(self, retries=5, delay=1, **kwargs) -> Datatype:
+        """Synchronously perform the request.
+        
+        NB: This uses its own event loop, so if using `asyncio` use `perform_async()` instead."""
         try:
             return asyncio.run(self.perform_async(retries, delay, **kwargs))
         except RuntimeError as e:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
-    async def perform_async(self, retries=5, delay=1, **kwargs) -> dict:
+    async def perform_async(self, retries=5, delay=1, **kwargs) -> Datatype:
+        """Asynchronously perform the request. Remember to `await` me!"""
         self.response = await self.method(self.endpoint, self.params | kwargs)
         content = self.response[0]
         status = self.response[1]
@@ -105,7 +111,7 @@ class BaseRequest():
             _log.error(f"Unknown response error returned from SRC! {status} {self.response[0]}")
             raise APIException(self)
 
-        return json.loads(content.decode())
+        return self.return_type(json.loads(content.decode()))
 
 class BasePaginatedRequest(BaseRequest):
     def _combine_results(self, pages: dict):
@@ -119,7 +125,7 @@ class BasePaginatedRequest(BaseRequest):
         pages = self._perform_all_raw(retries, delay)
         return self._combine_results(pages)
     
-    def _perform_all_raw(self, retries=5, delay=1):
+    def _perform_all_raw(self, retries=5, delay=1) -> dict[int, dict]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         try:
             return asyncio.run(self._perform_all_async_raw(retries, delay))
@@ -131,9 +137,9 @@ class BasePaginatedRequest(BaseRequest):
         pages = await self._perform_all_async_raw(retries, delay)
         return self._combine_results(pages)
     
-    async def _perform_all_async_raw(self, retries=5, delay=1):
+    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, dict]:
         """Get all pages and return a dict of {pageNo : pageData}."""
-        self.pages = {}
+        self.pages: dict[int, Datatype] = {}
         self.pages[1] = await self.perform_async(retries, delay, page=1)
         numpages = self.pages[1]["pagination"]["pages"]
         if numpages > 1:
@@ -142,11 +148,11 @@ class BasePaginatedRequest(BaseRequest):
         return self.pages
 
 class GetRequest(BaseRequest):
-    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
+    def __init__(self, endpoint, returns:type=LenientDatatype, _api:SpeedrunComPy|None=None, **params) -> None:
         if _api is None: _api = _default
-        super().__init__(method=_api.do_get, endpoint=endpoint, **params)
+        super().__init__(method=_api.do_get, endpoint=endpoint, returns=returns, **params)
 
 class PostRequest(BaseRequest):
-    def __init__(self, endpoint, _api:SpeedrunComPy=None, **params) -> None:
+    def __init__(self, endpoint, returns:type=LenientDatatype, _api:SpeedrunComPy|None=None, **params) -> None:
         if _api is None: _api = _default
-        super().__init__(method=_api.do_post, endpoint=endpoint, **params)
+        super().__init__(method=_api.do_post, endpoint=endpoint, returns=returns, **params)

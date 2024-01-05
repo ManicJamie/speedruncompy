@@ -5,21 +5,24 @@ from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
 
 log = logging.getLogger("speedruncompy.auth")
 
-def login(username: str, pwd: str, _api: SpeedrunComPy = _default):
-    """Quick workflow to set sessid using username & pwd. Will prompt for auth token if required."""
+def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = False):
+    """Quick workflow to set sessid using username & pwd. Will prompt for 2FA if tokenEntry is True, otherwise will return False."""
     result: dict = PutAuthLogin(username, pwd, _api).perform()
     if result.get("loggedIn"):
         log.info("Logged in using username & password")
         return True
     if result.get("tokenChallengeSent"):
-        log.warning("2FA is enabled - Not logged in!")
-        key = input("Enter 2FA token: ")
-        result: dict = PutAuthLogin(username, pwd, key, _api).perform()
-        if result.get("loggedIn"):
-            log.info("Logged in using 2fa")
-            return True
+        if tokenEntry:
+            log.warning("2FA is enabled - Not logged in!")
+            key = input("Enter 2FA token: ")
+            result: dict = PutAuthLogin(username, pwd, key, _api).perform()
+            if result.get("loggedIn"):
+                log.info("Logged in using 2fa")
+                return True
+            else:
+                log.error("2FA code rejected! Not logged in")
         else:
-            log.error("2FA code rejected! Not logged in")
+            log.info("2FA code required, not logged in.")
     return False
 
 def login_PHPSESSID(sessID: str, _api: SpeedrunComPy = _default):

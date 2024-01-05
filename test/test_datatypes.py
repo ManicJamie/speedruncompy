@@ -1,9 +1,10 @@
 import asyncio
 import os
 from random import randint, sample
-from .datatypes import *
-from . import datatypes
-from .endpoints import *
+
+from speedruncompy.datatypes import *
+from speedruncompy import datatypes
+from speedruncompy.endpoints import *
 
 import pytest, logging
 
@@ -15,16 +16,32 @@ challenge_id = "42ymr396" # Ghostrunner 2
 
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
-# See `test_Missing_Fields_Loose` for behaviour without STRICT.
+# See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
 datatypes.STRICT_TYPE_CONFORMANCE = True
 
-class TestDatatypes():
-    @pytest.fixture()
-    def loose_type_conformance(self):
-        datatypes.STRICT_TYPE_CONFORMANCE = False
-        yield
-        datatypes.STRICT_TYPE_CONFORMANCE = True
+@pytest.fixture()
+def loose_type_conformance():
+    datatypes.STRICT_TYPE_CONFORMANCE = False
+    yield
+    datatypes.STRICT_TYPE_CONFORMANCE = True
 
+@pytest.fixture()
+def disable_type_checking():
+    datatypes.DISABLE_TYPE_CONFORMANCE = True
+    yield
+    datatypes.DISABLE_TYPE_CONFORMANCE = False
+
+def get_true_type(t: type):
+    origin = get_origin(t)
+    if origin is None: return t
+    else:
+        args = get_args(t)
+        if origin is Union or origin is Optional:
+            return args[0]
+        else:
+            return origin
+
+class TestDatatypes():
     def test_Datatype_conformance(self):
         """General dictlike conformance."""
         dt_raw = {"some": "data", "that's": True}
@@ -44,20 +61,25 @@ class TestDatatypes():
         dt["some"] = "data" # Dictlike set
         assert dt["some"] == "data"
         assert dt.some == "data"
+        extra = {"new": "kvp"}
+        dt |= extra
+        assert "some" in dt
+        assert "that's" in dt
+        assert "new" in dt
 
     def test_Missing_Fields_Loose(self, caplog: pytest.LogCaptureFixture, loose_type_conformance: None):
         """Missing fields should raise a warning"""
         with caplog.at_level(logging.WARNING):
             var_value_raw = {"variableId": "v"} # Missing valueId
-            vv = VariableValue(var_value_raw)
+            vv = VarValue(var_value_raw)
             assert vv == var_value_raw # Construction still worked
-        assert "Datatype VariableValue constructed missing mandatory fields ['valueId']" in caplog.text
+        assert "Datatype VarValue constructed missing mandatory fields ['valueId']" in caplog.text
 
     def test_Missing_Fields(self):
         """Missing fields should raise an error in Strict mode"""
         var_value_raw = {"variableId": "v"} # Missing valueId
         with pytest.raises(IncompleteDatatype):
-            VariableValue(var_value_raw) # Construction fails due to strictness
+            VarValue(var_value_raw) # Construction fails due to strictness
 
     raw_run_settings = {"runId": "a", "gameId": "b", "categoryId": "c",
             "playerNames": ["p"],
@@ -75,10 +97,13 @@ class TestDatatypes():
         with pytest.raises(AttributeError, match="'RunSettings' object has no attribute 'aaaa'"):
             settings.aaaa # Nonexistant attribute still raises AttributeError
         
-        assert isinstance(settings.values[0], VariableValue)
+        assert isinstance(settings.values[0], VarValue)
+
+class TestDatatypes_Integration():
+    ...
 
 @pytest.mark.skipif("SKIP_HEAVY_TESTS" in os.environ, reason="Skip on automated runs")
-class TestDatatypes_Integration():
+class TestDatatypes_Integration_Heavy():
     @pytest.mark.asyncio
     async def test_Runs(self):
         games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
@@ -99,7 +124,8 @@ class TestDatatypes_Integration():
             assert runs == source["runList"] # This should be a given
             hints = Run.get_type_hints().keys()
             for (raw, run) in zip(source["runList"], runs):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
+                for key in raw: 
+                    assert key in hints # Ensure that speedruncompy covers all attributes
         
         await asyncio.gather(*[checkBoard(g, c) for g, c in game_cat])
     
@@ -114,11 +140,18 @@ class TestDatatypes_Integration():
     
     def test_Game(self):
         source = GetGameList().perform_all()
-        games = [Game(g) for g in source["gameList"]]
+        games = source.gameList
         assert games == source["gameList"] # This should be a given
-        hints = Game.get_type_hints().keys()
+        hints = Game.get_type_hints()
         for (raw, game) in zip(source["gameList"], games):
-            for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
+            game = Game(game)
+            for key in raw: 
+                assert key in hints.keys() # Ensure that speedruncompy covers all attributes
+            for key in game:
+                val = game[key]
+
+                assert isinstance(val, get_true_type(hints[key])) # Ensure reported type is correct to srcpy
+                assert raw[key] == val # Ensure srcpy type is equivalent to original type
     
     @pytest.mark.asyncio
     async def test_Category(self):
@@ -142,7 +175,7 @@ class TestDatatypes_Integration():
             levels = [Level(c) for c in source["levels"]]
             hints = Level.get_type_hints().keys()
             for (raw, cat) in zip(source["levels"], levels):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
+                for key in raw: assert key in hints # Ensure that speedruncompy attribute
         
         await asyncio.gather(*[checkGame(g) for g in games])
     
@@ -204,6 +237,3 @@ class TestDatatypes_Integration():
         hints = User.get_type_hints().keys()
         for (raw, game) in zip(source["userList"], users):
             for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
-
-
-    

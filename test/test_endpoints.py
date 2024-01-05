@@ -1,6 +1,6 @@
-from .endpoints import *
-from .api import SpeedrunComPy
-from .exceptions import *
+from speedruncompy.endpoints import *
+from speedruncompy.api import SpeedrunComPy
+from speedruncompy.exceptions import *
 
 import pytest, os, logging, json, asyncio
 
@@ -45,18 +45,16 @@ thread_id = "mbkmj"
 logging.getLogger().setLevel(logging.DEBUG)
 
 def log_result(result: dict):
-    logging.debug(json.dumps(result))
+    logging.debug(result)
 
-class TestGetRequests():
+class TestGeneric():
     api = SpeedrunComPy("Test")
     api.set_phpsessid(SESSID)
 
-    def test_GetGameLeaderboard2(self):
-        result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
-        log_result(result)
-        assert "runList" in result
-        assert len(result["runList"]) > 0
-    
+    low_api = SpeedrunComPy("Test_LOWAUTH")
+    low_api.set_phpsessid(LOW_SESSID)
+
+
     def test_GetAsync(self):
         result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_async())
         standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
@@ -66,12 +64,43 @@ class TestGetRequests():
         result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_async_raw())
         standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
         assert result == standard_result
-    
+
     def test_AsyncSyncWarning(self):
         """Calls to the synchronous interface from an asynchronous context should raise an error and tell you to use async interface"""
         with pytest.raises(AIOException) as e:
             async def main(): return GetGameLeaderboard2("76rqmld8", "02q8o4p2").perform_all()
             asyncio.run(main())
+    
+    def test_DefaultAPI_separation(self):
+        """Ensure separation between default api instance and the declared api instance"""
+        session = GetSession().perform()
+        assert "signedIn" in session["session"]
+        assert session["session"]["signedIn"] == False
+
+        session = GetSession(_api=self.api).perform()
+        assert "signedIn" in session["session"]
+        assert session["session"]["signedIn"] == True
+
+    @pytest.mark.skip(reason="Test stub")
+    def test_Authflow(self):
+        """Check auth module (using lowauth account)"""
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_Authflow_raw(self):
+        """Check auth endpoints (using lowauth account)"""
+
+class TestGetRequests():
+    api = SpeedrunComPy("Test")
+    api.set_phpsessid(SESSID)
+
+    def test_GetGameLeaderboard2(self):
+        result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id, page=1).perform()
+        assert "runList" in result
+        assert len(result.runList) > 0
+        assert "playerList" in result
+        assert len(result.playerList) > 0
+        assert "pagination" in result
+        assert result.pagination.page == 1
     
     def test_GetGameLeaderboard2_paginated(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all()
@@ -175,24 +204,6 @@ class TestPostRequests():
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
     low_api.set_phpsessid(LOW_SESSID)
-
-    def test_DefaultAPI_separation(self):
-        """Ensure separation between default api instance and the declared api instance"""
-        session = GetSession().perform()
-        assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == False
-
-        session = GetSession(_api=self.api).perform()
-        assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == True
-
-    @pytest.mark.skip(reason="Test stub")
-    def test_Authflow(self):
-        """Check auth module (using lowauth account)"""
-    
-    @pytest.mark.skip(reason="Test stub")
-    def test_Authflow_raw(self):
-        """Check auth endpoints (using lowauth account)"""
 
     def test_GetSession(self):
         result = GetSession(_api=self.api).perform()
