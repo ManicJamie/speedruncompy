@@ -22,7 +22,7 @@ class r_GetChallenge(Datatype):
     challenge: Challenge
     game: Game
     moderatorList: list[ChallengeModerator]
-    standingList: list[Any] #TODO place, registeredPlayerIds[str]
+    standingList: list[ChallengeStanding]
 
 class r_GetChallengeLeaderboard(Datatype):
     challengeRunList: list[ChallengeRun]
@@ -205,3 +205,126 @@ class r_GetUserPopoverData(Datatype):
     """Always empty"""
 
 """POST responses"""
+
+class r_GetAuditLogList(Datatype):
+    auditLogList: list[AuditLogEntry]
+
+class r_GetCommentable(Datatype):
+    commentable: Commentable
+
+class r_GetConversationMessages(Datatype):
+    conversation: Conversation
+    participants: list[ConversationParticipant]
+    messages: list[ConversationMessage]
+    users: list[User]
+    userBlocks: list[UserBlock]
+
+class r_GetConversations(Datatype):
+    conversations: list[Conversation]
+    participants: list[ConversationParticipant]
+    users: list[User]
+
+class r_GetForumReadStatus(Datatype):
+    forumReadStatusList: ForumReadStatus
+
+class r_GetGameSettings(Datatype):
+    settings: GameSettings
+    moderatorList: list[GameModerator]
+    theme: Theme
+    gameList: list[Game]
+    userList: list[User]
+
+class r_GetModerationGames(Datatype):
+    games: list[Game]
+    gameModerationStats: list[GameModerationStats]
+
+class r_GetModerationRuns(Datatype):
+    categories:  list[Category]
+    games: list[Game]
+    levels: list[Level]
+    pagination: Pagination
+    platforms: list[Platform]
+    players: list[Player]
+    regions: list[Region]
+    runs: list[Run]
+
+class r_GetNotifications(Datatype):
+    unreadCount: int
+    notifications: list[Notification]
+    pagination: Pagination
+
+class r_GetRunSettings(Datatype):
+    settings: RunSettings
+    users: list[User]
+
+class r_GetSeriesSettings(Datatype):
+    settings: SeriesSettings
+    moderatorList: list[SeriesModerator]
+    gameList: list[Game]
+    theme: Theme
+    userList: list[User]
+
+class r_GetSession(Datatype):
+    session: Session
+
+class r_GetThemeSettings(Datatype):
+    settings: ThemeSettings
+    theme: Theme
+
+class r_GetThreadReadStatus(Datatype):
+    threadReadStatusList: list[ThreadReadStatus]
+
+class r_GetTickets(Datatype):
+    ticketList: list[Ticket]
+    ticketNoteList: Any #TODO: document
+    pagination: Pagination
+    userList: list[User]
+    gameList: list[Game]
+
+class r_GetUserBlocks(Datatype):
+    userBlocks: list[UserBlock]
+
+class r_GetUserSettings(Datatype):
+    settings: UserSettings
+    gameFollowerList: list[GameFollower]
+    gameModeratorList: list[GameModerator]
+    notificationSettings: list[NotificationSetting]
+    userSocialConnectionList: list[UserSocialConnection]
+    gameList: list[Game]
+    themeList: list[Theme]
+    supporterCreditList: Any #TODO: document
+    supportCodeList: Any #TODO: document
+    supporterSubscription: Optional[Any]
+    experimentList: Any
+    enabledExperimentIds: Any
+
+class r_GetUserSupporterData(Datatype):
+    supporterEndDate: int
+    boostEndDate: int
+
+class r_PutAuthLogin(Datatype):
+    loggedIn: bool
+    tokenChallengeSent: Optional[bool]
+
+class r_PutAuthSignup(Datatype):
+    loggedIn: bool
+    tokenChallengeSent: Optional[bool]
+
+class r_PutConversation(Datatype):
+    ok: bool
+    conversationId: str
+    messageId: str
+
+class r_PutConversationMessage(Datatype):
+    ok: bool
+    conversationId: str
+    messageId: str
+
+class r_PutGame(Datatype):
+    game: Game
+
+class r_PutRunSettings(Datatype):
+    runId: str
+
+class r_PutRunVerification(Datatype):
+    ok: bool

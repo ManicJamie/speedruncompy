@@ -10,7 +10,6 @@ so you can treat them as normal (albeit without type hinting).
 
 from enum import Enum
 from numbers import Real
-from re import I, S
 from typing import Any, Optional, Union, get_type_hints, get_origin, get_args
 from json import JSONEncoder
 
@@ -191,11 +190,6 @@ class RuntimeTuple(Datatype):
     def __repr__(self) -> str:
         return f"{self.hour}:{self.minute:02}:{self.second:02}.{self.millisecond:03}"
 
-class Commentable(Datatype):
-    itemType: int # enum
-    itemId: str
-    properties: dict # disabled, locked
-
 class CommentPermissions(Datatype):
     canManage: bool
     canViewComments: bool
@@ -204,6 +198,12 @@ class CommentPermissions(Datatype):
     canDeleteComments: bool
     cannotViewReasons: list[str]
     cannotPostReasons: list[str]
+
+class Commentable(Datatype):
+    itemType: int # enum
+    itemId: str
+    properties: dict # disabled, locked
+    permissions: CommentPermissions
 
 class Comment(Datatype):
     id: str
@@ -532,6 +532,11 @@ class UserProfile(Datatype):
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
 
+class SeriesModerator(Datatype):
+    seriesId: str
+    userId: str
+    level: int # enum
+
 class GameModerator(Datatype):
     gameId: str
     userId: str
@@ -727,3 +732,232 @@ class Stream(Datatype):
     viewers: int
     hasPb: bool
     """If the stream has a PB on SRC (and has their account linked)""" #TODO: check
+
+class GameSettings(Datatype):
+    id: str
+    name: str
+    url: str
+    twitchName: str
+    releaseDate: int #TODO: check
+    milliseconds: bool
+    defaultView: int # enum
+    loadTimes: bool
+    igt: bool
+    defaultTimer: int # enum, assume TimerName?
+    showEmptyTimes: bool
+    rulesView: Any #TODO: check
+    emulator: int # enum
+    verification: bool
+    requireVideo: bool
+    autoVerify: bool
+    regionsObsolete: bool
+    platformsObsolete: bool
+    discordUrl: str 
+    websiteUrl: str
+    rules: str
+    showOnStreamsPage: int # enum
+    touchDate: int
+    noEvents: bool
+    promoted: bool
+    runCommentsMode: int # enum
+    noPromote: bool
+    platformIds: list[str]
+    regionIds: list[str]
+    gameTypeIds: list[int] # enums
+    guidePermissionType: int # enum 
+    resourcePermissionType: int # enum
+    staticAssets: list[StaticAsset]
+    staticAssetUpdates: Any # undocumented list
+
+class SeriesSettings(Datatype):
+    name: str
+    url: str
+    discordUrl: str
+    websiteUrl: str
+    staticAssets: list[StaticAsset]
+    staticAssetUpdates: Any #TODO: undocumented list
+
+class GameModerationStats(Datatype):
+    gameId: str
+    state: Any #TODO: check
+    count: int
+    minDate: int
+    maxDate: int
+
+class AuditLogEntry(Datatype):
+    id: str
+    date: int
+    eventType: str # enum
+    actorId: str
+    gameId: str
+    context: Any #TODO: check
+
+class Conversation(Datatype):
+    id: str
+    participantUserIds: list[str]
+    lastMessageId: str
+    lastMessageUser: str
+    lastMessageText: str
+    lastMessageDate: int
+    readDate: int
+
+class ConversationParticipant(Datatype):
+    conversationId: str
+    userId: str
+    joinedDate: int
+    leftDate: int #TODO: optional?
+
+class ConversationMessage(Datatype):
+    id: str
+    conversationId: str 
+    userId: str
+    text: str
+    date: int
+
+class ForumReadStatus(Datatype):
+    forumId: str
+    date: int
+
+class Notification(Datatype):
+    id: str 
+    date: int
+    title: str
+    path: str
+    read: bool
+
+class GameFollower(Datatype):
+    gameId: str
+    followerId: str
+    pos: int
+    accessCount: int
+    lastAccessDate: int
+
+class GameRunner(Datatype):
+    gameId: str 
+    userId: str
+    runcount: int
+
+class UserFollower(Datatype):
+    ... #TODO: complete (Any)
+
+class Session(Datatype):
+    signedIn: bool
+    showAds: bool
+    user: Optional[list[User]]
+    theme: Optional[Theme]
+    powerLevel: SitePowerLevel
+    dateFormat: Any
+    timeFormat: Any
+    timeReference: Any
+    timeUnits: Any
+    homepageStream: Any
+    disableThemes: Any
+    csrfToken: str
+    networkToken: Optional[str] #TODO: check
+    gameList: list[Game]
+    gameFollowerList: list[GameFollower]
+    gameModeratorList: list[GameModerator]
+    gameRunnerList: list[GameRunner]
+    seriesList: list[Series]
+    seriesModeratorList: list[SeriesModerator]
+    boostAvailableTokens: Optional[int]
+    boostNextTokenDate: int
+    boostNextTokenAmount: int
+    userFollowerList: list[UserFollower]
+
+class ThemeSettings(Datatype):
+    primaryColor: str
+    panelColor: str
+    panelOpacity: int
+    navbarColor: str
+    backgroundColor: str
+    backgroundFit: bool
+    backgroundPosition: int # enum
+    backgroundRepeat: bool #TODO: check
+    backgroundScrolling: bool #TODO: check
+    foregroundFit: bool
+    foregroundPosition: int # enum
+    foregroundRepeat: bool #TODO: check
+    foregroundScrolling: bool #TODO: check
+    staticAssets: list[StaticAsset]
+
+class ThreadReadStatus(Datatype):
+    threadId: str
+    date: int
+
+class Ticket(Datatype):
+    id: str
+    queue: int # enum
+    type: int # enum TODO: check
+    status: int # enum
+    requestorId: str
+    dateSubmitted: int
+    metadata: str
+    """This is a json object that may be dependent on type"""
+
+class UserBlock(Datatype):
+    blockerId: str
+    blockeeId: str
+
+class NotificationSetting(Datatype):
+    type: Any #TODO: check
+    gameId: Optional[str]
+    site: bool
+    email: bool
+
+class UserSettings(Datatype):
+    id: str
+    name: str
+    url: str
+    email: str
+    bio: str
+    powerLevel: SitePowerLevel
+    areaId: str
+    theme: str # TODO: check what happens w/ custom theme
+    color1id: str
+    color2id: str
+    colorAnimate: int # enum
+    avatarDecoration: dict #TODO: enabled: bool
+    defaultView: int # enum
+    timeReference: int # enum
+    timeUnits: int # enum
+    dateFormat: int # enum
+    timeFormat: int # enum
+    iconType: int # enum
+    disableThemes: bool
+    emailAuthentication: bool
+    latestMaxFollowed: int
+    latestMinFollowed: int
+    latestTimeFollowed: int
+    showMiscByDefault: bool
+    showOnStreamsPage: bool
+    showUnofficialGameTypes: bool
+    homepageStream: int # enum
+    disableMessages: bool
+    showAds: bool
+    pronouns: list[str]
+    nameChangeDate: int
+    runCommentsDisabled: bool
+    followedGamesDisabled: bool
+    supporterEndDate: int
+    boostEndDate: int
+    supporterIconType: int # enum
+    supporterIconPosition: int # enum
+    staticAssets: list[StaticAsset]
+    staticAssetUpdates: Any # Undocumented list
+
+class SupporterSubscription(Datatype):
+    id: str
+    userId: str
+    providerId: int # enum
+    createdAt: int
+    updatedAt: int
+    expiresAt: int
+    planId: int # enum
+    nextPeriodPlanId: int # enum
+    status: int # enum
+    trialEndsAt: int
+    """Default 0, undocumented but assume timestamp otherwise"""
+    cancelAtPeriodEnd: bool
+    canceledAt: int # assume timestamp
+    

@@ -260,6 +260,9 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
         extras.pop("pagination")
         return {"seriesList": seriesList} | extras
 
+class GetSeriesSettings(GetRequest):
+    ... #TODO: complete
+
 class GetGameLevelSummary(GetRequest, BasePaginatedRequest):
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
@@ -305,12 +308,12 @@ class GetNewsList(GetRequest):
 
 class GetNews(GetRequest):
     def __init__(self, id: str, **params) -> None:
-        super().__init__("GetNews", returns=r_GetNewsList, id=id, **params)
+        super().__init__("GetNews", returns=r_GetNews, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetNewsList:
+    def perform(self, retries=5, delay=1, **kwargs) -> r_GetNews:
         return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetNewsList]:
+    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetNews]:
         return super().perform_async(retries, delay, **kwargs)
 
 class GetResourceList(GetRequest):
@@ -376,22 +379,22 @@ class GetChallengeRun(GetRequest):
 # The below are POSTed by the site, but also accept GET so are placed here to separate from endpoints requiring auth.
 class GetUserLeaderboard(GetRequest):
     def __init__(self, userId: str, **params) -> None:
-        super().__init__("GetUserLeaderboard", returns=r_GetGameRecordHistory, userId=userId, **params)
+        super().__init__("GetUserLeaderboard", returns=r_GetUserLeaderboard, userId=userId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameRecordHistory:
+    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserLeaderboard:
         return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameRecordHistory]:
+    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserLeaderboard]:
         return super().perform_async(retries, delay, **kwargs)
 
 class GetCommentList(GetRequest, BasePaginatedRequest):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
-        super().__init__("GetCommentList", returns=r_GetGameRecordHistory, itemId=itemId, itemType=itemType, **params)
+        super().__init__("GetCommentList", returns=r_GetCommentList, itemId=itemId, itemType=itemType, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameRecordHistory:
+    def perform(self, retries=5, delay=1, **kwargs) -> r_GetCommentList:
         return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameRecordHistory]:
+    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetCommentList]:
         return super().perform_async(retries, delay, **kwargs)
 
 class GetThread(GetRequest , BasePaginatedRequest):
@@ -441,6 +444,9 @@ class PutAuthLogin(PostRequest):
 class PutAuthLogout(PostRequest):
     def __init__(self, **params) -> None:
         super().__init__("PutAuthLogout", **params)
+
+class PutAuthSignup(PostRequest): #TODO Finish
+    ... # Probably not responsible to disclose easily...
 
 class GetSession(PostRequest):
     def __init__(self, **params) -> None:
@@ -582,3 +588,49 @@ class GetThemeSettings(PostRequest):
     def __init__(self, **params) -> None:
         """Provide either userId or gameId"""
         super().__init__("GetThemeSettings", **params)
+
+# To Be Sorted
+class GetTickets(PostRequest): #TODO: finish
+    ...
+
+class GetUserBlocks(PostRequest): #TODO: finish
+    ...
+
+class GetUserSupporterData(PostRequest): #TODO: finish
+    ...
+
+class PutConversation(PostRequest): #TODO: finish
+    ...
+
+class PutConversationMessage(PostRequest): #TODO: finish
+    ...
+
+class PutGame(PostRequest): #TODO: finish
+    ...
+
+class PutGameBoostGrant(PostRequest): #TODO: finish
+    ...
+
+class PutGameModerator(PostRequest): #TODO: finish
+    ...
+
+class PutGameModeratorDelete(PostRequest): #TODO: finish
+    ...
+
+class PutSeriesGame(PostRequest): #TODO: finish
+    ...
+
+class PutSeriesGameDelete(PostRequest): #TODO: finish
+    ...
+
+class PutTicket(PostRequest): #TODO: finish
+    ...
+
+class PutUserSocialConnection(PostRequest): #TODO: finish
+    ...
+
+class PutUserSocialConnectionDelete(PostRequest): #TODO: finish
+    ...
+
+class PutUserUpdatePassword(PostRequest): #TODO: finish
+    ...
