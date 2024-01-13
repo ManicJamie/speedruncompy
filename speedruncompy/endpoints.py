@@ -590,47 +590,86 @@ class GetThemeSettings(PostRequest):
         super().__init__("GetThemeSettings", **params)
 
 # To Be Sorted
-class GetTickets(PostRequest): #TODO: finish
-    ...
+class GetTickets(PostRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetTickets", **params) #TODO: needs param testing
 
-class GetUserBlocks(PostRequest): #TODO: finish
-    ...
+class GetUserBlocks(PostRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetUserBlocks", **params)
 
-class GetUserSupporterData(PostRequest): #TODO: finish
-    ...
+class GetUserSupporterData(PostRequest):
+    def __init__(self, userUrl: str, **params) -> None:
+        super().__init__("GetUserSupporterData", userUrl=userUrl, **params)
 
-class PutConversation(PostRequest): #TODO: finish
-    ...
+class PutConversation(PostRequest):
+    def __init__(self, csrfToken: str, recipientIds: list[str], text: str, **params) -> None:
+        super().__init__("PutConversation", csrfToken=csrfToken, recipientIds=recipientIds, text=text, **params)
 
-class PutConversationMessage(PostRequest): #TODO: finish
-    ...
+class PutConversationMessage(PostRequest):
+    def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
+        super().__init__("PutConversationMessage", csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
 
-class PutGame(PostRequest): #TODO: finish
-    ...
+class PutGame(PostRequest): #TODO: needs param testing
+    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[gameType], seriesId: str, **params) -> None:
+        super().__init__("PutGame", name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
 
-class PutGameBoostGrant(PostRequest): #TODO: finish
-    ...
+class PutGameBoostGrant(PostRequest): #TODO: test type of `anonymous`
+    def __init__(self, gameId: str, anonymous: bool, **params) -> None:
+        super().__init__("PutGameBoostGrant", gameId=gameId, anonymous=anonymous, **params)
 
-class PutGameModerator(PostRequest): #TODO: finish
-    ...
+class PutGameModerator(PostRequest): #TODO: level enum type
+    def __init__(self, gameId: str, userId: str, level: int, **params) -> None:
+        super().__init__("PutGameModerator", gameId=gameId, userId=userId, level=level, **params)
 
-class PutGameModeratorDelete(PostRequest): #TODO: finish
-    ...
+class PutGameModeratorDelete(PostRequest): #TODO: test `level` necessity & enum type
+    def __init__(self, gameId: str, userId: str, level: int, **params) -> None:
+        super().__init__("PutGameModeratorDelete", gameId=gameId, userId=userId, level=level, **params)
 
-class PutSeriesGame(PostRequest): #TODO: finish
-    ...
+class PutSeriesGame(PostRequest): #TODO: reminder on who can do this & what this does lol
+    def __init__(self, seriesId: str, gameId: str, **params) -> None:
+        super().__init__("PutSeriesGame", seriesId=seriesId, gameId=gameId, **params)
 
-class PutSeriesGameDelete(PostRequest): #TODO: finish
-    ...
+class PutSeriesGameDelete(PostRequest):
+    def __init__(self, seriesId: str, gameId: str, **params) -> None:
+        super().__init__("PutSeriesGameDelete", seriesId=seriesId, gameId=gameId, **params)
 
-class PutTicket(PostRequest): #TODO: finish
-    ...
+class PutTicket(PostRequest): #TODO: test parameter types
+    def __init__(self, metadata, type, **params) -> None:
+        super().__init__("PutTicket", metadata=metadata, type=type, **params)
 
-class PutUserSocialConnection(PostRequest): #TODO: finish
-    ...
+class PutUserSocialConnection(PostRequest):
+    def __init__(self, userId: str, networkId: NetworkId, value: str, **params) -> None:
+        super().__init__("PutUserSocialConnection", userId=userId, networkId=networkId, value=value, **params)
 
-class PutUserSocialConnectionDelete(PostRequest): #TODO: finish
-    ...
+class PutUserSocialConnectionDelete(PostRequest):
+    def __init__(self, userId: str, networkId: NetworkId, **params) -> None:
+        super().__init__("PutUserSocialConnectionDelete", userId=userId, networkId=networkId, **params)
 
-class PutUserUpdatePassword(PostRequest): #TODO: finish
-    ...
+class PutUserUpdatePassword(PostRequest):
+    def __init__(self, userUrl: str, oldPassword: str, newPassword: str, **params) -> None:
+        super().__init__("PutUserUpdatePassword", userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
+
+class PutCommentDelete(PostRequest):
+    def __init__(self, commentId: str, **params) -> None:
+        super().__init__("PutCommentDelete", commentId=commentId, **params)
+
+class PutCommentRestore(PostRequest):
+    def __init__(self, commentId: str, **params) -> None:
+        super().__init__("PutCommentRestore", commentId=commentId, **params)
+
+class PutThread(PostRequest):
+    def __init__(self, forumId: str, name: str, body: str, **params) -> None:
+        super().__init__("PutThread", forumId=forumId, name=name, body=body, **params)
+
+class PutThreadLocked(PostRequest):
+    def __init__(self, threadId: str, locked: bool, **params) -> None:
+        super().__init__("PutThreadLocked", threadId=threadId, locked=locked, **params)
+
+class PutThreadSticky(PostRequest):
+    def __init__(self, threadId: str, sticky: bool, **params) -> None:
+        super().__init__("PutThreadSticky", threadId=threadId, sticky=sticky, **params)
+
+class PutThreadDelete(PostRequest):
+    def __init__(self, threadId: str, **params) -> None:
+        super().__init__("PutThreadDelete", threadId=threadId, **params)
