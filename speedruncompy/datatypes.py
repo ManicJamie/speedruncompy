@@ -241,7 +241,7 @@ class Thread(Datatype):
     forumId: str
     userId: str
     replies: int
-    created: str
+    created: int # enum
     lastCommentId: str
     lastCommentUserId: str
     lastCommentDate: int
@@ -615,7 +615,7 @@ class Challenge(Datatype):
     name: str
     url: str
     gameId: str
-    createdate: int
+    createDate: int
     updateDate: int
     startDate: int
     endDate: int
@@ -630,9 +630,8 @@ class Challenge(Datatype):
     coverImagePath: str
     contest: bool
     contestRules: str
-    runCommentsMode: int
+    runCommentsMode: int # enum
     prizeConfig: ChallengePrizeConfig
-    runsCommentsMode: int
 
 class ChallengeRun(Datatype):
 

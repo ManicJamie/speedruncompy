@@ -1,6 +1,7 @@
 from speedruncompy.endpoints import *
 from speedruncompy.api import SpeedrunComPy
 from speedruncompy.exceptions import *
+from speedruncompy import datatypes
 
 import pytest, os, logging, json, asyncio
 
@@ -43,6 +44,23 @@ comment_list_type = itemType.RUN
 thread_id = "mbkmj"
 
 logging.getLogger().setLevel(logging.DEBUG)
+
+# All tests are done with strict type conformance to catch errors early
+# In downstream this is default False, and warnings are given instead of errors.
+# See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
+datatypes.STRICT_TYPE_CONFORMANCE = True
+
+@pytest.fixture()
+def loose_type_conformance():
+    datatypes.STRICT_TYPE_CONFORMANCE = False
+    yield
+    datatypes.STRICT_TYPE_CONFORMANCE = True
+
+@pytest.fixture()
+def disable_type_checking():
+    datatypes.DISABLE_TYPE_CONFORMANCE = True
+    yield
+    datatypes.DISABLE_TYPE_CONFORMANCE = False
 
 def log_result(result: dict):
     logging.debug(result)
@@ -196,7 +214,10 @@ class TestGetRequests():
     @pytest.mark.skip(reason="Test stub")
     def test_GetGuide(self):
         ...
-    
+
+    def test_GetChallenge(self):
+        result = GetChallenge(_api=self.api, id="5e3eoymq").perform()
+        assert "challenge" in result
 
 class TestPostRequests():
     api = SpeedrunComPy("Test")

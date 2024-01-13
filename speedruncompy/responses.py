@@ -168,7 +168,7 @@ class r_GetStreamList(Datatype):
 
 class r_GetThread(Datatype):
     thread: Thread
-    commentsList: list[Comment]
+    commentList: list[Comment]
     userList: list[User]
     likeList: list[Like]
     pagination: Pagination

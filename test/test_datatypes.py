@@ -99,9 +99,6 @@ class TestDatatypes():
         
         assert isinstance(settings.values[0], VarValue)
 
-class TestDatatypes_Integration():
-    ...
-
 @pytest.mark.skipif("SKIP_HEAVY_TESTS" in os.environ, reason="Skip on automated runs")
 class TestDatatypes_Integration_Heavy():
     @pytest.mark.asyncio
