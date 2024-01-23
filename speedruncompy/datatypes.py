@@ -94,6 +94,9 @@ class Datatype():
                 else: _log.warning(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
 
             check = get_origin(base_hint) if get_origin(base_hint) is not None else base_hint
+            if check == Any:
+                _log.debug(f"Undocumented attr {attr} has value {self[attr]} of type {type(self[attr])}")
+                continue # Can't do enforcement against Any
             if not isinstance(self[attr], check):
                 if STRICT_TYPE_CONFORMANCE: 
                     raise AttributeError(f"Datatype {type(self).__name__}'s attribute {attr} expects {check} but received {type(self[attr]).__name__}")
@@ -834,7 +837,7 @@ class GameFollower(Datatype):
 class GameRunner(Datatype):
     gameId: str 
     userId: str
-    runcount: int
+    runCount: int
 
 class UserFollower(Datatype):
     ... #TODO: complete (Any)
@@ -842,15 +845,15 @@ class UserFollower(Datatype):
 class Session(Datatype):
     signedIn: bool
     showAds: bool
-    user: Optional[list[User]]
+    user: Optional[User]
     theme: Optional[Theme]
     powerLevel: SitePowerLevel
-    dateFormat: Any
-    timeFormat: Any
-    timeReference: Any
-    timeUnits: Any
-    homepageStream: Any
-    disableThemes: Any
+    dateFormat: int # enum
+    timeFormat: int # enum
+    timeReference: int # enum
+    timeUnits: int # enum
+    homepageStream: int # enum
+    disableThemes: bool
     csrfToken: str
     networkToken: Optional[str] #TODO: check
     gameList: list[Game]

@@ -143,7 +143,7 @@ class TestDatatypes_Integration_Heavy():
         for (raw, game) in zip(source["gameList"], games):
             game = Game(game)
             for key in raw: 
-                assert key in hints.keys() # Ensure that speedruncompy covers all attributes
+                assert key in hints.keys(), raw.__repr__() # Ensure that speedruncompy covers all attributes
             for key in game:
                 val = game[key]
 

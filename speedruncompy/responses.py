@@ -202,7 +202,7 @@ class r_GetUserPopoverData(Datatype):
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
     games: list[Game]
-    """Always empty"""
+    """Contains games sometimes:tm:"""
 
 """POST responses"""
 
@@ -306,9 +306,24 @@ class r_PutAuthLogin(Datatype):
     loggedIn: bool
     tokenChallengeSent: Optional[bool]
 
+class r_PutAuthLogout(Datatype):
+    """No content"""
+
 class r_PutAuthSignup(Datatype):
     loggedIn: bool
     tokenChallengeSent: Optional[bool]
+
+class r_PutComment(Datatype):
+    """No content"""
+
+class r_PutCommentableSettings(Datatype):
+    """No content"""
+
+class r_PutCommentDelete(Datatype):
+    """No content"""
+
+class r_PutCommentRestore(Datatype):
+    """No content"""
 
 class r_PutConversation(Datatype):
     ok: bool
@@ -323,8 +338,65 @@ class r_PutConversationMessage(Datatype):
 class r_PutGame(Datatype):
     game: Game
 
+class r_PutGameBoostGrant(Datatype):
+    """No content"""
+
+class r_PutGameModerator(Datatype):
+    """No content"""
+
+class r_PutGameModeratorDelete(Datatype):
+    """No content"""
+
+class r_PutGameSettings(Datatype):
+    """No content"""
+
+class r_PutRunAssignee(Datatype):
+    """No content"""
+
+class r_PutRunDelete(Datatype):
+    """No content"""
+
 class r_PutRunSettings(Datatype):
     runId: str
 
 class r_PutRunVerification(Datatype):
     ok: bool
+
+class r_PutSeriesGame(Datatype):
+    """No content"""
+
+class r_PutSeriesGameDelete(Datatype):
+    """No content"""
+
+class r_PutSessionPing(Datatype):
+    """No content"""
+
+class r_PutThread(Datatype):
+    thread: Thread
+
+class r_PutThreadDelete(Datatype):
+    """No content"""
+
+class r_PutThreadLocked(Datatype):
+    """No content"""
+
+class r_PutThreadRead(Datatype):
+    """No content"""
+
+class r_PutThreadSticky(Datatype):
+    """No content"""
+
+class r_PutTicket(Datatype):
+    ticketId: str
+
+class r_PutUserSettings(Datatype):
+    settings: UserSettings
+
+class r_PutUserSocialConnection(Datatype):
+    """No content"""
+
+class r_PutUserSocialConnectionDelete(Datatype):
+    """No content"""
+
+class r_PutUserUpdatePassword(Datatype):
+    ... #TODO: document
