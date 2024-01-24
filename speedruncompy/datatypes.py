@@ -335,6 +335,8 @@ class Game(Datatype):
     guidePermissionType: int # enum
     resourcePermissionType: int # enum
     staticAssets: list[StaticAsset]
+    embargoDate: Optional[int]
+    embargoText: Optional[str]
 
 class GameStats(Datatype):
     gameId: str
