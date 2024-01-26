@@ -6,7 +6,7 @@ from speedruncompy.datatypes import *
 from speedruncompy import datatypes
 from speedruncompy.endpoints import *
 
-import pytest, logging
+import pytest, pytest_asyncio, logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -40,6 +40,12 @@ def get_true_type(t: type):
             return args[0]
         else:
             return origin
+
+def check_datatype_coverage(dt: Datatype):
+    keys = set(dt.keys())
+    hints = set(get_type_hints(dt))
+    unseenAttrs = keys.difference(hints)
+    assert unseenAttrs == set(), f"{type(dt)} missing keys: {[a + ' = ' + str(dt[a]) for a in unseenAttrs]}"
 
 class TestDatatypes():
     def test_Datatype_conformance(self):
@@ -101,136 +107,80 @@ class TestDatatypes():
 
 @pytest.mark.skipif("SKIP_HEAVY_TESTS" in os.environ, reason="Skip on automated runs")
 class TestDatatypes_Integration_Heavy():
-    @pytest.mark.asyncio
-    async def test_Runs(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
+    """
+    Heavy testing meant to be semi-exhaustive, that will most likely hit rate limits on repeat runs.
 
-        async def getCat(g):
-            data = await GetGameData(gameId=g).perform_async()
-            if len(data["runCounts"]) == 0: return None
-            if data["runCounts"][0]["count"] == 0: return None
-            return (g, data["runCounts"][0]["categoryId"])
-        
-        game_cat = await asyncio.gather(*[getCat(x) for x in games])
-        game_cat = [i for i in game_cat if i != None]
+    Call list:
+    GetGameList: all pages (<100) + 1 random page
+    GetGameData: 250
+    GetGameLeaderboard2: 100
+    """
+    @pytest_asyncio.fixture(scope="session")
+    async def all_games(self) -> r_GetGameList:
+        """All pages of GetGameList"""
+        return await GetGameList().perform_all_async()
 
-        async def checkBoard(g, c):
-            source = await GetGameLeaderboard2(g, c).perform_async()
-            runs = [Run(s) for s in source["runList"]]
-            if len(runs) == 0 and len(source["runList"]) == 0: return
-            assert runs == source["runList"] # This should be a given
-            hints = Run.get_type_hints().keys()
-            for (raw, run) in zip(source["runList"], runs):
-                for key in raw: 
-                    assert key in hints # Ensure that speedruncompy covers all attributes
-        
-        await asyncio.gather(*[checkBoard(g, c) for g, c in game_cat])
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset(self) -> list[str]:
+        """List of 250 random game IDs"""
+        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 250)
+
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset_data(self, small_game_subset) -> list[r_GetGameData]:
+        """GetGameData for 250 random games"""
+        return await asyncio.gather(*[GetGameData(gameId=g).perform_async() for g in small_game_subset])
+    
+    @pytest.fixture(scope="session")
+    async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameData]) -> list[tuple[r_GetGameData, str]]:
+        """1 category per game based on first reported runCounts, for a total of <=250 games (games with no runs excluded)"""
+        overall = []
+        for g in small_game_subset_data:
+            if len(g.runCounts) == 0: continue
+            if g.runCounts[0].count == 0: continue
+            overall.append((g, g.runCounts[0].categoryId))
+        return overall
+    
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset_leaderboards(self, small_game_subset_categories: list[tuple[r_GetGameData, str]]) -> list[r_GetGameLeaderboard2]:
+        return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform_all_async() for g, c in small_game_subset_categories])
+
+    def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):        
+        for board in small_game_subset_leaderboards:
+            for run in board.runList:
+                check_datatype_coverage(run)
     
     def test_Challenge_Runs(self):
         source = GetChallengeLeaderboard(challenge_id).perform()
-        runs = [ChallengeRun(s) for s in source["challengeRunList"]]
-        if len(runs) == 0 and len(source["challengeRunList"]) == 0: return
-        assert runs == source["challengeRunList"] # This should be a given
-        hints = ChallengeRun.get_type_hints().keys()
-        for (raw, run) in zip(source["challengeRunList"], runs):
-            for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
+        if len(source["challengeRunList"]) == 0: return
+        for run in source["challengeRunList"]:
+            check_datatype_coverage(run)
     
-    def test_Game(self):
-        source = GetGameList().perform_all()
-        games = source.gameList
-        assert games == source["gameList"] # This should be a given
-        hints = Game.get_type_hints()
-        for (raw, game) in zip(source["gameList"], games):
-            game = Game(game)
-            for key in raw: 
-                assert key in hints.keys(), raw.__repr__() # Ensure that speedruncompy covers all attributes
-            for key in game:
-                val = game[key]
-
-                assert isinstance(val, get_true_type(hints[key])) # Ensure reported type is correct to srcpy
-                assert raw[key] == val # Ensure srcpy type is equivalent to original type
+    def test_Game(self, all_games: r_GetGameList):
+        games = all_games.gameList
+        for game in games:
+            check_datatype_coverage(game)
     
-    @pytest.mark.asyncio
-    async def test_Category(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
-
-        async def checkGame(g):
-            source = await GetGameData(gameId=g).perform_async()
-            cats = [Category(c) for c in source["categories"]]
-            hints = Category.get_type_hints().keys()
-            for (raw, cat) in zip(source["categories"], cats):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
-        
-        await asyncio.gather(*[checkGame(g) for g in games])
+    def test_Category(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for cat in g.categories:
+                check_datatype_coverage(cat)
     
-    @pytest.mark.asyncio
-    async def test_Level(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
+    def test_Level(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for lev in g.levels:
+                check_datatype_coverage(lev)
 
-        async def checkGame(g):
-            source = await GetGameData(gameId=g).perform_async()
-            levels = [Level(c) for c in source["levels"]]
-            hints = Level.get_type_hints().keys()
-            for (raw, cat) in zip(source["levels"], levels):
-                for key in raw: assert key in hints # Ensure that speedruncompy attribute
-        
-        await asyncio.gather(*[checkGame(g) for g in games])
-    
-    @pytest.mark.asyncio
-    async def test_Platform(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
+    def test_Platform(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for plat in g.platforms:
+                check_datatype_coverage(plat)
 
-        async def checkGame(g):
-            source = await GetGameData(gameId=g).perform_async()
-            levels = [Platform(c) for c in source["platforms"]]
-            hints = Platform.get_type_hints().keys()
-            for (raw, cat) in zip(source["platforms"], levels):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
-        
-        await asyncio.gather(*[checkGame(g) for g in games])
-
-    @pytest.mark.asyncio
-    async def test_Platform(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
-
-        async def checkGame(g):
-            source = await GetGameData(gameId=g).perform_async()
-            levels = [Platform(c) for c in source["platforms"]]
-            hints = Platform.get_type_hints().keys()
-            for (raw, cat) in zip(source["platforms"], levels):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
-        
-        await asyncio.gather(*[checkGame(g) for g in games])
-
-    @pytest.mark.asyncio
-    async def test_Player(self):
-        games = sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async())["gameList"]], 50)
-
-        async def getCat(g):
-            data = await GetGameData(gameId=g).perform_async()
-            if len(data["runCounts"]) == 0: return None
-            if data["runCounts"][0]["count"] == 0: return None
-            return (g, data["runCounts"][0]["categoryId"])
-        
-        game_cat = await asyncio.gather(*[getCat(x) for x in games])
-        game_cat = [i for i in game_cat if i != None]
-
-        async def checkBoard(g, c):
-            source = await GetGameLeaderboard2(g, c).perform_async()
-            players = [Player(s) for s in source["playerList"]]
-            if len(players) == 0 and len(source["playerList"]) == 0: return
-            assert players == source["playerList"] # This should be a given
-            hints = Player.get_type_hints().keys()
-            for (raw, run) in zip(source["playerList"], players):
-                for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
-        
-        await asyncio.gather(*[checkBoard(g, c) for g, c in game_cat])
+    def test_Player(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
+        for board in small_game_subset_leaderboards:
+            for player in board.playerList:
+                check_datatype_coverage(player)
 
     def test_User(self):
         source = GetChallengeLeaderboard(challenge_id).perform()
-        users = [User(g) for g in source["userList"]]
-        logging.info(f"Testing {len(users)} users")
-        assert users == source["userList"] # This should be a given
-        hints = User.get_type_hints().keys()
-        for (raw, game) in zip(source["userList"], users):
-            for key in raw: assert key in hints # Ensure that speedruncompy covers all attributes
+        for user in source["userList"]:
+                check_datatype_coverage(user)

@@ -33,3 +33,4 @@ Repository = "https://github.com/ManicJamie/speedruncompy.git"
 
 [tool.pytest.ini_options]
 log_cli = true
+asyncio_mode = "auto"
