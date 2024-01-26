@@ -2,6 +2,8 @@ import asyncio
 import os
 from random import randint, sample
 
+from websockets import Data
+
 from speedruncompy.datatypes import *
 from speedruncompy import datatypes
 from speedruncompy.endpoints import *
@@ -43,9 +45,19 @@ def get_true_type(t: type):
 
 def check_datatype_coverage(dt: Datatype):
     keys = set(dt.keys())
-    hints = set(get_type_hints(dt))
-    unseenAttrs = keys.difference(hints)
+    hints = get_type_hints(dt)
+    hintNames = set(hints)
+    unseenAttrs = keys.difference(hintNames)
     assert unseenAttrs == set(), f"{type(dt)} missing keys: {[a + ' = ' + str(dt[a]) for a in unseenAttrs]}"
+    for attr, subtype in hints.items():
+        true = get_true_type(subtype)
+        if issubclass(true, Datatype):
+            check_datatype_coverage(dt[attr])
+        elif true is list:
+            list_type = get_args(subtype)[0]
+            if issubclass(list_type, Datatype):
+                for item in dt[attr]:
+                    check_datatype_coverage(item)
 
 class TestDatatypes():
     def test_Datatype_conformance(self):
@@ -132,17 +144,19 @@ class TestDatatypes_Integration_Heavy():
     
     @pytest.fixture(scope="session")
     async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameData]) -> list[tuple[r_GetGameData, str]]:
-        """1 category per game based on first reported runCounts, for a total of <=250 games (games with no runs excluded)"""
+        """1 category per game based on largest runCount, for a total of <=250 games (games with no runs excluded)"""
         overall = []
         for g in small_game_subset_data:
             if len(g.runCounts) == 0: continue
-            if g.runCounts[0].count == 0: continue
-            overall.append((g, g.runCounts[0].categoryId))
+            top = max(g.runCounts, key=lambda x: x.count)
+            if top.count == 0: continue
+            overall.append((g, top.categoryId))
         return overall
     
     @pytest_asyncio.fixture(scope="session")
     async def small_game_subset_leaderboards(self, small_game_subset_categories: list[tuple[r_GetGameData, str]]) -> list[r_GetGameLeaderboard2]:
-        return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform_all_async() for g, c in small_game_subset_categories])
+        """1 leaderboard per game, 1 page per board (to avoid rate limit on an average > 2 boards per game)"""
+        return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform_async() for g, c in small_game_subset_categories])
 
     def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):        
         for board in small_game_subset_leaderboards:
@@ -151,8 +165,8 @@ class TestDatatypes_Integration_Heavy():
     
     def test_Challenge_Runs(self):
         source = GetChallengeLeaderboard(challenge_id).perform()
-        if len(source["challengeRunList"]) == 0: return
-        for run in source["challengeRunList"]:
+        if len(source.challengeRunList) == 0: return
+        for run in source.challengeRunList:
             check_datatype_coverage(run)
     
     def test_Game(self, all_games: r_GetGameList):
@@ -182,5 +196,5 @@ class TestDatatypes_Integration_Heavy():
 
     def test_User(self):
         source = GetChallengeLeaderboard(challenge_id).perform()
-        for user in source["userList"]:
-                check_datatype_coverage(user)
+        for user in source.userList:
+            check_datatype_coverage(user)
