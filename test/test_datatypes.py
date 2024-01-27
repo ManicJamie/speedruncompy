@@ -2,8 +2,6 @@ import asyncio
 import os
 from random import randint, sample
 
-from websockets import Data
-
 from speedruncompy.datatypes import *
 from speedruncompy import datatypes
 from speedruncompy.endpoints import *
@@ -125,7 +123,7 @@ class TestDatatypes_Integration_Heavy():
     Call list:
     GetGameList: all pages (<100) + 1 random page
     GetGameData: 250
-    GetGameLeaderboard2: 100
+    GetGameLeaderboard2: 250
     """
     @pytest_asyncio.fixture(scope="session")
     async def all_games(self) -> r_GetGameList:
