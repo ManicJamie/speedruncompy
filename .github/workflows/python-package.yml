@@ -42,4 +42,4 @@ jobs:
         LOW_PASSWORD: ${{secrets.LOW_PASSWORD}}
         SKIP_HEAVY_TESTS: true
       run: |
-        pytest
+        python -m pytest
