@@ -1,10 +1,10 @@
 from typing import Any, Coroutine
-from speedruncompy.api import SpeedrunComPy
-from speedruncompy.datatypes import Datatype, LenientDatatype
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log
 from .exceptions import SrcpyException
 from .enums import *
 from .responses import *
+from .datatypes import Datatype, LenientDatatype
+import asyncio
 
 SUPPRESS_WARNINGS = False
 
@@ -40,7 +40,7 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         extras: r_GetGameLeaderboard2 = pages[1]
         extras.pop("runList")
         extras.pagination.page = 0
-        return r_GetGameLeaderboard2({"runList": runList}, skipChecking=True) | extras
+        return extras | {"runList": runList}
 
 class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
     """WARN: This is NOT the view used by SRC! It may be removed at any time!
@@ -63,15 +63,24 @@ class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
     
     def perform_all(self, retries=5, delay=1) -> r_GetGameLeaderboard:
         return super().perform_all(retries, delay)
+    
+    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, dict]:
+        self.pages: dict[int, Datatype] = {}
+        self.pages[1] = await self.perform_async(retries, delay, page=1)
+        numpages = self.pages[1]["leaderboard"]["pagination"]["pages"]
+        if numpages > 1:
+            results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
+            self.pages.update({p + 2:result for p, result in enumerate(results)})
+        return self.pages
 
     def _combine_results(self, pages: dict):
         runList = []
         for p in pages.values():
-            runList += p["runs"]
-        extras: Datatype = pages[1]
+            runList += p["leaderboard"]["runs"]
+        extras: Leaderboard = pages[1]["leaderboard"]
         extras.pop("runs")
         extras["pagination"]["page"] = 0
-        return r_GetGameLeaderboard({"runs": runList}, skipChecking=True) | extras
+        return r_GetGameLeaderboard({"leaderboard": Leaderboard(extras | {"runs": runList})})
 
 class GetGameData(GetRequest):
     def __init__(self, gameId: str = None, gameUrl: str = None, **params) -> None:
@@ -188,10 +197,10 @@ class GetArticleList(GetRequest, BasePaginatedRequest):
         extras: r_GetArticleList = pages[1]
         extras.pop("articleList")
         extras.pagination.page = 0
-        return r_GetArticleList({"articleList": articleList}, skipChecking=True) | extras
+        return extras | {"articleList": articleList}
 
 class GetArticle(GetRequest):
-    def __init__(self, id = None, slug = None, **params) -> None:
+    def __init__(self, id: str = None, slug: str = None, **params) -> None:
         if id is None and slug is None: raise SrcpyException("GetArticle requires id or slug")
         super().__init__("GetArticle", returns=r_GetArticle, id=id, slug=slug, **params)
 
@@ -224,7 +233,7 @@ class GetGameList(GetRequest, BasePaginatedRequest):
         extras: r_GetGameList = pages[1]
         extras.pop("gameList")
         extras.pagination.page = 0
-        return r_GetGameList({"gameList": gameList}, skipChecking=True) | extras
+        return extras | {"gameList": gameList}
 
 class GetHomeSummary(GetRequest):
     def __init__(self, **params) -> None:
@@ -256,20 +265,19 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
         seriesList = []
         for p in pages.values():
             seriesList += p["seriesList"]
-        extras: dict = pages[1]
+        extras: r_GetSeriesList = pages[1]
         extras.pop("seriesList")
-        extras.pop("pagination")
-        return {"seriesList": seriesList} | extras
+        extras["pagination"]["page"] = 0
+        return extras | {"seriesList": seriesList}
 
-class GetSeriesSettings(GetRequest):
-    ... #TODO: complete
-
-class GetGameLevelSummary(GetRequest, BasePaginatedRequest):
+class GetGameLevelSummary(GetRequest):
+    """Note: This can take a `page` param but does not split into pages?"""
+    #TODO: check what's going on here
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        super().__init__("GetGameRecordHistory", returns=r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
+        super().__init__("GetGameLevelSummary", returns=r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
     
     def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameLevelSummary:
         return super().perform(retries, delay, **kwargs)
@@ -397,6 +405,21 @@ class GetCommentList(GetRequest, BasePaginatedRequest):
     
     def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetCommentList]:
         return super().perform_async(retries, delay, **kwargs)
+    
+    def perform_all(self, retries=5, delay=1) -> r_GetCommentList:
+        return super().perform_all(retries, delay)
+    
+    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetCommentList]:
+        return super().perform_all_async(retries, delay)
+    
+    def _combine_results(self, pages: dict):
+        #TODO: check likeList, userList for page separation
+        commentList = []
+        for p in pages.values():
+            commentList += p["commentList"]
+        extras: dict = pages[1]
+        extras.pop("commentList")
+        return extras | {"commentList": commentList}
 
 class GetThread(GetRequest , BasePaginatedRequest):
     def __init__(self, id: str, **params) -> None:
@@ -420,8 +443,8 @@ class GetThread(GetRequest , BasePaginatedRequest):
             commentList += p["commentList"]
         extras: dict = pages[1]
         extras.pop("commentList")
-        extras.pop("pagination")
-        return {"commentList": commentList} | extras
+        extras["pagination"]["page"] = 0
+        return extras | {"commentList": commentList}
 
 class GetForumList(GetRequest):
     def __init__(self, **params) -> None:
@@ -667,7 +690,7 @@ class GetNotifications(PostRequest, BasePaginatedRequest):
         extras: dict = pages[1]
         extras.pop("notifications")
         extras.pop("pagination")
-        return {"notifications": notifications} | extras
+        return extras | {"notifications": notifications}
 
 # User settings
 class GetUserSettings(PostRequest):
@@ -788,6 +811,16 @@ class GetTickets(PostRequest, BasePaginatedRequest):
     def _combine_results(self, pages: dict):
         """TODO: method stub"""
         return super()._combine_results(pages)
+
+class GetSeriesSettings(PostRequest):
+    def __init__(self, seriesId: str, **params) -> None:
+        super().__init__("GetSeriesSettings", returns=r_GetSeriesSettings, seriesId=seriesId, **params)
+    
+    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSeriesSettings:
+        return super().perform(retries, delay, **kwargs)
+    
+    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSeriesSettings]:
+        return super().perform_async(retries, delay, **kwargs)
 
 class GetUserBlocks(PostRequest):
     def __init__(self, **params) -> None:

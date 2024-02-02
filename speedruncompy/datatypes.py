@@ -287,8 +287,8 @@ class Series(Datatype):
     url: str
     addedDate: int
     touchDate: int
-    websiteUrl: str
-    discordUrl: str
+    websiteUrl: Optional[str]
+    discordUrl: Optional[str]
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
@@ -318,6 +318,7 @@ class Game(Datatype):
     trophy1stPath: Optional[str]
     trophy2ndPath: Optional[str]
     trophy3rdPath: Optional[str]
+    trophy4thPath: Optional[str]
     runCommentsMode: int # enum
     runCount: int
     activePlayerCount: int
@@ -357,6 +358,7 @@ class RunCount(Datatype):
 
     gameId: str
     categoryId: str
+    levelId: Optional[str]
     variableId: Optional[str]
     valueId: Optional[str]
     count: int
@@ -385,6 +387,7 @@ class Variable(Datatype):
     url: str
     pos: int
     gameId: str
+    description: Optional[str]
     categoryScope: int # enum
     categoryId: Optional[str]
     levelScope: int # enum
@@ -434,12 +437,17 @@ class Article(Datatype):
     body: str
     createDate: int
     updateDate: int
-    publishDate: int
+    publishDate: Optional[int]
+    rejectDate: Optional[int]
     publishTarget: str # enum?
     publishTags: list[str] # enum? probably not
-    coverImagePath: str
+    coverImagePath: Optional[str]
     commentsCount: int
-    community: bool
+    community: Optional[bool]
+    gameId: Optional[str]
+    userId: Optional[str]
+    editorId: Optional[str]
+    stickyDate: Optional[int]
 
 class News(Datatype):
 
@@ -530,12 +538,24 @@ class GameOrdering(Datatype):
 class UserProfile(Datatype):
 
     userId: str
+    bio: Optional[str]
     signupDate: int
     defaultView: int # enum, assuming fg/level?
     showMiscByDefault: bool
     gameOrdering:GameOrdering #TODO: make better names for these
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
+
+class UserLeaderboardProfile(Datatype):
+    """UserProfile as returned by GetUserLeaderboard & GetUserPopoverData.
+    
+    Missing userStats and userSocialConnectionList."""
+    userId: str
+    bio: Optional[str]
+    signupDate: int
+    defaultView: int # enum, assuming fg/level?
+    showMiscByDefault: bool
+    gameOrdering:GameOrdering #TODO: make better names for these
 
 class SeriesModerator(Datatype):
     seriesId: str
@@ -595,8 +615,8 @@ class Run(Datatype):
     """Only omitted on some very old runs!"""
     dateVerified: Optional[int]
     hasSplits: bool
-    obsolete: bool
-    place: int
+    obsolete: Optional[bool]
+    place: Optional[int]
     issues: Optional[None]
     playerIds: list[str]
     valueIds: list[str]
@@ -604,6 +624,9 @@ class Run(Datatype):
 class ChallengeStanding(Datatype):
     place: int
     registeredPlayerIds: list[str]
+    prizeAmount: int
+    unregisteredPlayers: list[str] #TODO: str is an assumption
+    prizeCurrency: str
 
 class ChallengePrize(Datatype):
     place: int
@@ -618,6 +641,7 @@ class Challenge(Datatype):
 
     id: str
     name: str
+    announcement: str
     url: str
     gameId: str
     createDate: int
@@ -672,6 +696,7 @@ class ChallengeRun(Datatype):
 class Theme(Datatype):
     id: str
     url: str
+    name: Optional[str]
     primaryColor: str
     panelColor: str
     panelOpacity: int
@@ -723,12 +748,14 @@ class Resource(Datatype):
     gameId: str
     path: Optional[str]
     link: Optional[str]
-    fileName: str
+    fileName: Optional[str]
     authorNames: str #TODO: exhaustive check for lists
 
 class Stream(Datatype):
     id: str
-    gameId: str
+    gameId: Optional[str]
+    userId: str
+    areaId: str
     url: str
     title: str
     previewUrl: str
@@ -818,6 +845,13 @@ class ConversationMessage(Datatype):
     text: str
     date: int
 
+class SystemMessage(Datatype):
+    id: str
+    userId: str
+    text: str
+    date: int
+    read: bool
+
 class ForumReadStatus(Datatype):
     forumId: str
     date: int
@@ -868,6 +902,8 @@ class Session(Datatype):
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
+    enabledExperimentIds: Any # undocumented list
+    challengeModeratorList: Any # undocumented list
 
 class ThemeSettings(Datatype):
     primaryColor: str

@@ -1,7 +1,9 @@
+import speedruncompy
 from speedruncompy.endpoints import *
 from speedruncompy.api import SpeedrunComPy
 from speedruncompy.exceptions import *
 from speedruncompy import datatypes
+from utils import check_datatype_coverage, check_pages
 
 import pytest, os, logging, json, asyncio
 
@@ -37,13 +39,23 @@ else:
 IS_SUPERMOD = False # Set to True to activate full test suite including supermod endpoints
 
 game_id = "76rqmld8" # Hollow Knight
+game_url = "hollowknight"
 category_id = "02q8o4p2" # Any%
-run_id = "" # Must be owned by logged in user; this one is owned by Hornet_Bot
+level_category = "wkpq608d" # Hollow Knight "Level" category
+run_id = "mrrg8k4m" # ManicJamie's Hollow Knight: All Skills LP run
 comment_list_source = "y8k99ndy" # Must have multiple pages of comments & match itemType below
 comment_list_type = itemType.RUN
 thread_id = "mbkmj"
+user_id = "j4r6pwm8" # ManicJamie (must have leaderboard)
+forum_id = "gz5lqd21" # Hollow Knight
+guide_id = "ew8s2" # Hollow Knight code of conduct
+article_id = "jd5y09v2"
+article_slug = "the-worlds-first-speedrunning-dog-at-agdq-2024"
+challenge_id = "5e3eoymq"
+challenge_run_id = "m9vk8gy3"
 
 logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
 
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
@@ -61,6 +73,12 @@ def disable_type_checking():
     datatypes.DISABLE_TYPE_CONFORMANCE = True
     yield
     datatypes.DISABLE_TYPE_CONFORMANCE = False
+
+@pytest.fixture(autouse=True)
+def check_api_conformance():
+    """The default API must never have a PHPSESSID."""
+    assert speedruncompy.api._default.cookie_jar == {}
+    yield
 
 def log_result(result: dict):
     logging.debug(result)
@@ -111,113 +129,209 @@ class TestGetRequests():
     api = SpeedrunComPy("Test")
     api.set_phpsessid(SESSID)
 
+    def test_GetGameLeaderboard(self):
+        result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetGameLeaderboard_paginated(self):
+        result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform_all()
+        log_result(result)
+        check_datatype_coverage(result)
+
     def test_GetGameLeaderboard2(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id, page=1).perform()
-        assert "runList" in result
-        assert len(result.runList) > 0
-        assert "playerList" in result
-        assert len(result.playerList) > 0
-        assert "pagination" in result
-        assert result.pagination.page == 1
+        log_result(result)
+        check_datatype_coverage(result)
     
     def test_GetGameLeaderboard2_paginated(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all()
         log_result(result)
-        assert "runList" in result
-        assert len(result["runList"]) > 0
+        check_datatype_coverage(result)
 
     def test_GetGameLeaderboard2_paginated_raw(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
         log_result(result)
-        assert 1 in result
-        assert "runList" in result[1]
-        assert len(result[1]["runList"]) > 0
+        check_pages(result)
     
     def test_GetGameData_id(self):
         result = GetGameData(_api=self.api, gameId=game_id).perform()
         log_result(result)
-        assert "game" in result
-        assert result["game"]["id"] == game_id
+        check_datatype_coverage(result)
+        assert result.game.id == game_id
+        assert result.game.url == game_url
 
     def test_GetGameData_url(self):
         result = GetGameData(_api=self.api, gameUrl="hollowknight").perform()
         log_result(result)
-        assert "game" in result
-        assert result["game"]["id"] == game_id
+        check_datatype_coverage(result)
+        assert result.game.id == game_id
+        assert result.game.url == game_url
     
     def test_GetGameData_badreq(self):
         with pytest.raises(BadRequest) as e: # The ID not being found does NOT 404, but 400s. Good website
             GetGameData(_api=self.api, gameId="a").perform()
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetGameSummary(self):
-        ...
+        result = GetGameSummary(gameId=game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetGameLevelSummary(self):
-        ...
+        result = GetGameLevelSummary(gameId=game_id, categoryId=level_category).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetGameRecordHistory(self):
+        result = GetGameRecordHistory(gameId=game_id, categoryId=level_category).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
     def test_GetSearch(self):
+        #TODO: other search types
         result = GetSearch("Hollow Knight", includeGames=True).perform()
         log_result(result)
-        assert "gameList" in result
-        assert len(result["gameList"]) > 0
+        check_datatype_coverage(result)
     
     def test_GetLatestLeaderboard(self):
         result = GetLatestLeaderboard().perform()
         log_result(result)
-        assert "runs" in result
-        assert len(result["runs"]) > 0
+        check_datatype_coverage(result)
+    
+    def test_GetRun(self):
+        result = GetRun(run_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserPopoverData(self):
+        result = GetUserPopoverData(user_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
     def test_GetCommentList(self):
         result = GetCommentList(comment_list_source, comment_list_type).perform()
         log_result(result)
-        assert "commentList" in result
-        assert len(result["commentList"]) > 0
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetCommentList_paginated_raw(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
+        result = GetCommentList(comment_list_source, comment_list_type)._perform_all_raw()
+        log_result(result)
+        for p, page in result.items():
+            check_datatype_coverage(page)
+
     def test_GetCommentList_paginated(self):
-        ...
+        result = GetCommentList(comment_list_source, comment_list_type).perform_all()
+        log_result(result)
+        check_datatype_coverage(result)
 
     def test_GetThread(self):
         result = GetThread(thread_id).perform()
         log_result(result)
-        assert "thread" in result
-        assert "commentList" in result
-        assert len(result["commentList"]) > 0
-        assert "pagination" in result
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetThread_paginated_raw(self):
-        ...
+        result = GetThread(thread_id)._perform_all_raw()
+        log_result(result)
+        check_pages(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetThread_paginated(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
+        result = GetThread(thread_id).perform_all()
+        log_result(result)
+        check_datatype_coverage(result)
+
     def test_GetUserLeaderboard(self):
-        ...
+        result = GetUserLeaderboard(userId=user_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetForumList(self):
-        ...
+        """TODO: account dependent!"""
+        result = GetForumList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetGuideList(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
+        result = GetGuideList(gameId=game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
     def test_GetGuide(self):
-        ...
+        result = GetGuide(guide_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
     def test_GetChallenge(self):
         result = GetChallenge(_api=self.api, id="5e3eoymq").perform()
-        assert "challenge" in result
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetArticleList(self):
+        result = GetArticleList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetArticle(self):
+        result = GetArticle(id=article_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+        assert article_slug == result.article.slug
+
+        slug_result = GetArticle(slug=article_slug).perform()
+        log_result(slug_result)
+        check_datatype_coverage(slug_result)
+        assert article_id == slug_result.article.id
+    
+    def test_GetGameList(self):
+        """NB: paginated testing in TestDatatypes_Integration_Heavy"""
+        result = GetGameList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetHomeSummary(self):
+        """TODO: this is an empty result; check authed"""
+        result = GetHomeSummary().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetSeriesList(self):
+        result = GetSeriesList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetNewsList(self):
+        result = GetNewsList(gameId=game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetNews(self):
+        result = GetNews(id="z34yzw38").perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetResourceList(self):
+        result = GetResourceList(game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetStreamList(self):
+        result = GetStreamList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetThreadList(self):
+        result = GetThreadList(forum_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetChallengeLeaderboard(self):
+        result = GetChallengeLeaderboard(challengeId=challenge_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetChallengeRun(self):
+        result = GetChallengeRun(challenge_run_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
 class TestPostRequests():
     api = SpeedrunComPy("Test")
@@ -229,11 +343,13 @@ class TestPostRequests():
     def test_GetSession(self):
         result = GetSession(_api=self.api).perform()
         log_result(result)
+        check_datatype_coverage(result)
         assert result["session"]["signedIn"]
     
     def test_GetSession_unauthed(self):
         result = GetSession().perform()
         log_result(result)
+        check_datatype_coverage(result)
         assert not result["session"]["signedIn"]
 
     @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
@@ -241,12 +357,19 @@ class TestPostRequests():
     def test_GetAuditLogList(self):
         result = GetAuditLogList(_api=self.api, gameId=game_id).perform()
         log_result(result)
-        ... # TODO: Finish test
+        check_datatype_coverage(result)
     
     @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
     @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList_paginated_raw(self):
         result = GetAuditLogList(_api=self.api, gameId=game_id)._perform_all_raw()
+        log_result(result)
+        ... # TODO: Finish test
+    
+    @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetAuditLogList_paginated(self):
+        result = GetAuditLogList(_api=self.api, gameId=game_id).perform_all()
         log_result(result)
         ... # TODO: Finish test
     
@@ -258,182 +381,269 @@ class TestPostRequests():
         with pytest.raises(Unauthorized) as e: # This *should* return `Forbidden`, but SRC doesn't.
             GetAuditLogList(_api=self.low_api, gameId=game_id).perform()
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetCommentable(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
+        """POST, can be called unauthed for `commentable` but `permissions` will be unhelpful."""
+        result = GetCommentable(itemId=comment_list_source, itemType=comment_list_type).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    @pytest.mark.skip("method stub")
     def test_GetConversationMessages(self):
-        ...
+        result = GetConversationMessages(_api=self.api).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
+    @pytest.mark.skip("method stub")
     def test_GetConversationMessages_unauthed(self):
-        ...
-    
-    @pytest.mark.skip(reason="Test stub")
-    def test_GetConversationMessages_lowperms(self):
-        ...
+        result = GetConversationMessages().perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetConversations(self):
-        ...
+        result = GetConversations(_api=self.api).perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetConversations_unauthed(self):
-        ...
+        with pytest.raises(Unauthorized):
+            result = GetConversations().perform()
+            log_result(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetForumReadStatus(self):
-        ...
+        result = GetForumReadStatus(forumIds=[forum_id], _api=self.api).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetForumReadStatus_unauthed(self):
-        ...
+        result = GetForumReadStatus(forumIds=[forum_id]).perform()
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetGameSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetGameSettings_unauthed(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetModerationGames(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_paginated(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_paginated_raw(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetNotifcations(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetNotifications_unauthed(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetRunSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetSeriesSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_GetThemeSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_GetThreadReadStatus(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetTickets(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetUserBlocks(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetUserSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetUserSupporterData(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Unreasonable to test this endpoint as it would create spam.")
     def test_PutAuthSignup(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutComment(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test Stub")
     def test_PutCommentableSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversation(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversationMessage(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutGame(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameBoostGrant(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModerator(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModeratorDelete(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunAssignee(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunVerification(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGame(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGameDelete(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutSessionPing(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutThreadRead(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutTicket(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSettings(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnections(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnectionDelete(self):
-        ...
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetSeriesSettings(self):
+        result = GetSeriesSettings("").perform()
+        log_result(result)
+        check_datatype_coverage(result)

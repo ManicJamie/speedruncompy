@@ -23,6 +23,10 @@ class r_GetChallenge(Datatype):
     game: Game
     moderatorList: list[ChallengeModerator]
     standingList: list[ChallengeStanding]
+    theme: Theme
+    userList: list[User]
+    challengeRunCount: int
+    gameFollowerCount: int
 
 class r_GetChallengeLeaderboard(Datatype):
     challengeRunList: list[ChallengeRun]
@@ -89,7 +93,7 @@ class r_GetGameSummary(Datatype):
     gameModerators: list[GameModerator]
     forum: Forum
     newsList: list[News]
-    gameStats: GameStats
+    gameStats: list[GameStats]
     stats: GameStats
     relatedGames: list[Game]
     seriesList: list[Series]
@@ -115,7 +119,7 @@ class r_GetGuideList(Datatype):
     users: list[User]
 
 class r_GetHomeSummary(Datatype):
-    stream: Stream
+    stream: Optional[Stream]
 
 class r_GetLatestLeaderboard(Datatype):
     categories: list[Category]
@@ -126,6 +130,7 @@ class r_GetLatestLeaderboard(Datatype):
     runs: list[Run]
     values: list[Value]
     variables: list[Variable]
+    platforms: list[Platform]
 
 class r_GetNews(Datatype):
     news: News
@@ -137,6 +142,7 @@ class r_GetNewsList(Datatype):
 
 class r_GetResourceList(Datatype):
     resourceList: list[Resource]
+    users: list[User]
 
 class r_GetRun(Datatype):
     game: Game
@@ -144,7 +150,7 @@ class r_GetRun(Datatype):
     level: Optional[Level]
     platform: Optional[Platform]
     players: list[Player]
-    region: Region
+    region: Optional[Region]
     run: Run
     users: list[User]
     values: list[Value]
@@ -165,6 +171,7 @@ class r_GetStreamList(Datatype):
     gameList: list[Game]
     streamList: list[Stream]
     userList: list[User]
+    pagination: Pagination
 
 class r_GetThread(Datatype):
     thread: Thread
@@ -186,9 +193,10 @@ class r_GetUserLeaderboard(Datatype):
     regions: list[Region]
     runs: list[Run]
     user: User
-    userProfile: UserProfile
+    userProfile: UserLeaderboardProfile
     users: list[User]
     """Always empty"""
+    players: list[Player]
     values: list[Value]
     variables: list[Variable]
     followedGameIds: None
@@ -198,7 +206,7 @@ class r_GetUserLeaderboard(Datatype):
 
 class r_GetUserPopoverData(Datatype):
     user: User
-    userProfile: UserProfile
+    userProfile: UserLeaderboardProfile
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
     games: list[Game]
@@ -223,9 +231,10 @@ class r_GetConversations(Datatype):
     conversations: list[Conversation]
     participants: list[ConversationParticipant]
     users: list[User]
+    systemMessages: list[SystemMessage]
 
 class r_GetForumReadStatus(Datatype):
-    forumReadStatusList: ForumReadStatus
+    forumReadStatusList: list[ForumReadStatus]
 
 class r_GetGameSettings(Datatype):
     settings: GameSettings
