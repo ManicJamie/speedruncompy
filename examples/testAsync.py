@@ -1,7 +1,7 @@
 import asyncio
 import json
-from speedruncompy.endpoints import *
-from speedruncompy.exceptions import AIOException
+from src.endpoints import *
+from src.exceptions import AIOException
 import logging
 
 _log = logging.getLogger("speedruncompyTest")

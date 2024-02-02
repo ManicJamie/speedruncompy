@@ -6,7 +6,7 @@ Useful if you do not want to bother adding standard login code to your program &
 Especially useful if you have 2FA enabled!
 """
 
-from speedruncompy import auth, api
+from src import auth, api
 from getpass import getpass
 
 username = input("Enter username: ")

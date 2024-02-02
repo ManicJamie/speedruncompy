@@ -1,8 +1,8 @@
-import speedruncompy as speedruncompy
-from speedruncompy.api import *
-from speedruncompy.endpoints import *
+import src as src
+from src.api import *
+from src.endpoints import *
 import logging, json
-from speedruncompy.enums import *
+from src.enums import *
 
 from secret import USER_NAME, PASSWORD, SESSID, CSRF
 

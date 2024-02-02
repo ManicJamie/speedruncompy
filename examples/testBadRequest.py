@@ -1,19 +1,19 @@
-import speedruncompy
-from speedruncompy.exceptions import *
+import src
+from src.exceptions import *
 
 from secret import SESSID
 
-speedruncompy.auth.login_PHPSESSID(SESSID)
+src.auth.login_PHPSESSID(SESSID)
 
 try:
-    speedruncompy.GetSearch(query=True).perform()
+    src.GetSearch(query=True).perform()
 except BadRequest as e:
     print(e)
 
 try:
     # Test srcpy's own poor argument catching (at construction, not at request time!)
-    speedruncompy.GetAuditLogList().perform()
+    src.GetAuditLogList().perform()
 except TypeError as e:
     print(e)
 
-speedruncompy.GetAuditLogList().perform()
+src.GetAuditLogList().perform()

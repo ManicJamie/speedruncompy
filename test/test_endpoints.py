@@ -1,8 +1,7 @@
-import speedruncompy
-from speedruncompy.endpoints import *
-from speedruncompy.api import SpeedrunComPy
-from speedruncompy.exceptions import *
-from speedruncompy import datatypes
+from src.endpoints import *
+from src.api import SpeedrunComPy, _default
+from src.exceptions import *
+from src import datatypes
 from utils import check_datatype_coverage, check_pages
 
 import pytest, os, logging, json, asyncio
@@ -77,7 +76,7 @@ def disable_type_checking():
 @pytest.fixture(autouse=True)
 def check_api_conformance():
     """The default API must never have a PHPSESSID."""
-    assert speedruncompy.api._default.cookie_jar == {}
+    assert _default.cookie_jar == {}
     yield
 
 def log_result(result: dict):

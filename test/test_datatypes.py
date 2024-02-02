@@ -2,9 +2,9 @@ import asyncio
 import os
 from random import randint, sample
 
-from speedruncompy.datatypes import *
-from speedruncompy import datatypes
-from speedruncompy.endpoints import *
+from src.datatypes import *
+from src import datatypes
+from src.endpoints import *
 
 from utils import check_datatype_coverage
 
@@ -98,8 +98,8 @@ class TestDatatypes_Integration_Heavy():
 
     Call list:
     GetGameList: all pages (<100) + 1 random page
-    GetGameData: 250
-    GetGameLeaderboard2: 250
+    GetGameData: 200
+    GetGameLeaderboard2: 200
     """
     @pytest_asyncio.fixture(scope="session")
     async def all_games(self) -> r_GetGameList:
@@ -109,16 +109,16 @@ class TestDatatypes_Integration_Heavy():
     @pytest_asyncio.fixture(scope="session")
     async def small_game_subset(self) -> list[str]:
         """List of 250 random game IDs"""
-        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 250)
+        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 200)
 
     @pytest_asyncio.fixture(scope="session")
     async def small_game_subset_data(self, small_game_subset) -> list[r_GetGameData]:
-        """GetGameData for 250 random games"""
+        """GetGameData for 200 random games"""
         return await asyncio.gather(*[GetGameData(gameId=g).perform_async() for g in small_game_subset])
     
     @pytest.fixture(scope="session")
     async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameData]) -> list[tuple[r_GetGameData, str]]:
-        """1 category per game based on largest runCount, for a total of <=250 games (games with no runs excluded)"""
+        """1 category per game based on largest runCount, for a total of <=200 games (games with no runs excluded)"""
         overall = []
         for g in small_game_subset_data:
             if len(g.runCounts) == 0: continue

@@ -1,6 +1,6 @@
-from speedruncompy.datatypes import *
-from speedruncompy.enums import *
-from speedruncompy import *
+from src.datatypes import *
+from src.enums import *
+from src import *
 
 import json
 
