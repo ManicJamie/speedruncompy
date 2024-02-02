@@ -620,6 +620,7 @@ class Run(Datatype):
     issues: Optional[None]
     playerIds: list[str]
     valueIds: list[str]
+    orphaned: Optional[bool]
 
 class ChallengeStanding(Datatype):
     place: int
