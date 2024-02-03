@@ -1,9 +1,9 @@
 import logging
-from src import auth
-from src import GetSession
+from speedruncompy import auth
+from speedruncompy import GetSession
 
 from secret import LOW_USERNAME, LOW_PASSWORD, SESSID
-from src.api import SpeedrunComPy
+from speedruncompy.api import SpeedrunComPy
 
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler())

@@ -1,7 +1,7 @@
-from src.endpoints import *
-from src import *
-from src.exceptions import APIException
-from src.api import BasePaginatedRequest
+from speedruncompy.endpoints import *
+from speedruncompy import *
+from speedruncompy.exceptions import APIException
+from speedruncompy.api import BasePaginatedRequest
 import logging, json
 
 from secret import SESSID

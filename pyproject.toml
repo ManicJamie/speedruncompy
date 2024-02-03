@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "speedruncompy"
@@ -19,6 +20,14 @@ dependencies = [
     "aiohttp"
 ]
 dynamic = ["version"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/speedruncompy"
+]
 
 [project.optional-dependencies]
 test = [
