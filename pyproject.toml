@@ -14,7 +14,9 @@ keywords = ["speedrun"]
 license = {text = "LGPLv2.1"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",   
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
 ]
 dependencies = [
     "aiohttp"
