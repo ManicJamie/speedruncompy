@@ -867,7 +867,7 @@ class Notification(Datatype):
 class GameFollower(Datatype):
     gameId: str
     followerId: str
-    pos: int
+    pos: Optional[int]
     accessCount: int
     lastAccessDate: int
 
