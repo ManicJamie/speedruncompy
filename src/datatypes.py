@@ -480,6 +480,7 @@ class Player(Datatype):
 class User(Datatype):
     id: str
     name: str
+    altname: Optional[str]
     url: str
     pronouns: list[str]
     powerLevel: SitePowerLevel
@@ -877,7 +878,8 @@ class GameRunner(Datatype):
     runCount: int
 
 class UserFollower(Datatype):
-    ... #TODO: complete (Any)
+    userId: str
+    followerId: str
 
 class Session(Datatype):
     signedIn: bool
