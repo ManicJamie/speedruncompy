@@ -23,6 +23,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.scripts]
+srcompy-login = "speedruncompy.scripts.srcompy_login:main"
+
 [tool.hatch.version]
 source = "vcs"
 

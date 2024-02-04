@@ -1,5 +1,5 @@
 import logging
-from .exceptions import AuthException
+from .exceptions import AuthException, NotFound
 from .api import SpeedrunComPy, _default
 from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
 
@@ -7,7 +7,11 @@ log = logging.getLogger("speedruncompy.auth")
 
 def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = False):
     """Quick workflow to set sessid using username & pwd. Will prompt for 2FA if tokenEntry is True, otherwise will return False."""
-    result: dict = PutAuthLogin(username, pwd, _api).perform()
+    try:
+        result: dict = PutAuthLogin(username, pwd, _api=_api).perform()
+    except NotFound:
+        print("Password is incorrect!")
+        return False
     if result.get("loggedIn"):
         log.info("Logged in using username & password")
         return True
@@ -15,7 +19,7 @@ def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = 
         if tokenEntry:
             log.warning("2FA is enabled - Not logged in!")
             key = input("Enter 2FA token: ")
-            result: dict = PutAuthLogin(username, pwd, key, _api).perform()
+            result: dict = PutAuthLogin(username, pwd, key, _api=_api).perform()
             if result.get("loggedIn"):
                 log.info("Logged in using 2fa")
                 return True
