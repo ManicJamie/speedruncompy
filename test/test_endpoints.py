@@ -1,7 +1,7 @@
-from src.endpoints import *
-from src.api import SpeedrunComPy, _default
-from src.exceptions import *
-from src import datatypes
+from speedruncompy.endpoints import *
+from speedruncompy.api import SpeedrunComPy, _default
+from speedruncompy.exceptions import *
+from speedruncompy import datatypes
 from utils import check_datatype_coverage, check_pages
 
 import pytest, os, logging, json, asyncio

@@ -1,5 +1,5 @@
 from typing import get_origin, get_args, Optional, Union, get_type_hints
-from src.datatypes import Datatype
+from speedruncompy.datatypes import Datatype
 
 def get_true_type(t: type):
     origin = get_origin(t)

@@ -2,9 +2,9 @@ import asyncio
 import os
 from random import randint, sample
 
-from src.datatypes import *
-from src import datatypes
-from src.endpoints import *
+from speedruncompy.datatypes import *
+from speedruncompy import datatypes
+from speedruncompy.endpoints import *
 
 from utils import check_datatype_coverage
 
