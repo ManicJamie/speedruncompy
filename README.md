@@ -12,10 +12,10 @@ Default namespace contains all endpoints. Login flow in `speedruncompy.auth`. Ot
 ## Authorisation
 Note that this uses the API in the same way as https://speedrun.com. The v2 API does not currently accept the Bearer token the v1 API can use - but v2 is also not half-broken, and contains most of the new features SRC has added over the years.
 
-As such, authorisation requires your username & password (and 2FA token). ***This means logging in requires a massive leap of trust***, and so I encourage you to [inspect the auth module](/speedruncompy/auth.py), and if you're very concerned consider either changing your SRC password or manually get an authed PHPSESSID with your own requests, then use `auth.loginSESSID`. 
+As such, authorisation requires your username & password (and 2FA token). ***This means logging in requires a massive leap of trust***, and so I encourage you to [inspect the auth module](src/speedruncompy/auth.py), and if you're very concerned consider either changing your SRC password or manually get an authed PHPSESSID with your own requests, then use `auth.loginSESSID`. 
 
 ## Goals
 Future versions will aim to assist further in development;
-- Flesh out data_structures to include most desired structures
+- Complete datatype coverage & testing to detect regressions & SRC-side additions
 - Document more enums
-- Automatic pagination handling
+- Convenience properties potentially exploiting cached data?
