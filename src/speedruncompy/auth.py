@@ -12,15 +12,15 @@ def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = 
     except NotFound:
         print("Password is incorrect!")
         return False
-    if result.get("loggedIn"):
+    if result.get("loggedIn", False):
         log.info("Logged in using username & password")
         return True
-    if result.get("tokenChallengeSent"):
+    if result.get("tokenChallengeSent", False):
         if tokenEntry:
             log.warning("2FA is enabled - Not logged in!")
             key = input("Enter 2FA token: ")
             result: dict = PutAuthLogin(username, pwd, key, _api=_api).perform()
-            if result.get("loggedIn"):
+            if result.get("loggedIn", False):
                 log.info("Logged in using 2fa")
                 return True
             else:
@@ -33,7 +33,7 @@ def login_PHPSESSID(sessID: str, _api: SpeedrunComPy = _default):
     """Login using PHPSESSID. Uses GetSession to check if session is logged in."""
     _api.set_phpsessid(sessID)
     result: dict = GetSession(_api=_api).perform()
-    if not result["session"].get("signedIn"):
+    if not result["session"]["signedIn"]:
         log.error("Provided PHPSESSID is not logged in - use speedruncompy.auth.login() instead")
         return False
     log.info(f"Logged in as {result['session']['user']['name']} using PHPSESSID")

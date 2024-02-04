@@ -10,6 +10,7 @@ API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
 ACCEPT = "application/json"
 DEFAULT_USER_AGENT = "speedruncompy/"
+COOKIE_PHPSESSID_REGEX = "(?:PHPSESSID=)([\w]*)(?:;)"
 
 _log = logging.getLogger("speedruncompy")
 
@@ -24,7 +25,10 @@ class SpeedrunComPy():
             self._log = _log.getChild(user_agent)
     
     def set_phpsessid(self, phpsessid):
-        self.cookie_jar.update({"PHPSESSID": phpsessid})
+        self.cookie_jar["PHPSESSID"] = phpsessid
+    
+    def get_phpsessid(self):
+        return self.cookie_jar.get("PHPSESSID", None)
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
@@ -44,7 +48,8 @@ class SpeedrunComPy():
             async with session.post(url=f"{API_URI}{endpoint}", headers=_header,
                                     cookies=self.cookie_jar, json=params) as response:
                 if _setCookie and response.cookies:
-                    self.cookie_jar.update(response.cookies)
+                    for k, cookie in response.cookies.items():
+                        self.cookie_jar.update({cookie.key: cookie.value})
                 return (await response.read(), response.status) 
 
 _default = SpeedrunComPy()

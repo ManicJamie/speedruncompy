@@ -14,11 +14,12 @@ def main():
     print("Please note that while your password is excluded from the terminal log, your PHPSESSID is not.")
     username = input("Enter username: ")
     password = getpass("Enter password: ")
-    loggedin = auth.login(username, password)
+    loggedin = auth.login(username, password, tokenEntry = True)
     if not loggedin:
+        print("Not logged in!")
         exit()
 
-    print(api._default.cookie_jar["PHPSESSID"])
+    print(api._default.get_phpsessid())
 
 if __name__ == "__main__":
     main()
