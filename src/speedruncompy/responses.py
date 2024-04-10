@@ -27,6 +27,7 @@ class r_GetChallenge(Datatype):
     userList: list[User]
     challengeRunCount: int
     gameFollowerCount: int
+    titleList: list[Title]
 
 class r_GetChallengeLeaderboard(Datatype):
     challengeRunList: list[ChallengeRun]
@@ -162,6 +163,7 @@ class r_GetSearch(Datatype):
     pageList: list[Article] #TODO: check
     seriesList: list[Series]
     userList: list[User]
+    challengeList: list[Challenge] #TODO: check
 
 class r_GetSeriesList(Datatype):
     seriesList: list[Series]
@@ -211,6 +213,7 @@ class r_GetUserPopoverData(Datatype):
     userSocialConnectionList: list[UserSocialConnection]
     games: list[Game]
     """Contains games sometimes:tm:"""
+    titleList: list[Title]
 
 """POST responses"""
 
@@ -256,6 +259,9 @@ class r_GetModerationRuns(Datatype):
     players: list[Player]
     regions: list[Region]
     runs: list[Run]
+    values: list[Value]
+    variables: list[Variable]
+    users: list[User]
 
 class r_GetNotifications(Datatype):
     unreadCount: int

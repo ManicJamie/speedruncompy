@@ -657,8 +657,8 @@ class GetConversations(PostRequest):
         return super().perform_async(retries, delay, **kwargs)
 
 class GetConversationMessages(PostRequest):
-    def __init__(self, **params) -> None:
-        super().__init__("GetConversationMessages", returns=r_GetConversationMessages, **params)
+    def __init__(self, conversationId, **params) -> None:
+        super().__init__("GetConversationMessages", returns=r_GetConversationMessages, conversationId=conversationId, **params)
     
     def perform(self, retries=5, delay=1, **kwargs) -> r_GetConversationMessages:
         return super().perform(retries, delay, **kwargs)

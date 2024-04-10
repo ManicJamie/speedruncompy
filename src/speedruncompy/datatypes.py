@@ -10,7 +10,7 @@ so you can treat them as normal (albeit without type hinting).
 
 from enum import Enum
 from numbers import Real
-from typing import Any, Optional, Union, get_type_hints, get_origin, get_args
+from typing import Any, Optional, Union, get_type_hints, get_origin, get_args, _SpecialForm, _type_check
 from json import JSONEncoder
 
 from .enums import *
@@ -31,6 +31,13 @@ Will probably improve performance on responses that retrieve a lot of data."""
 
 SUPPRESS_FIELD_WARNINGS = False
 """Suppress warnings that a type is """
+
+class _OptFieldMarker(): pass
+@_SpecialForm
+def OptField(self, parameters):
+    """Field that may not be present. Will return `None` if not present."""
+    arg = _type_check(parameters, f"{self} requires a single type.")
+    return Union[arg, type(_OptFieldMarker)]
 
 class srcpyJSONEncoder(JSONEncoder):
     """Converts Datatypes to dicts when encountered"""
@@ -498,6 +505,8 @@ class User(Datatype):
     staticAssets: list[StaticAsset]
     supporterIconType: Optional[int] # enum 0-2?
     supporterIconPosition: Optional[int] # enum 0-1?
+    titleId: Optional[str]
+    """ID for a title given for completing a Challenge"""
 
 class UserStats(Datatype):
     userId: str
@@ -618,12 +627,15 @@ class Run(Datatype):
     hasSplits: bool
     obsolete: Optional[bool]
     place: Optional[int]
-    issues: Optional[None]
     playerIds: list[str]
     valueIds: list[str]
     orphaned: Optional[bool]
+    estimated: Optional[bool] #TODO: Figure out what this means
+    """Only shown in GetModerationRuns"""
+    issues: Optional[list] #TODO: fails when present
 
 class ChallengeStanding(Datatype):
+    challengeId: str
     place: int
     registeredPlayerIds: list[str]
     prizeAmount: int
@@ -756,8 +768,8 @@ class Resource(Datatype):
 class Stream(Datatype):
     id: str
     gameId: Optional[str]
-    userId: str
-    areaId: str
+    userId: Optional[str]
+    areaId: Optional[str]
     url: str
     title: str
     previewUrl: str
@@ -1004,3 +1016,8 @@ class SupporterSubscription(Datatype):
     cancelAtPeriodEnd: bool
     canceledAt: int # assume timestamp
     
+class Title(Datatype):
+    id: str
+    title: str
+    comment: str
+    referenceUrl: str

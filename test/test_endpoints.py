@@ -52,6 +52,7 @@ article_id = "jd5y09v2"
 article_slug = "the-worlds-first-speedrunning-dog-at-agdq-2024"
 challenge_id = "5e3eoymq"
 challenge_run_id = "m9vk8gy3"
+conversation_id = "4xEDO" # ManicJamie <-> Hornet_Bot
 
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
@@ -386,17 +387,14 @@ class TestPostRequests():
         log_result(result)
         check_datatype_coverage(result)
 
-    @pytest.mark.skip("method stub")
     def test_GetConversationMessages(self):
-        result = GetConversationMessages(_api=self.api).perform()
+        result = GetConversationMessages(_api=self.api, conversationId=conversation_id).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip("method stub")
     def test_GetConversationMessages_unauthed(self):
-        result = GetConversationMessages().perform()
-        log_result(result)
-        check_datatype_coverage(result)
+        with pytest.raises(Unauthorized):
+            GetConversationMessages(conversationId=conversation_id).perform()
 
     def test_GetConversations(self):
         result = GetConversations(_api=self.api).perform()
@@ -413,39 +411,33 @@ class TestPostRequests():
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetForumReadStatus_unauthed(self):
         result = GetForumReadStatus(forumIds=[forum_id]).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetGameSettings(self):
-        result = ...
+        result = GetGameSettings(_api=self.api, gameId=game_id).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetGameSettings_unauthed(self):
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
+        with pytest.raises(Unauthorized) as e:
+            GetGameSettings(gameId=game_id).perform()
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetModerationGames(self):
-        result = ...
+        result = GetModerationGames(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns(self):
-        result = ...
+        result = GetModerationRuns(_api=self.api, gameId=game_id).perform()
         log_result(result)
         check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_paginated(self):
-        result = ...
+        result = GetModerationRuns(_api=self.api, gameId=game_id).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
@@ -454,10 +446,16 @@ class TestPostRequests():
         result = ...
         log_result(result)
         check_datatype_coverage(result)
+
+    @pytest.mark.skip(reason="Test stub")
+    def test_GetModerationRuns_unauthed(self):
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetNotifcations(self):
-        result = ...
+        result = result = GetNotifications(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
     
