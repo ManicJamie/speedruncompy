@@ -49,10 +49,13 @@ class srcpyJSONEncoder(JSONEncoder):
 _log = logging.getLogger("speedruncompy.datatypes")
 
 def is_optional(field):
-    return get_origin(field) is Union and type(None) in get_args(field)
+    return get_origin(field) is Union and type(_OptFieldMarker) in get_args(field)
 
 def get_true_type(hint):
     return get_args(hint)[0] if (get_origin(hint) is Union) or (get_origin(hint) is Optional) else hint
+
+def get_optional_type(hint: type):
+    if get_origin(hint) is Union and type(None) in get_args(hint): return Union[get_true_type(hint), None]
 
 class Datatype():
     def __init__(self, template: Union[dict, tuple, "Datatype", None] = None, skipChecking: bool = False) -> None:
@@ -100,11 +103,12 @@ class Datatype():
                 if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
                 else: _log.warning(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_attrs}")
 
+            opt_hint = get_optional_type(hint)
             check = get_origin(base_hint) if get_origin(base_hint) is not None else base_hint
             if check == Any:
                 _log.debug(f"Undocumented attr {attr} has value {self[attr]} of type {type(self[attr])}")
                 continue # Can't do enforcement against Any
-            if not isinstance(self[attr], check):
+            if not isinstance(self[attr], check) and not isinstance(self[attr], opt_hint):
                 if STRICT_TYPE_CONFORMANCE: 
                     raise AttributeError(f"Datatype {type(self).__name__}'s attribute {attr} expects {check} but received {type(self[attr]).__name__}")
                 else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects {check} but received {type(self[attr]).__name__}")
@@ -264,9 +268,9 @@ class RunSettings(Datatype):
     gameId: str
     categoryId: str
     playerNames: list[str]
-    time: Optional[RuntimeTuple]  # Note: whichever timing method is primary to the game is required
-    timeWithLoads: Optional[RuntimeTuple]
-    igt: Optional[RuntimeTuple]
+    time: OptField[RuntimeTuple]  # Note: whichever timing method is primary to the game is required
+    timeWithLoads: OptField[RuntimeTuple]
+    igt: OptField[RuntimeTuple]
     platformId: str
     emulator: bool
     video: str
@@ -294,8 +298,8 @@ class Series(Datatype):
     url: str
     addedDate: int
     touchDate: int
-    websiteUrl: Optional[str]
-    discordUrl: Optional[str]
+    websiteUrl: OptField[str]
+    discordUrl: OptField[str]
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
@@ -312,7 +316,7 @@ class Game(Datatype):
     milliseconds: bool
     igt: bool
     verification: bool
-    autoVerify: Optional[bool] # Why is this optional????? I hate SRC
+    autoVerify: OptField[bool] # Why is this OptField????? I hate SRC
     requireVideo: bool
     emulator: int # enum
     defaultTimer: TimerName # int enum
@@ -320,31 +324,31 @@ class Game(Datatype):
     releaseDate: int
     addedDate: int
     touchDate: int
-    baseGameId: Optional[str]
+    baseGameId: OptField[str]
     coverPath: str
-    trophy1stPath: Optional[str]
-    trophy2ndPath: Optional[str]
-    trophy3rdPath: Optional[str]
-    trophy4thPath: Optional[str]
+    trophy1stPath: OptField[str]
+    trophy2ndPath: OptField[str]
+    trophy3rdPath: OptField[str]
+    trophy4thPath: OptField[str]
     runCommentsMode: int # enum
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
     boostReceivedCount: int
     boostDistinctDonorsCount: int
-    rules: Optional[str]
+    rules: OptField[str]
     viewPowerLevel: int # enum
     platformIds: list[str]
     regionIds: list[str]
     gameTypeIds: list[gameType] 
-    websiteUrl: Optional[str]
-    discordUrl: Optional[str]
+    websiteUrl: OptField[str]
+    discordUrl: OptField[str]
     defaultView: int # enum
     guidePermissionType: int # enum
     resourcePermissionType: int # enum
     staticAssets: list[StaticAsset]
-    embargoDate: Optional[int]
-    embargoText: Optional[str]
+    embargoDate: OptField[int]
+    embargoText: OptField[str]
 
 class GameStats(Datatype):
     gameId: str
@@ -365,9 +369,9 @@ class RunCount(Datatype):
 
     gameId: str
     categoryId: str
-    levelId: Optional[str]
-    variableId: Optional[str]
-    valueId: Optional[str]
+    levelId: OptField[str]
+    variableId: OptField[str]
+    valueId: OptField[str]
     count: int
 
 class Category(Datatype):
@@ -384,8 +388,8 @@ class Category(Datatype):
     playerMatchMode: int # enum
     timeDirection: int # technically an enum, 0 = fastest first
     enforceMs: bool
-    rules: Optional[str]
-    archived: Optional[bool]
+    rules: OptField[str]
+    archived: OptField[bool]
 
 class Variable(Datatype):
 
@@ -394,18 +398,18 @@ class Variable(Datatype):
     url: str
     pos: int
     gameId: str
-    description: Optional[str]
+    description: OptField[str]
     categoryScope: int # enum
-    categoryId: Optional[str]
+    categoryId: OptField[str]
     levelScope: int # enum
-    levelId: Optional[str]
+    levelId: OptField[str]
     isMandatory: bool
     isSubcategory: bool
     isUserDefined: bool
     isObsoleting: bool
-    defaultValue: Optional[str]
+    defaultValue: OptField[str]
     archived: bool
-    displayMode: Optional[int] # enum
+    displayMode: OptField[int] # enum
 
 class Value(Datatype):
     """Value of a variable. `VariableValue` is a selector on this type (and the underlying variable)"""
@@ -414,8 +418,8 @@ class Value(Datatype):
     url: str
     pos: int
     variableId: str
-    isMisc: Optional[bool]
-    rules: Optional[str]
+    isMisc: OptField[bool]
+    rules: OptField[str]
     archived: bool
 
 class Level(Datatype):
@@ -425,7 +429,7 @@ class Level(Datatype):
     name: str
     url: str
     pos: int
-    rules: Optional[str]
+    rules: OptField[str]
     archived: bool
 
 class Platform(Datatype):
@@ -444,17 +448,17 @@ class Article(Datatype):
     body: str
     createDate: int
     updateDate: int
-    publishDate: Optional[int]
-    rejectDate: Optional[int]
+    publishDate: OptField[int]
+    rejectDate: OptField[int]
     publishTarget: str # enum?
     publishTags: list[str] # enum? probably not
-    coverImagePath: Optional[str]
+    coverImagePath: OptField[str]
     commentsCount: int
-    community: Optional[bool]
-    gameId: Optional[str]
-    userId: Optional[str]
-    editorId: Optional[str]
-    stickyDate: Optional[int]
+    community: OptField[bool]
+    gameId: OptField[str]
+    userId: OptField[str]
+    editorId: OptField[str]
+    stickyDate: OptField[int]
 
 class News(Datatype):
 
@@ -467,18 +471,18 @@ class News(Datatype):
 
 class Player(Datatype):
     """Fields from `User` present in `playerLists`. May also be an unregistered player, use property `_is_registered`"""
-    # Actual optionals (always present in non-anon players) marked #OPT
+    # Actual OptFields (always present in non-anon players) marked #OPT
     id: str
     name: str
-    url: Optional[str] 
-    powerLevel: Optional[int]
-    color1Id: Optional[str]
-    color2Id: Optional[str] #OPT
-    """Optional even on full `player`"""
-    colorAnimate: Optional[int]
-    areaId: Optional[str]
-    isSupporter: Optional[bool] #OPT
-    """Optional even on full `player`"""
+    url: OptField[str] 
+    powerLevel: OptField[int]
+    color1Id: OptField[str]
+    color2Id: OptField[str] #OPT
+    """OptField even on full `player`"""
+    colorAnimate: OptField[int]
+    areaId: OptField[str]
+    isSupporter: OptField[bool] #OPT
+    """OptField even on full `player`"""
 
     def _is_user(self): return not self.id.startswith("u")
     _is_registered = property(fget=_is_user)
@@ -487,25 +491,25 @@ class Player(Datatype):
 class User(Datatype):
     id: str
     name: str
-    altname: Optional[str]
+    altname: OptField[str]
     url: str
     pronouns: list[str]
     powerLevel: SitePowerLevel
     """Site-level, 1 is default, Meta is 4"""
     color1Id: str
-    color2Id: Optional[str]
-    colorAnimate: Optional[int]
+    color2Id: OptField[str]
+    colorAnimate: OptField[int]
     areaId: str
-    isSupporter: Optional[bool] # ?
-    avatarDecoration: Optional[dict[str, bool]] # {enabled: bool}, add type for this later
+    isSupporter: OptField[bool] # ?
+    avatarDecoration: OptField[dict[str, bool]] # {enabled: bool}, add type for this later
     iconType: int # enum 0-2?
     onlineDate: int
     signupDate: int
     touchDate: int
     staticAssets: list[StaticAsset]
-    supporterIconType: Optional[int] # enum 0-2?
-    supporterIconPosition: Optional[int] # enum 0-1?
-    titleId: Optional[str]
+    supporterIconType: OptField[int] # enum 0-2?
+    supporterIconPosition: OptField[int] # enum 0-1?
+    titleId: OptField[str]
     """ID for a title given for completing a Challenge"""
 
 class UserStats(Datatype):
@@ -548,7 +552,7 @@ class GameOrdering(Datatype):
 class UserProfile(Datatype):
 
     userId: str
-    bio: Optional[str]
+    bio: OptField[str]
     signupDate: int
     defaultView: int # enum, assuming fg/level?
     showMiscByDefault: bool
@@ -561,7 +565,7 @@ class UserLeaderboardProfile(Datatype):
     
     Missing userStats and userSocialConnectionList."""
     userId: str
-    bio: Optional[str]
+    bio: OptField[str]
     signupDate: int
     defaultView: int # enum, assuming fg/level?
     showMiscByDefault: bool
@@ -605,34 +609,34 @@ class Run(Datatype):
     id: str
     gameId: str
     categoryId: str
-    levelId: Optional[str]
-    time: Optional[float]
-    timeWithLoads: Optional[float]
-    igt: Optional[float]
-    enforceMs: Optional[bool]
+    levelId: OptField[str]
+    time: OptField[float]
+    timeWithLoads: OptField[float]
+    igt: OptField[float]
+    enforceMs: OptField[bool]
     """Deprecated recent addition, bug SRC to readd this"""
-    platformId: Optional[str]
+    platformId: OptField[str]
     emulator: bool
-    regionId: Optional[str]
-    video: Optional[str]
-    comment: Optional[str]
-    submittedById: Optional[str]
+    regionId: OptField[str]
+    video: OptField[str]
+    comment: OptField[str]
+    submittedById: OptField[str]
     verified: int
-    verifiedById: Optional[str]
-    reason: Optional[str]
+    verifiedById: OptField[str]
+    reason: OptField[str]
     date: int
-    dateSubmitted: Optional[int]
+    dateSubmitted: OptField[int]
     """Only omitted on some very old runs!"""
-    dateVerified: Optional[int]
+    dateVerified: OptField[int]
     hasSplits: bool
-    obsolete: Optional[bool]
-    place: Optional[int]
+    obsolete: OptField[bool]
+    place: OptField[int]
     playerIds: list[str]
     valueIds: list[str]
-    orphaned: Optional[bool]
-    estimated: Optional[bool] #TODO: Figure out what this means
+    orphaned: OptField[bool]
+    estimated: OptField[bool] #TODO: Figure out what this means
     """Only shown in GetModerationRuns"""
-    issues: Optional[list] #TODO: fails when present
+    issues: OptField[Optional[list]] #TODO: fails when present
 
 class ChallengeStanding(Datatype):
     challengeId: str
@@ -681,36 +685,36 @@ class ChallengeRun(Datatype):
     id: str
     gameId: str
     challengeId: str
-    time: Optional[float]
-    timeWithLoads: Optional[float]
-    igt: Optional[float]
-    enforceMs: Optional[bool]
+    time: OptField[float]
+    timeWithLoads: OptField[float]
+    igt: OptField[float]
+    enforceMs: OptField[bool]
     """Deprecated recent addition, bug SRC to readd this"""
-    platformId: Optional[str]
+    platformId: OptField[str]
     emulator: bool
-    regionId: Optional[str]
-    video: Optional[str]
-    comment: Optional[str]
-    submittedById: Optional[str]
+    regionId: OptField[str]
+    video: OptField[str]
+    comment: OptField[str]
+    submittedById: OptField[str]
     screened: bool
-    screenedById: Optional[str]
+    screenedById: OptField[str]
     verified: int
-    verifiedById: Optional[str]
-    reason: Optional[str]
+    verifiedById: OptField[str]
+    reason: OptField[str]
     date: int
     dateSubmitted: int
-    dateVerified: Optional[int]
-    dateScreened: Optional[int]
-    issues: Optional[Any] #TODO: Unknown type (Any)
+    dateVerified: OptField[int]
+    dateScreened: OptField[int]
+    issues: OptField[Any] #TODO: Unknown type (Any)
     playerIds: list[str]
     commentsCount: int
-    place: Optional[int]
-    obsolete: Optional[bool]
+    place: OptField[int]
+    obsolete: OptField[bool]
 
 class Theme(Datatype):
     id: str
     url: str
-    name: Optional[str]
+    name: OptField[str]
     primaryColor: str
     panelColor: str
     panelOpacity: int
@@ -760,16 +764,16 @@ class Resource(Datatype):
     date: int
     userId: str
     gameId: str
-    path: Optional[str]
-    link: Optional[str]
-    fileName: Optional[str]
+    path: OptField[str]
+    link: OptField[str]
+    fileName: OptField[str]
     authorNames: str #TODO: exhaustive check for lists
 
 class Stream(Datatype):
     id: str
-    gameId: Optional[str]
-    userId: Optional[str]
-    areaId: Optional[str]
+    gameId: OptField[str]
+    userId: OptField[str]
+    areaId: OptField[str]
     url: str
     title: str
     previewUrl: str
@@ -850,7 +854,7 @@ class ConversationParticipant(Datatype):
     conversationId: str
     userId: str
     joinedDate: int
-    leftDate: int #TODO: optional?
+    leftDate: int #TODO: OptField?
 
 class ConversationMessage(Datatype):
     id: str
@@ -880,7 +884,7 @@ class Notification(Datatype):
 class GameFollower(Datatype):
     gameId: str
     followerId: str
-    pos: Optional[int]
+    pos: OptField[int]
     accessCount: int
     lastAccessDate: int
 
@@ -896,8 +900,8 @@ class UserFollower(Datatype):
 class Session(Datatype):
     signedIn: bool
     showAds: bool
-    user: Optional[User]
-    theme: Optional[Theme]
+    user: OptField[User]
+    theme: OptField[Theme]
     powerLevel: SitePowerLevel
     dateFormat: int # enum
     timeFormat: int # enum
@@ -906,14 +910,14 @@ class Session(Datatype):
     homepageStream: int # enum
     disableThemes: bool
     csrfToken: str
-    networkToken: Optional[str] #TODO: check
+    networkToken: OptField[str] #TODO: check
     gameList: list[Game]
     gameFollowerList: list[GameFollower]
     gameModeratorList: list[GameModerator]
     gameRunnerList: list[GameRunner]
     seriesList: list[Series]
     seriesModeratorList: list[SeriesModerator]
-    boostAvailableTokens: Optional[int]
+    boostAvailableTokens: OptField[int]
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
@@ -956,7 +960,7 @@ class UserBlock(Datatype):
 
 class NotificationSetting(Datatype):
     type: Any #TODO: check
-    gameId: Optional[str]
+    gameId: OptField[str]
     site: bool
     email: bool
 

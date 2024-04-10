@@ -62,7 +62,7 @@ class r_GetGameData(Datatype):
     platforms: list[Platform]
     regions: list[Region]
     runCounts: list[RunCount]
-    theme: Optional[Theme]
+    theme: OptField[Theme]
     users: list[User]
     values: list[Value]
     variables: list[Variable]
@@ -120,7 +120,7 @@ class r_GetGuideList(Datatype):
     users: list[User]
 
 class r_GetHomeSummary(Datatype):
-    stream: Optional[Stream]
+    stream: OptField[Stream]
 
 class r_GetLatestLeaderboard(Datatype):
     categories: list[Category]
@@ -148,10 +148,10 @@ class r_GetResourceList(Datatype):
 class r_GetRun(Datatype):
     game: Game
     category: Category
-    level: Optional[Level]
-    platform: Optional[Platform]
+    level: OptField[Level]
+    platform: OptField[Platform]
     players: list[Player]
-    region: Optional[Region]
+    region: OptField[Region]
     run: Run
     users: list[User]
     values: list[Value]
@@ -309,7 +309,7 @@ class r_GetUserSettings(Datatype):
     themeList: list[Theme]
     supporterCreditList: Any #TODO: document
     supportCodeList: Any #TODO: document
-    supporterSubscription: Optional[Any]
+    supporterSubscription: OptField[Any]
     experimentList: Any
     enabledExperimentIds: Any
 
@@ -319,14 +319,14 @@ class r_GetUserSupporterData(Datatype):
 
 class r_PutAuthLogin(Datatype):
     loggedIn: bool
-    tokenChallengeSent: Optional[bool]
+    tokenChallengeSent: OptField[bool]
 
 class r_PutAuthLogout(Datatype):
     """No content"""
 
 class r_PutAuthSignup(Datatype):
     loggedIn: bool
-    tokenChallengeSent: Optional[bool]
+    tokenChallengeSent: OptField[bool]
 
 class r_PutComment(Datatype):
     """No content"""
