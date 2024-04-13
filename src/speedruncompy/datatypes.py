@@ -100,7 +100,7 @@ class Datatype():
     def enforce_types(self):
         """Enforces this datatype's fields to conform to specified types."""
         hints = self.get_type_hints()
-        missing_fields = set() # fields that are specified as non-optional that are missing from
+        missing_fields = [] # fields that are specified as non-optional that are missing from
         for fieldname, hint in hints.items():
             nullable_type = degrade_union(hint, _OptFieldMarker) # type that may be nullable but not optional
             true_type = degrade_union(nullable_type, NoneType) # base type (no union)
@@ -108,7 +108,7 @@ class Datatype():
 
             if fieldname not in self.__dict__:
                 if is_optional_field(hint): continue
-                else: missing_fields.add(fieldname) # Non-optional fields must be present, report if not
+                else: missing_fields.append(fieldname) # Non-optional fields must be present, report if not
             elif is_compliant_type(true_type):
                 if not isinstance(self[fieldname], true_type):
                     self[fieldname] = true_type(raw) # Coerce compliant types
@@ -117,11 +117,12 @@ class Datatype():
                 if is_compliant_type(list_type): # Coerce list types
                     self[fieldname] = [list_type(r) if not isinstance(self[fieldname], list_type) else r for r in raw]
 
-            attr = self[fieldname]
-            if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
-            elif not is_type(attr, hint):
-                if STRICT_TYPE_CONFORMANCE: raise AttributeError(f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__}")
-                else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects {nullable_type} but received {type(self[attr]).__name__}")
+            if fieldname in self.__dict__:
+                attr = self[fieldname]
+                if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
+                elif not is_type(attr, hint):
+                    if STRICT_TYPE_CONFORMANCE: raise AttributeError(f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__}")
+                    else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects {nullable_type} but received {type(self[attr]).__name__}")
 
         if len(missing_fields) > 0:
             if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}")

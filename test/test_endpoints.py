@@ -443,19 +443,26 @@ class TestPostRequests():
     def test_GetModerationRuns_paginated_raw(self):
         result = GetModerationRuns(_api=self.api, gameId=game_id, verified=verified.PENDING)._perform_all_raw()
         log_result(result)
-        check_datatype_coverage(result)
+        check_pages(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_unauthed(self):
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
+        with pytest.raises(Unauthorized):
+            GetModerationRuns(gameId=game_id, verified=verified.PENDING).perform()
     
-    @pytest.mark.skip(reason="Test stub")
-    def test_GetNotifcations(self):
+    def test_GetNotifications(self):
         result = result = GetNotifications(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
+
+    def test_GetNotifications_paginated(self):
+        result = result = GetNotifications(_api=self.api).perform_all()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetNotifications_paginated_raw(self):
+        result = result = GetNotifications(_api=self.api)._perform_all_raw()
+        log_result(result)
+        check_pages(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_GetNotifications_unauthed(self):
