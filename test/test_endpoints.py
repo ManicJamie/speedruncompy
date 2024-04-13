@@ -435,15 +435,13 @@ class TestPostRequests():
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_paginated(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id).perform_all()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=verified.PENDING).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetModerationRuns_paginated_raw(self):
-        result = ...
+        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=verified.PENDING)._perform_all_raw()
         log_result(result)
         check_datatype_coverage(result)
 

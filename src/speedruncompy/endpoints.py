@@ -600,8 +600,11 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
             for v in (v for v in page["values"] if v not in values): values.append(v)
             for v in (v for v in page["variables"] if v not in variables): variables.append(v)
             runs += page["runs"]
-        return {"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
-                "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}
+
+        extras: r_GetModerationRuns = pages[1]
+        extras.pagination.page = 0
+        return extras | r_GetModerationRuns({"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
+                "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}, skipChecking=True)
 
 class PutRunAssignee(PostRequest):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
