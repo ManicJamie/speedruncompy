@@ -60,7 +60,7 @@ def is_compliant_type(hint: type):
     """Whether the type of the response should be coerced to the hint"""
     hint = degrade_union(hint, _OptFieldMarker, NoneType)
     if get_origin(hint) == list: return False
-    return issubclass(hint, Datatype) or issubclass(hint, Enum) or hint == float
+    return issubclass(hint, Datatype) or issubclass(hint, Enum) or hint == float or hint == bool
 
 def is_type(value, hint: type):
     if value is None: 
@@ -111,7 +111,8 @@ class Datatype():
                 else: missing_fields.append(fieldname) # Non-optional fields must be present, report if not
             elif is_compliant_type(true_type):
                 if not isinstance(self[fieldname], true_type):
-                    self[fieldname] = true_type(raw) # Coerce compliant types
+                    if not(true_type is bool and (self[fieldname] > 1 or self[fieldname] < 0)):
+                        self[fieldname] = true_type(raw) # Coerce compliant types, exclude bool if larger than 1
             elif get_origin(true_type) is list:
                 list_type = get_args(true_type)[0]
                 if is_compliant_type(list_type): # Coerce list types
@@ -121,12 +122,14 @@ class Datatype():
                 attr = self[fieldname]
                 if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
                 elif not is_type(attr, hint):
-                    if STRICT_TYPE_CONFORMANCE: raise AttributeError(f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__}")
-                    else: _log.warning(f"Datatype {type(self).__name__}'s attribute {attr} expects {nullable_type} but received {type(self[attr]).__name__}")
+                    msg = f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__} = {attr}"
+                    if STRICT_TYPE_CONFORMANCE: raise AttributeError(msg)
+                    else: _log.warning(msg)
 
         if len(missing_fields) > 0:
-            if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}")
-            else: _log.warning(f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}")
+            msg = f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}"
+            if STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(msg)
+            else: _log.warning(msg)
         
     
     # Allow interacting with these types as if they were dicts (in all reasonable ways)
@@ -935,17 +938,18 @@ class ThemeSettings(Datatype):
     primaryColor: str
     panelColor: str
     panelOpacity: int
-    navbarColor: str
+    navbarColor: int # enum
     backgroundColor: str
     backgroundFit: bool
     backgroundPosition: int # enum
-    backgroundRepeat: bool #TODO: check
+    backgroundRepeat: int # enum
     backgroundScrolling: bool #TODO: check
     foregroundFit: bool
     foregroundPosition: int # enum
     foregroundRepeat: bool #TODO: check
     foregroundScrolling: bool #TODO: check
     staticAssets: list[StaticAsset]
+    staticAssetUpdates: list[StaticAsset] # TODO: check optional
 
 class ThreadReadStatus(Datatype):
     threadId: str
@@ -958,6 +962,7 @@ class Ticket(Datatype):
     status: int # enum
     requestorId: str
     dateSubmitted: int
+    dateResolved: OptField[int]
     metadata: str
     """This is a json object that may be dependent on type"""
 
@@ -966,7 +971,7 @@ class UserBlock(Datatype):
     blockeeId: str
 
 class NotificationSetting(Datatype):
-    type: Any #TODO: check
+    type: int # enum
     gameId: OptField[str]
     site: bool
     email: bool
@@ -980,8 +985,8 @@ class UserSettings(Datatype):
     powerLevel: SitePowerLevel
     areaId: str
     theme: str # TODO: check what happens w/ custom theme
-    color1id: str
-    color2id: str
+    color1Id: str
+    color2Id: str
     colorAnimate: int # enum
     avatarDecoration: dict #TODO: enabled: bool
     defaultView: int # enum

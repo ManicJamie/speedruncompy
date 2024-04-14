@@ -201,7 +201,7 @@ class r_GetUserLeaderboard(Datatype):
     players: list[Player]
     values: list[Value]
     variables: list[Variable]
-    followedGameIds: None
+    followedGameIds: Optional[Any] #TODO: find if this is ever not null
     """Unused null key"""
     challengeList: list[Challenge]
     challengeRunList: list[ChallengeRun]
@@ -295,6 +295,8 @@ class r_GetTickets(Datatype):
     pagination: Pagination
     userList: list[User]
     gameList: list[Game]
+    userModCountList: list[Any] #TODO: document
+    userRunCountList: list[Any] #TODO: document
 
 class r_GetUserBlocks(Datatype):
     userBlocks: list[UserBlock]
@@ -307,8 +309,9 @@ class r_GetUserSettings(Datatype):
     userSocialConnectionList: list[UserSocialConnection]
     gameList: list[Game]
     themeList: list[Theme]
-    supporterCreditList: Any #TODO: document
-    supportCodeList: Any #TODO: document
+    titleList: list[Title]
+    supporterCreditList: list[Any] #TODO: document
+    supporterCodeList: list[Any] #TODO: document
     supporterSubscription: OptField[Any]
     experimentList: Any
     enabledExperimentIds: Any

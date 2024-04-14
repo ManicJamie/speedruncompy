@@ -46,6 +46,7 @@ comment_list_source = "y8k99ndy" # Must have multiple pages of comments & match 
 comment_list_type = itemType.RUN
 thread_id = "mbkmj"
 user_id = "j4r6pwm8" # ManicJamie (must have leaderboard)
+user_url = "manicjamie"
 forum_id = "gz5lqd21" # Hollow Knight
 guide_id = "ew8s2" # Hollow Knight code of conduct
 article_id = "jd5y09v2"
@@ -450,83 +451,109 @@ class TestPostRequests():
             GetModerationRuns(gameId=game_id, verified=verified.PENDING).perform()
     
     def test_GetNotifications(self):
-        result = result = GetNotifications(_api=self.api).perform()
+        result = GetNotifications(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
 
     def test_GetNotifications_paginated(self):
-        result = result = GetNotifications(_api=self.api).perform_all()
+        result = GetNotifications(_api=self.api).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
     def test_GetNotifications_paginated_raw(self):
-        result = result = GetNotifications(_api=self.api)._perform_all_raw()
+        result = GetNotifications(_api=self.api)._perform_all_raw()
         log_result(result)
         check_pages(result)
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetNotifications_unauthed(self):
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
+        with pytest.raises(Unauthorized):
+            GetNotifications().perform()
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetRunSettings(self):
-        result = ...
+        result = GetRunSettings(_api=self.api, runId=run_id).perform()
         log_result(result)
         check_datatype_coverage(result)
     
+    def test_GetRunSettings_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetRunSettings(runId=run_id).perform()
+    
+    @pytest.mark.skip(reason="Insufficient auth to test")
     @pytest.mark.skip(reason="Test stub")
     def test_GetSeriesSettings(self):
-        result = ...
+        result = GetSeriesSettings()
         log_result(result)
         check_datatype_coverage(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetThemeSettings(self):
-        result = ...
+        result = GetThemeSettings(_api=self.api, userId=user_id).perform()
         log_result(result)
         check_datatype_coverage(result)
 
-    @pytest.mark.skip(reason="Test stub")
     def test_GetThreadReadStatus(self):
-        result = ...
+        result = GetThreadReadStatus(_api=self.api, threadIds=[thread_id]).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetThreadReadStatus_unauthed(self):
+        result = GetThreadReadStatus(threadIds=[thread_id]).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
+    
     def test_GetTickets(self):
-        result = ...
+        result = GetTickets(_api=self.api, requestorIds=[user_id]).perform()
         log_result(result)
         check_datatype_coverage(result)
-    
-    @pytest.mark.skip(reason="Test stub")
+
+    #TODO: GetTickets depagination
     def test_GetUserBlocks(self):
-        result = ...
+        result = GetUserBlocks(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skip(reason="Test stub")
+    def test_GetUserBlocks_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetUserBlocks().perform()
+    
     def test_GetUserSettings(self):
-        result = ...
+        result = GetUserSettings(_api=self.api, userUrl=user_url).perform()
         log_result(result)
         check_datatype_coverage(result)
+
+    def test_GetUserSettings_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetUserSettings(userUrl=user_url).perform()
     
-    @pytest.mark.skip(reason="Test stub")
     def test_GetUserSupporterData(self):
-        result = ...
+        result = GetUserSupporterData(_api=self.api, userUrl=user_url).perform()
         log_result(result)
         check_datatype_coverage(result)
+
+    def test_GetUserSupporterData_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetUserSupporterData(userUrl=user_url).perform()
+
+class TestPutRequests():
+    """Requests that modify site data"""
+    api = SpeedrunComPy("Test")
+    api.set_phpsessid(SESSID)
+
+    low_api = SpeedrunComPy("Test_LOWAUTH")
+    low_api.set_phpsessid(LOW_SESSID)
     
     @pytest.mark.skip(reason="Unreasonable to test this endpoint as it would create spam.")
     def test_PutAuthSignup(self):
+        ...
+
+    @pytest.mark.skip(reason="Test stub")
+    def test_PutComment_Flow(self):
+        """Posts and then deletes a comment"""
         result = ...
         log_result(result)
         check_datatype_coverage(result)
 
-    @pytest.mark.skip(reason="Test stub")
-    def test_PutComment(self):
-        result = ...
+        delete_result = ...
         log_result(result)
         check_datatype_coverage(result)
     

@@ -751,6 +751,7 @@ class PutCommentableSettings(PostRequest):
 
 # Thread Actions
 class GetThreadReadStatus(PostRequest):
+    """NB: when called without auth will return an empty list"""
     def __init__(self, threadIds: list[str], **params) -> None:
         super().__init__("GetThreadReadStatus", returns=r_GetThreadReadStatus, threadIds=threadIds, **params)
 
