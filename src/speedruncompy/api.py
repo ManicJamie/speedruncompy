@@ -10,46 +10,48 @@ API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
 ACCEPT = "application/json"
 DEFAULT_USER_AGENT = "speedruncompy/"
-COOKIE_PHPSESSID_REGEX = "(?:PHPSESSID=)([\w]*)(?:;)"
 
 _log = logging.getLogger("speedruncompy")
 
 class SpeedrunComPy():
     """Api class. Holds a unique PHPSESSID and user_agent, as well as its own logger."""
     def __init__(self, user_agent = None) -> None:
-        self.cookie_jar = {}
-        self.user_agent = user_agent
+        self.cookie_jar = aiohttp.CookieJar()
+        self._header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
         if user_agent is None:
             self._log = _log
         else:
             self._log = _log.getChild(user_agent)
-    
+
     def set_phpsessid(self, phpsessid):
-        self.cookie_jar["PHPSESSID"] = phpsessid
+        self.cookie_jar.update_cookies({"PHPSESSID": phpsessid})
     
     def get_phpsessid(self):
-        return self.cookie_jar.get("PHPSESSID", None)
+        return self.cookie_jar
+    
+    PHPSessID = property(get_phpsessid, set_phpsessid)
+
+    @staticmethod
+    def _encode_r(params: dict):
+        """Encodes a parameter dict into url-base64 encoded min-json, ready for use as `_r` in a GET URL."""
+        paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=srcpyJSONEncoder).strip(), "utf-8")
+        return base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
-        _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
         # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
         # We will do the same in case param support is retracted.
-        paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=srcpyJSONEncoder).strip(), "utf-8")
-        _r = base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
-        self._log.debug(f"GET {endpoint} w/ params {paramsjson}")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=f"{API_URI}{endpoint}", headers=_header, params={"_r": _r}) as response:
+        self._log.debug(f"GET {endpoint} w/ params {params}")
+        async with aiohttp.ClientSession(headers=self._header, cookie_jar=self.cookie_jar) as session:
+            async with session.get(url=f"{API_URI}{endpoint}", params={"_r": self._encode_r(params)}) as response:
                 return (await response.read(), response.status)
         
     async def do_post(self, endpoint:str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
-        _header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{self.user_agent}"}
+        # Construct a dummy jar if we wish to ignore Set_Cookie responses (only on PutAuthLogin and PutAuthSignup)
+        liveJar = self.cookie_jar if _setCookie else aiohttp.CookieJar().update_cookies(self.cookie_jar._cookies)
         self._log.debug(f"POST {endpoint} w/ params {params}")
-        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder)) as session:
-            async with session.post(url=f"{API_URI}{endpoint}", headers=_header,
-                                    cookies=self.cookie_jar, json=params) as response:
-                if _setCookie and response.cookies:
-                    for k, cookie in response.cookies.items():
-                        self.cookie_jar.update({cookie.key: cookie.value})
+        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder),
+                                         headers=self._header, cookie_jar=liveJar) as session:
+            async with session.post(url=f"{API_URI}{endpoint}", json=params) as response:
                 return (await response.read(), response.status) 
 
 _default = SpeedrunComPy()

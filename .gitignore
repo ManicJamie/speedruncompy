@@ -9,3 +9,6 @@ playground.py
 probeEndpoints.py
 .pytest_cache
 env/
+.coverage
+coverage.*
+htmlcov/

@@ -12,7 +12,7 @@ from enum import Enum
 from numbers import Real
 from types import NoneType
 from typing import Any, Optional, Union, get_type_hints, get_origin, get_args, _SpecialForm, _type_check
-from json import JSONEncoder
+from json import JSONEncoder, dumps
 import typing
 
 from .enums import *
@@ -80,6 +80,9 @@ def degrade_union(union: type, *to_remove: type):
     return union
 
 class Datatype():
+    """A dictlike object with field accessors, type checking & initialisation helpers.
+    
+    Downstream datatypes may add helper properties & better initialisation helpers."""
     def __init__(self, template: Union[dict, tuple, "Datatype", None] = None, skipChecking: bool = False) -> None:
         if isinstance(template, dict): 
             self.__dict__ |= template
@@ -161,6 +164,7 @@ class Datatype():
 
     # Quick conversion to basic dict for requests
     def get_dict(self): return self.__dict__
+    def to_json(self): return dumps(self, cls=srcpyJSONEncoder)
 
     # Default display is as a raw dict, subclasses should override appropriately
     def __str__(self) -> str: return str(self.__dict__)
@@ -476,7 +480,8 @@ class News(Datatype):
     gameId: str
     userId: str
     title: str
-    body: str
+    body: OptField[str]
+    """Omitted for all but the first item in `r_GetGameSummary.newsList[]`"""
     dateSubmitted: int
 
 class Player(Datatype):
@@ -804,7 +809,7 @@ class GameSettings(Datatype):
     igt: bool
     defaultTimer: int # enum, assume TimerName?
     showEmptyTimes: bool
-    rulesView: Any #TODO: check
+    rulesView: bool
     emulator: int # enum
     verification: bool
     requireVideo: bool
@@ -931,7 +936,7 @@ class Session(Datatype):
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
-    enabledExperimentIds: Any # undocumented list
+    enabledExperimentIds: list[str] # May not be this idk
     challengeModeratorList: Any # undocumented list
 
 class ThemeSettings(Datatype):
@@ -986,7 +991,7 @@ class UserSettings(Datatype):
     areaId: str
     theme: str # TODO: check what happens w/ custom theme
     color1Id: str
-    color2Id: str
+    color2Id: OptField[str]
     colorAnimate: int # enum
     avatarDecoration: dict #TODO: enabled: bool
     defaultView: int # enum
@@ -1007,7 +1012,7 @@ class UserSettings(Datatype):
     disableMessages: bool
     showAds: bool
     pronouns: list[str]
-    nameChangeDate: int
+    nameChangeDate: OptField[int]
     runCommentsDisabled: bool
     followedGamesDisabled: bool
     supporterEndDate: int

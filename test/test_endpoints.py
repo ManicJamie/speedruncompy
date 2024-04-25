@@ -53,6 +53,10 @@ article_id = "jd5y09v2"
 article_slug = "the-worlds-first-speedrunning-dog-at-agdq-2024"
 challenge_id = "5e3eoymq"
 challenge_run_id = "m9vk8gy3"
+
+# Details required for private data; these are all accessible by Hornet_Bot
+hornet_uid = "x76p3d6j"
+hornet_url = "Hornet_Bot"
 conversation_id = "4xEDO" # ManicJamie <-> Hornet_Bot
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -78,7 +82,7 @@ def disable_type_checking():
 @pytest.fixture(autouse=True)
 def check_api_conformance():
     """The default API must never have a PHPSESSID."""
-    assert _default.cookie_jar == {}
+    assert len(_default.cookie_jar._cookies) == 0
     yield
 
 def log_result(result: dict):
@@ -112,11 +116,11 @@ class TestGeneric():
         """Ensure separation between default api instance and the declared api instance"""
         session = GetSession().perform()
         assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == False
+        assert session["session"]["signedIn"] == False, "Default API incorrectly signed in"
 
         session = GetSession(_api=self.api).perform()
         assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == True
+        assert session["session"]["signedIn"] == True, "High-auth api not signed in"
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
@@ -485,10 +489,19 @@ class TestPostRequests():
         log_result(result)
         check_datatype_coverage(result)
 
-    def test_GetThemeSettings(self):
-        result = GetThemeSettings(_api=self.api, userId=user_id).perform()
+    def test_GetThemeSettings_user(self):
+        result = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
         log_result(result)
         check_datatype_coverage(result)
+    
+    def test_GetThemeSettings_game(self):
+        result = GetThemeSettings(_api=self.api, gameId=game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetThemeSettings_game_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetThemeSettings(gameId=game_id).perform()
 
     def test_GetThreadReadStatus(self):
         result = GetThreadReadStatus(_api=self.api, threadIds=[thread_id]).perform()
@@ -500,9 +513,8 @@ class TestPostRequests():
         log_result(result)
         check_datatype_coverage(result)
     
-    
     def test_GetTickets(self):
-        result = GetTickets(_api=self.api, requestorIds=[user_id]).perform()
+        result = GetTickets(_api=self.api, requestorIds=[hornet_uid]).perform()
         log_result(result)
         check_datatype_coverage(result)
 
@@ -517,7 +529,7 @@ class TestPostRequests():
             GetUserBlocks().perform()
     
     def test_GetUserSettings(self):
-        result = GetUserSettings(_api=self.api, userUrl=user_url).perform()
+        result = GetUserSettings(_api=self.api, userUrl=hornet_url).perform()
         log_result(result)
         check_datatype_coverage(result)
 
@@ -526,7 +538,7 @@ class TestPostRequests():
             GetUserSettings(userUrl=user_url).perform()
     
     def test_GetUserSupporterData(self):
-        result = GetUserSupporterData(_api=self.api, userUrl=user_url).perform()
+        result = GetUserSupporterData(_api=self.api, userUrl=hornet_url).perform()
         log_result(result)
         check_datatype_coverage(result)
 

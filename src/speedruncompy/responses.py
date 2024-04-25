@@ -8,7 +8,7 @@ class r_DefaultResponse(dict):
 
 class r_GetArticle(Datatype):
     article: Article
-    relatedArticleList: Any # Currently unknown typed list, leaving as Any for now
+    relatedArticleList: list[Article]
     gameList: list[Game]
     userList: list[User]
 
@@ -163,7 +163,7 @@ class r_GetSearch(Datatype):
     pageList: list[Article] #TODO: check
     seriesList: list[Series]
     userList: list[User]
-    challengeList: list[Challenge] #TODO: check
+    challengeList: list[Challenge]
 
 class r_GetSeriesList(Datatype):
     seriesList: list[Series]
@@ -283,8 +283,9 @@ class r_GetSession(Datatype):
     session: Session
 
 class r_GetThemeSettings(Datatype):
-    settings: ThemeSettings
-    theme: Theme
+    """NB: if no theme is set then this response will be empty"""
+    settings: OptField[ThemeSettings]
+    theme: OptField[Theme]
 
 class r_GetThreadReadStatus(Datatype):
     threadReadStatusList: list[ThreadReadStatus]
