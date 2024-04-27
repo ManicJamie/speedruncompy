@@ -13,7 +13,9 @@ GET requests are all unauthed & do not require PHPSESSID.
 """
 
 class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
-    """The default leaderboard view."""
+    """The default leaderboard view.
+    
+    Note that by default runs without video are excluded; provide `video = 0` to include them."""
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
@@ -269,6 +271,16 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
         extras.pop("seriesList")
         extras["pagination"]["page"] = 0
         return extras | {"seriesList": seriesList}
+
+class GetSeriesSummary(GetRequest):
+    def __init__(self, **params) -> None:
+        super().__init__("GetSeriesSummary", returns=r_GetSeriesSummary, **params)
+    
+    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSeriesSummary:
+        return super().perform(retries, delay, **kwargs)
+    
+    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSeriesSummary]:
+        return super().perform_async(retries, delay, **kwargs)
 
 class GetGameLevelSummary(GetRequest):
     """Note: This can take a `page` param but does not split into pages?"""

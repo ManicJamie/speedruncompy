@@ -169,6 +169,18 @@ class r_GetSeriesList(Datatype):
     seriesList: list[Series]
     pagination: Pagination
 
+class r_GetSeriesSummary(Datatype):
+    series: Series
+    forum: Forum
+    gameList: list[Game]
+    moderatorList: list[SeriesModerator]
+    theme: Theme
+    threadList: list[Thread]
+    userList: list[User]
+    gameCount: int
+    streamCount: int
+    threadCount: int
+
 class r_GetStreamList(Datatype):
     gameList: list[Game]
     streamList: list[Stream]

@@ -7,7 +7,9 @@ def get_true_type(t: type):
 
 def check_datatype_coverage(dt: Datatype):
     keys = set(dt.keys())
-    hints = get_type_hints(dt)
+    try:
+        hints = get_type_hints(dt)
+    except TypeError: hints = dict() # Errors on empty datatype
     hintNames = set(hints)
     unseenAttrs = keys.difference(hintNames)
     assert unseenAttrs == set(), f"{type(dt)} missing keys: {[a + ' = ' + str(dt[a]) for a in unseenAttrs]}"

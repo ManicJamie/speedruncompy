@@ -243,6 +243,10 @@ class TestGetRequests():
         result = GetThread(thread_id).perform_all()
         log_result(result)
         check_datatype_coverage(result)
+    
+    def test_GetThread_nonexistent(self):
+        with pytest.raises(NotFound):
+            result = GetThread("10000000").perform()
 
     def test_GetUserLeaderboard(self):
         result = GetUserLeaderboard(userId=user_id).perform()
@@ -553,27 +557,52 @@ class TestPutRequests():
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
     low_api.set_phpsessid(LOW_SESSID)
-    
-    @pytest.mark.skip(reason="Unreasonable to test this endpoint as it would create spam.")
-    def test_PutAuthSignup(self):
-        ...
 
-    @pytest.mark.skip(reason="Test stub")
-    def test_PutComment_Flow(self):
+    @pytest.fixture(scope="class")
+    def testingGame(self):
+        """Provides a game for testing. Later will use PutGame to construct the game for testing"""
+        # For now, using Out of the Void for the game
+        gData = GetGameData(gameUrl="out_of_the_void").perform()
+        check_datatype_coverage(gData)
+        yield gData
+        # Teardown?
+    
+    @pytest.fixture(scope="class")
+    def testingSeries(self):
+        """Provides a series for testing"""
+        sData = GetSeriesSummary(seriesUrl="shrek_fangames").perform()
+        check_datatype_coverage(sData)
+        yield sData
+        # Teardown?
+
+    @pytest.fixture(scope="class")
+    def testingThread(self):
+        """Provides a thread for testing"""
+        threadPut = PutThread("qj2qrkn8", "Testing", "A test thread for speedruncompy.", _api=self.api).perform()
+        yield threadPut.thread
+        threadDelete = PutThreadDelete(_api=self.api, threadId=threadPut.thread.id).perform()
+        with pytest.raises(NotFound): GetThread(threadPut.thread.id).perform()
+        check_datatype_coverage(threadPut)
+        check_datatype_coverage(threadDelete)
+
+    def test_PutComment_Flow(self, testingThread: Thread):
         """Posts and then deletes a comment"""
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
+        COMMENT_DESC = "Test comment."
 
-        delete_result = ...
-        log_result(result)
-        check_datatype_coverage(result)
-    
-    @pytest.mark.skip(reason="Test Stub")
-    def test_PutCommentableSettings(self):
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
+        commentPut = PutComment(testingThread.id, itemType.THREAD, COMMENT_DESC, _api=self.api).perform()
+        check_datatype_coverage(commentPut)
+
+        commentCheck = GetCommentList(testingThread.id, itemType.THREAD, vary=1).perform()
+        check_datatype_coverage(commentCheck)
+        comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
+
+        commentDelete = PutCommentDelete(comment.id, _api=self.api).perform()
+        check_datatype_coverage(commentDelete)
+
+        commentDelCheck = GetCommentList(testingThread.id, itemType.THREAD, vary=2).perform()
+        check_datatype_coverage(commentDelCheck)
+        with pytest.raises(StopIteration):
+            next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversation(self):
@@ -583,12 +612,6 @@ class TestPutRequests():
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversationMessage(self):
-        result = ...
-        log_result(result)
-        check_datatype_coverage(result)
-
-    @pytest.mark.skip(reason="Test stub")
-    def test_PutGame(self):
         result = ...
         log_result(result)
         check_datatype_coverage(result)
@@ -659,6 +682,7 @@ class TestPutRequests():
         log_result(result)
         check_datatype_coverage(result)
     
+    @pytest.mark.skip(reason="Unreasonable test, as would spam site staff")
     @pytest.mark.skip(reason="Test stub")
     def test_PutTicket(self):
         result = ...

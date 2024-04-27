@@ -79,6 +79,9 @@ def degrade_union(union: type, *to_remove: type):
         return Union[tuple(newargs)]
     return union
 
+def in_enum(enum: type, value):
+    return value in (v for v in enum.__members__.values())
+
 class Datatype():
     """A dictlike object with field accessors, type checking & initialisation helpers.
     
@@ -113,9 +116,13 @@ class Datatype():
                 if is_optional_field(hint): continue
                 else: missing_fields.append(fieldname) # Non-optional fields must be present, report if not
             elif is_compliant_type(true_type):
-                if not isinstance(self[fieldname], true_type):
-                    if not(true_type is bool and (self[fieldname] > 1 or self[fieldname] < 0)):
-                        self[fieldname] = true_type(raw) # Coerce compliant types, exclude bool if larger than 1
+                if not isinstance(raw, true_type):
+                    if true_type is bool and (raw != 1 or raw != 0): 
+                        _log.warning(f"{type(self)}.{attr} documented as bool but had value {raw}!")
+                    elif issubclass(true_type, Enum) and not in_enum(true_type, raw):
+                        _log.warning(f"{type(self)}.{attr} enum {true_type} does not contain value {raw}!")
+                    else: 
+                        self[fieldname] = true_type(raw)
             elif get_origin(true_type) is list:
                 list_type = get_args(true_type)[0]
                 if is_compliant_type(list_type): # Coerce list types
@@ -239,9 +246,11 @@ class Comment(Datatype):
     itemId: str
     date: int
     userId: str
-    text: str
+    text: OptField[str]
+    """May be omitted on deleted comments."""
     parentId: str
     deleted: bool
+    deletedUserId: OptField[str]
 
 class Like(Datatype):
     itemType: int # enum
