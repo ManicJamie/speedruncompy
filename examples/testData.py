@@ -9,4 +9,4 @@ time = RuntimeTuple({"hour":0, "minute":1, "second": 0, "millisecond": 50})
 print(time)
 print(repr(time))
 
-print(json.dumps({"help": eventType.CATEGORY_CREATED}))
+print(json.dumps({"help": EventType.CATEGORY_CREATED}))

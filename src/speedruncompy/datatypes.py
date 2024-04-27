@@ -235,14 +235,14 @@ class CommentPermissions(Datatype):
     cannotPostReasons: list[str]
 
 class Commentable(Datatype):
-    itemType: int # enum
+    itemType: ItemType
     itemId: str
     properties: dict # disabled, locked
     permissions: CommentPermissions
 
 class Comment(Datatype):
     id: str
-    itemType: int # enum
+    itemType: ItemType
     itemId: str
     date: int
     userId: str
@@ -253,7 +253,7 @@ class Comment(Datatype):
     deletedUserId: OptField[str]
 
 class Like(Datatype):
-    itemType: int # enum
+    itemType: ItemType
     itemId: str
     userId: str
     date: int
@@ -263,7 +263,7 @@ class Forum(Datatype):
     name: str
     url: str
     description: str
-    type: int # Enum, 3=Game
+    type: ForumType
     threadCount: int
     postCount: int
     lastPostId: str
@@ -278,7 +278,7 @@ class Thread(Datatype):
     forumId: str
     userId: str
     replies: int
-    created: int # enum
+    created: int
     lastCommentId: str
     lastCommentUserId: str
     lastCommentDate: int
@@ -334,16 +334,16 @@ class Game(Datatype):
     id: str
     name: str
     url: str
-    type: str # enum? is this true?
+    type: str # enum? is this true? afaict is always "game"
     loadtimes: bool
     milliseconds: bool
     igt: bool
     verification: bool
     autoVerify: OptField[bool] # Why is this OptField????? I hate SRC
     requireVideo: bool
-    emulator: int # enum
-    defaultTimer: TimerName # int enum
-    validTimers: list[TimerName] # int enum
+    emulator: EmulatorType
+    defaultTimer: TimerName
+    validTimers: list[TimerName]
     releaseDate: int
     addedDate: int
     touchDate: int
@@ -353,22 +353,22 @@ class Game(Datatype):
     trophy2ndPath: OptField[str]
     trophy3rdPath: OptField[str]
     trophy4thPath: OptField[str]
-    runCommentsMode: int # enum
+    runCommentsMode: PermissionType
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
     boostReceivedCount: int
     boostDistinctDonorsCount: int
     rules: OptField[str]
-    viewPowerLevel: int # enum
+    viewPowerLevel: SitePowerLevel
     platformIds: list[str]
     regionIds: list[str]
-    gameTypeIds: list[gameType] 
+    gameTypeIds: list[GameType] 
     websiteUrl: OptField[str]
     discordUrl: OptField[str]
-    defaultView: int # enum
-    guidePermissionType: int # enum
-    resourcePermissionType: int # enum
+    defaultView: DefaultViewType
+    guidePermissionType: PermissionType
+    resourcePermissionType: PermissionType
     staticAssets: list[StaticAsset]
     embargoDate: OptField[int]
     embargoText: OptField[str]
@@ -408,8 +408,8 @@ class Category(Datatype):
     isPerLevel: bool
     numPlayers: int
     exactPlayers: bool
-    playerMatchMode: int # enum
-    timeDirection: int # technically an enum, 0 = fastest first
+    playerMatchMode: PlayerMatchMode
+    timeDirection: TimeDirection
     enforceMs: bool
     rules: OptField[str]
     archived: OptField[bool]
@@ -422,9 +422,9 @@ class Variable(Datatype):
     pos: int
     gameId: str
     description: OptField[str]
-    categoryScope: int # enum
+    categoryScope: VarCategoryScope
     categoryId: OptField[str]
-    levelScope: int # enum
+    levelScope: VarLevelScope
     levelId: OptField[str]
     isMandatory: bool
     isSubcategory: bool
@@ -432,7 +432,7 @@ class Variable(Datatype):
     isObsoleting: bool
     defaultValue: OptField[str]
     archived: bool
-    displayMode: OptField[int] # enum
+    displayMode: OptField[VarDisplayMode]
 
 class Value(Datatype):
     """Value of a variable. `VariableValue` is a selector on this type (and the underlying variable)"""
@@ -526,13 +526,13 @@ class User(Datatype):
     areaId: str
     isSupporter: OptField[bool] # ?
     avatarDecoration: OptField[dict[str, bool]] # {enabled: bool}, add type for this later
-    iconType: int # enum 0-2?
+    iconType: IconType
     onlineDate: int
     signupDate: int
     touchDate: int
     staticAssets: list[StaticAsset]
-    supporterIconType: OptField[int] # enum 0-2?
-    supporterIconPosition: OptField[int] # enum 0-1?
+    supporterIconType: OptField[IconType]
+    supporterIconPosition: OptField[IconPosition]
     titleId: OptField[str]
     """ID for a title given for completing a Challenge"""
 
@@ -559,14 +559,14 @@ class UserStats(Datatype):
 
 class UserSocialConnection(Datatype):
     userId: str
-    networkId: int # enum
+    networkId: NetworkId
     value: str
     verified: bool
 
 class GameOrderGroup(Datatype):
     id: str
     name: str
-    sortType: int # enum
+    sortType: GameSortType
     gameIds: list[str]
 
 class GameOrdering(Datatype):
@@ -578,9 +578,9 @@ class UserProfile(Datatype):
     userId: str
     bio: OptField[str]
     signupDate: int
-    defaultView: int # enum, assuming fg/level?
+    defaultView: DefaultViewType
     showMiscByDefault: bool
-    gameOrdering:GameOrdering #TODO: make better names for these
+    gameOrdering: GameOrdering
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
 
@@ -591,19 +591,19 @@ class UserLeaderboardProfile(Datatype):
     userId: str
     bio: OptField[str]
     signupDate: int
-    defaultView: int # enum, assuming fg/level?
+    defaultView: DefaultViewType
     showMiscByDefault: bool
-    gameOrdering:GameOrdering #TODO: make better names for these
+    gameOrdering: GameOrdering
 
 class SeriesModerator(Datatype):
     seriesId: str
     userId: str
-    level: int # enum
+    level: GamePowerLevel
 
 class GameModerator(Datatype):
     gameId: str
     userId: str
-    level: int # enum
+    level: GamePowerLevel
 
 class ChallengeModerator(Datatype):
     
@@ -690,18 +690,18 @@ class Challenge(Datatype):
     updateDate: int
     startDate: int
     endDate: int
-    state: int # enum
+    state: ChallengeState
     description: str
     rules: str
     numPlayers: int
-    exactPlayers: int
-    playerMatchMode: int # enum
-    timeDirection: int
+    exactPlayers: bool
+    playerMatchMode: PlayerMatchMode
+    timeDirection: TimeDirection
     enforceMs: bool
     coverImagePath: str
     contest: bool
     contestRules: str
-    runCommentsMode: int # enum
+    runCommentsMode: PermissionType
     prizeConfig: ChallengePrizeConfig
 
 class ChallengeRun(Datatype):
@@ -742,16 +742,16 @@ class Theme(Datatype):
     primaryColor: str
     panelColor: str
     panelOpacity: int
-    navbarColor: int
+    navbarColor: NavbarColorType
     backgroundColor: str
-    backgroundFit: int
-    backgroundPosition: int
-    backgroundRepeat: int
-    backgroundScrolling: int
-    foregroundFit: int
-    foregroundPosition: int
-    foregroundRepeat: int
-    foregroundScrolling: int
+    backgroundFit: FitType
+    backgroundPosition: PositionType
+    backgroundRepeat: RepeatType
+    backgroundScrolling: ScrollType
+    foregroundFit: FitType
+    foregroundPosition: PositionType
+    foregroundRepeat: RepeatType
+    foregroundScrolling: ScrollType
     touchDate: int
     staticAssets: list[StaticAsset]
 
@@ -782,7 +782,7 @@ class Guide(Datatype):
 
 class Resource(Datatype):
     id: str
-    type: int # Enum
+    type: ResourceType
     name: str
     description: str
     date: int
@@ -811,15 +811,15 @@ class GameSettings(Datatype):
     name: str
     url: str
     twitchName: str
-    releaseDate: int #TODO: check
+    releaseDate: int
     milliseconds: bool
-    defaultView: int # enum
+    defaultView: DefaultViewType
     loadTimes: bool
     igt: bool
-    defaultTimer: int # enum, assume TimerName?
+    defaultTimer: TimerName
     showEmptyTimes: bool
     rulesView: bool
-    emulator: int # enum
+    emulator: EmulatorType
     verification: bool
     requireVideo: bool
     autoVerify: bool
@@ -832,13 +832,13 @@ class GameSettings(Datatype):
     touchDate: int
     noEvents: bool
     promoted: bool
-    runCommentsMode: int # enum
+    runCommentsMode: PermissionType
     noPromote: bool
     platformIds: list[str]
     regionIds: list[str]
-    gameTypeIds: list[int] # enums
-    guidePermissionType: int # enum 
-    resourcePermissionType: int # enum
+    gameTypeIds: list[GameType]
+    guidePermissionType: PermissionType
+    resourcePermissionType: PermissionType
     staticAssets: list[StaticAsset]
     staticAssetUpdates: Any # undocumented list
 
@@ -852,10 +852,10 @@ class SeriesSettings(Datatype):
 
 class GameModerationStats(Datatype):
     gameId: str
-    state: Any #TODO: check
+    state: int # enum? appears to always be 0
     count: int
-    minDate: int
-    maxDate: int
+    minDate: OptField[int]
+    maxDate: OptField[int]
 
 class AuditLogEntry(Datatype):
     id: str
@@ -927,11 +927,11 @@ class Session(Datatype):
     user: OptField[User]
     theme: OptField[Theme]
     powerLevel: SitePowerLevel
-    dateFormat: int # enum
-    timeFormat: int # enum
-    timeReference: int # enum
-    timeUnits: int # enum
-    homepageStream: int # enum
+    dateFormat: DateFormat
+    timeFormat: TimeFormat
+    timeReference: TimeReference
+    timeUnits: TimeDisplayUnits
+    homepageStream: HomepageStreamType
     disableThemes: bool
     csrfToken: str
     networkToken: OptField[str] #TODO: check
@@ -952,16 +952,16 @@ class ThemeSettings(Datatype):
     primaryColor: str
     panelColor: str
     panelOpacity: int
-    navbarColor: int # enum
+    navbarColor: NavbarColorType
     backgroundColor: str
-    backgroundFit: bool
-    backgroundPosition: int # enum
-    backgroundRepeat: int # enum
-    backgroundScrolling: bool #TODO: check
-    foregroundFit: bool
-    foregroundPosition: int # enum
-    foregroundRepeat: bool #TODO: check
-    foregroundScrolling: bool #TODO: check
+    backgroundFit: FitType
+    backgroundPosition: PositionType
+    backgroundRepeat: RepeatType
+    backgroundScrolling: ScrollType
+    foregroundFit: FitType
+    foregroundPosition: PositionType
+    foregroundRepeat: RepeatType
+    foregroundScrolling: ScrollType
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAsset] # TODO: check optional
 
@@ -971,9 +971,9 @@ class ThreadReadStatus(Datatype):
 
 class Ticket(Datatype):
     id: str
-    queue: int # enum
-    type: int # enum TODO: check
-    status: int # enum
+    queue: TicketQueueType
+    type: TicketType
+    status: TicketStatus
     requestorId: str
     dateSubmitted: int
     dateResolved: OptField[int]
@@ -998,17 +998,18 @@ class UserSettings(Datatype):
     bio: str
     powerLevel: SitePowerLevel
     areaId: str
-    theme: str # TODO: check what happens w/ custom theme
+    theme: str
+    """May be `<gameUrl>`, `user/<userUrl>` or `Default`"""
     color1Id: str
     color2Id: OptField[str]
     colorAnimate: int # enum
     avatarDecoration: dict #TODO: enabled: bool
-    defaultView: int # enum
-    timeReference: int # enum
-    timeUnits: int # enum
-    dateFormat: int # enum
-    timeFormat: int # enum
-    iconType: int # enum
+    defaultView: DefaultViewType
+    timeReference: TimeReference
+    timeUnits: TimeDisplayUnits
+    dateFormat: DateFormat
+    timeFormat: TimeFormat
+    iconType: IconType
     disableThemes: bool
     emailAuthentication: bool
     latestMaxFollowed: int
@@ -1017,7 +1018,7 @@ class UserSettings(Datatype):
     showMiscByDefault: bool
     showOnStreamsPage: bool
     showUnofficialGameTypes: bool
-    homepageStream: int # enum
+    homepageStream: HomepageStreamType
     disableMessages: bool
     showAds: bool
     pronouns: list[str]
@@ -1026,8 +1027,8 @@ class UserSettings(Datatype):
     followedGamesDisabled: bool
     supporterEndDate: int
     boostEndDate: int
-    supporterIconType: int # enum
-    supporterIconPosition: int # enum
+    supporterIconType: IconType
+    supporterIconPosition: IconPosition
     staticAssets: list[StaticAsset]
     staticAssetUpdates: Any # Undocumented list
 

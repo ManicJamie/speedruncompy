@@ -528,7 +528,7 @@ class GetAuditLogList(PostRequest, BasePaginatedRequest):
     """WARN: not currently depaginated due to lack of testing availaibility.
     
     To protect against future updates before v1.0, use `._perform_all_raw()`"""
-    def __init__(self, gameId: str = None, seriesId: str = None, eventType: eventType = eventType.NONE, page: int = 1, **params) -> None:
+    def __init__(self, gameId: str = None, seriesId: str = None, eventType: EventType = EventType.NONE, page: int = 1, **params) -> None:
         if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
         super().__init__("GetAuditLogList", returns=r_GetAuditLogList, gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
     
@@ -879,7 +879,7 @@ class PutConversationMessage(PostRequest):
         return super().perform_async(retries, delay, **kwargs)
 
 class PutGame(PostRequest): #TODO: needs param testing
-    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[gameType], seriesId: str, **params) -> None:
+    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
         super().__init__("PutGame", returns=r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
     
     def perform(self, retries=5, delay=1, **kwargs) -> r_PutGame:

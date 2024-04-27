@@ -1,37 +1,48 @@
 from enum import IntEnum, StrEnum
 
-class itemType(IntEnum):
-    LIKE = 1 # Unsure if "LIKE" is the correct term here.
+class ItemType(IntEnum):
+    """The type of the item this object is referencing (eg. a comment on either a run or a thread)"""
+    COMMENT = 1
     RUN = 2
-    THREAD = 7  # Thread (comment?)
+    THREAD = 7 
     GAME_NEWS = 27
     SITE_NEWS = 30
 
-class verified(IntEnum):
+class Verified(IntEnum):
     PENDING = 0
     VERIFIED = 1
     REJECTED = 2
 
-class obsoleteFilter(IntEnum):
+class ObsoleteFilter(IntEnum):
     HIDDEN = 0,
     SHOWN = 1,
     EXCLUSIVE = 2
 
-class verifiedFilter(IntEnum):
+class VerifiedFilter(IntEnum):
+    OPTIONAL = 0,
+    VERIFIED = 1,
+    UNVERIFIED = 2 # TODO: confirm semantics (rejected or not verified?)
+
+class VideoFilter(IntEnum):
     OPTIONAL = 0,
     REQUIRED = 1,
     MISSING = 2
 
-class forumType(IntEnum):
-    FRONT_PAGE = 0
-    SUPPORTER = 1
-    GAME = 2
+class EmulatorFilter(IntEnum):
+    HIDDEN = 0
+    SHOWN = 1
+    EXCLUSIVE = 2
+
+class ForumType(IntEnum):
+    FRONT_PAGE = 1
+    SUPPORTER = 2
+    GAME = 3 
 
 class TimerName(IntEnum):
-    """`time`, `timeWithLoads` and `igt`.
-
-    `time` is LRT if present, otherwise RTA.
+    """`time` is LRT if present, otherwise RTA.
+    
     `timeWithLoads` is RTA if LRT is present.
+    
     `igt` is IGT
     """
     time = 0
@@ -41,12 +52,8 @@ class TimerName(IntEnum):
     igt = 2
     """IGT"""
 
-class modLevel(IntEnum):
-    VERIFIER = -1
-    MODERATOR = 0
-    SUPERMOD = 1
-
-class gameType(IntEnum):
+class GameType(IntEnum):
+    """Classifiers for games, provided in `Game.gameTypeIds`."""
     ROM_HACK = 1
     MODIFICATION = 2
     FAN_GAME = 3
@@ -60,14 +67,20 @@ class gameType(IntEnum):
     SERVER_MAP = 11
     HOMEBREW_GAME = 12
 
-class permissionType(IntEnum):
-    ALL = 0
-    DISABLED = 1
-    VERIFIED_HERE = 2
-    VERIFIED_ANY = 3
-    MODS_ONLY = 4
+class GameOrderType(IntEnum):
+    NAME = 1
+    NEWEST_RELEASED = 2
+    OLDEST_RELEASED = 3
+    MOST_ACTIVE = 4
+    LEAST_ACTIVE = 5
+    MOST_PLAYERS = 6
+    LEAST_PLAYERS = 7
+    MOST_RUNS = 8
+    LEAST_RUNS = 9
+    NEWEST_ADDED = 10
+    OLDEST_ADDED = 11
 
-class resourceType(IntEnum):
+class ResourceType(IntEnum):
     TOOL = 1
     SAVE = 2
     SPLITS = 3
@@ -85,7 +98,7 @@ class SitePowerLevel(IntEnum):
     SITE_MOD = 3
     SITE_ADMIN = 4
 
-class eventType(StrEnum):
+class EventType(StrEnum):
     NONE = ""
     CATEGORY_CREATED = "category-created"
     CATEGORY_REMOVED = "category-removed"
@@ -106,12 +119,6 @@ class eventType(StrEnum):
     GAME_UPDATED = "game-updated"
     GAMEREQUEST_REVIEWED = "gamerequest-reviewed"
     LEVEL_CREATED = "level-created"
-
-class VariableLevelScope(IntEnum):
-    FULL_GAME = 0,
-    SINGLE_LEVEL = 1,
-    ALL_LEVELS = -1,
-    FULL_GAME_AND_ALL_LEVELS = -2
 
 class TicketQueueType(IntEnum):
     GAME_REQUESTS = 1 
@@ -153,6 +160,97 @@ class TicketStatus(IntEnum):
     REVIEWING = 3,
     WITHDRAWN = 4
 
+class DefaultViewType(IntEnum):
+    FULL_GAME = 0
+    LEVELS = 1
+
+class ChallengeState(IntEnum):
+    DRAFT = 0
+    PUBLISHED = 1
+    FINALIZED = 2
+
+#region Game
+
+class TimeDirection(IntEnum):
+    ASCENDING = 0
+    DESCENDING = 1
+
+class VarCategoryScope(IntEnum):
+    SINGLE = 1
+    ALL = -1
+
+class VarLevelScope(IntEnum):
+    FULL_GAME = 0
+    SINGLE_LEVEL = 1
+    LEVELS = -1
+    ALL = -2
+
+class VarDisplayMode(IntEnum):
+    AUTO = 0
+    DROPDOWN = 1
+    BUTTONS = 2
+
+class EmulatorType(IntEnum):
+    HIDDEN = 0
+    SHOWN = 1
+    BANNED = -1
+
+class PlayerMatchMode(IntEnum):
+    ALL_PLAYERS_IN_ORDER = 0
+    ALL_PLAYERS_ANY_ORDER = 1
+    ANY_PLAYERS_IN_ORDER = 2
+    ANY_PLAYERS_ANY_ORDER = 3
+
+class PermissionType(IntEnum):
+    """Who is allowed to perform an action (posting comments, guides or resources)."""
+    ALL = 0
+    DISABLED = 1
+    VERIFIED_HERE = 2
+    VERIFIED_ANY = 3
+    MODS_ONLY = 4
+
+#endregion Game
+
+#region User
+
+class IconType(IntEnum):
+    NONE = 0
+    DEFAULT = 1
+    CUSTOM = 2
+
+class IconPosition(IntEnum):
+    BEFORE = 0
+    AFTER = 1
+
+class HomepageStreamType(IntEnum):
+    MUTED = 0
+    PAUSED = 1
+    HIDDEN = 2
+
+class GameSortType(IntEnum):
+    ALPHABETICAL = 0
+    CHRONOLOGICAL = 1
+    CUSTOM = 2
+
+class TimeDisplayUnits(IntEnum):
+    EXPLICIT = 0
+    COLON = 1
+
+class TimeReference(IntEnum):
+    ABSOLUTE = 0
+    RELATIVE = 1
+
+class DateFormat(IntEnum):
+    YYYY_MM_DD = 0
+    DD_MM_YYYY = 1
+    MM_DD_YYYY = 2
+
+class TimeFormat(IntEnum):
+    HH_MM = 0
+    HH_MM_SS = 1
+    HH_MM_12h = 2
+    HH_MM_SS_12h = 3
+
 class NetworkId(IntEnum):
     """NB: does not include deprecated values that may still be visible to the API"""
     BILIBILI = 3,
@@ -165,3 +263,43 @@ class NetworkId(IntEnum):
     TWITTER = 30,
     URL = 31,
     YOUTUBE = 32
+    # Deprecated values
+    _1 = 22
+    _2 = 26
+
+#endregion User
+
+#region Theme
+
+class NavbarColorType(IntEnum):
+    PRIMARY = 0
+    PANEL = 1
+
+class ScrollType(IntEnum):
+    NONE = 0
+    SLOW = 1
+    MEDIUM = 2
+    FAST = 3
+
+class PositionType(IntEnum):
+    TL = 0
+    T = 1
+    TR = 2
+    L = 3
+    C = 4
+    R = 5
+    BL = 6
+    B = 7
+    BR = 8
+
+class RepeatType(IntEnum):
+    NONE = 0
+    HORIZONTAL = 1
+    VERTICAL = 2
+    BOTH = 3
+
+class FitType(IntEnum):
+    ORIGINAL = 0
+    FIT = 1
+
+#endregion Theme

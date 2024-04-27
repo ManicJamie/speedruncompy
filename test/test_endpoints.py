@@ -43,7 +43,7 @@ category_id = "02q8o4p2" # Any%
 level_category = "wkpq608d" # Hollow Knight "Level" category
 run_id = "mrrg8k4m" # ManicJamie's Hollow Knight: All Skills LP run
 comment_list_source = "y8k99ndy" # Must have multiple pages of comments & match itemType below
-comment_list_type = itemType.RUN
+comment_list_type = ItemType.RUN
 thread_id = "mbkmj"
 user_id = "j4r6pwm8" # ManicJamie (must have leaderboard)
 user_url = "manicjamie"
@@ -445,18 +445,18 @@ class TestPostRequests():
         check_datatype_coverage(result)
     
     def test_GetModerationRuns_paginated(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=verified.PENDING).perform_all()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=Verified.PENDING).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
     def test_GetModerationRuns_paginated_raw(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=verified.PENDING)._perform_all_raw()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=Verified.PENDING)._perform_all_raw()
         log_result(result)
         check_pages(result)
 
     def test_GetModerationRuns_unauthed(self):
         with pytest.raises(Unauthorized):
-            GetModerationRuns(gameId=game_id, verified=verified.PENDING).perform()
+            GetModerationRuns(gameId=game_id, verified=Verified.PENDING).perform()
     
     def test_GetNotifications(self):
         result = GetNotifications(_api=self.api).perform()
@@ -589,17 +589,17 @@ class TestPutRequests():
         """Posts and then deletes a comment"""
         COMMENT_DESC = "Test comment."
 
-        commentPut = PutComment(testingThread.id, itemType.THREAD, COMMENT_DESC, _api=self.api).perform()
+        commentPut = PutComment(testingThread.id, ItemType.THREAD, COMMENT_DESC, _api=self.api).perform()
         check_datatype_coverage(commentPut)
 
-        commentCheck = GetCommentList(testingThread.id, itemType.THREAD, vary=1).perform()
+        commentCheck = GetCommentList(testingThread.id, ItemType.THREAD, vary=1).perform()
         check_datatype_coverage(commentCheck)
         comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
 
         commentDelete = PutCommentDelete(comment.id, _api=self.api).perform()
         check_datatype_coverage(commentDelete)
 
-        commentDelCheck = GetCommentList(testingThread.id, itemType.THREAD, vary=2).perform()
+        commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD, vary=2).perform()
         check_datatype_coverage(commentDelCheck)
         with pytest.raises(StopIteration):
             next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
