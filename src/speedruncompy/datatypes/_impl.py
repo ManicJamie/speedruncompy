@@ -90,9 +90,9 @@ class Datatype():
             elif is_compliant_type(true_type):
                 if not isinstance(raw, true_type):
                     if true_type is bool and (raw != 1 or raw != 0): 
-                        _log.warning(f"{type(self)}.{attr} documented as bool but had value {raw}!")
+                        _log.warning(f"{type(self)}.{fieldname} documented as bool but had value {raw}!")
                     elif issubclass(true_type, Enum) and not in_enum(true_type, raw):
-                        _log.warning(f"{type(self)}.{attr} enum {true_type} does not contain value {raw}!")
+                        _log.warning(f"{type(self)}.{fieldname} enum {true_type} does not contain value {raw}!")
                     else: 
                         self[fieldname] = true_type(raw)
             elif get_origin(true_type) is list:
