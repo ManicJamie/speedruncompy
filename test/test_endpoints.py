@@ -58,6 +58,7 @@ challenge_run_id = "m9vk8gy3"
 hornet_uid = "x76p3d6j"
 hornet_url = "Hornet_Bot"
 conversation_id = "4xEDO" # ManicJamie <-> Hornet_Bot
+series_id = "8nw2ygxn" # Shrek Fangames
 
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
@@ -65,19 +66,19 @@ logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
 # See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
-datatypes.STRICT_TYPE_CONFORMANCE = True
+defs.STRICT_TYPE_CONFORMANCE = True
 
 @pytest.fixture()
 def loose_type_conformance():
-    datatypes.STRICT_TYPE_CONFORMANCE = False
+    defs.STRICT_TYPE_CONFORMANCE = False
     yield
-    datatypes.STRICT_TYPE_CONFORMANCE = True
+    defs.STRICT_TYPE_CONFORMANCE = True
 
 @pytest.fixture()
 def disable_type_checking():
-    datatypes.DISABLE_TYPE_CONFORMANCE = True
+    defs.DISABLE_TYPE_CONFORMANCE = True
     yield
-    datatypes.DISABLE_TYPE_CONFORMANCE = False
+    defs.DISABLE_TYPE_CONFORMANCE = False
 
 @pytest.fixture(autouse=True)
 def check_api_conformance():

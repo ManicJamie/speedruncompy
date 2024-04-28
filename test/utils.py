@@ -1,6 +1,7 @@
 from types import NoneType
 from typing import get_origin, get_args, Optional, Union, get_type_hints
-from speedruncompy.datatypes import _OptFieldMarker, Datatype, degrade_union
+from speedruncompy.datatypes import Datatype
+from speedruncompy.datatypes._impl import _OptFieldMarker, degrade_union
 
 def get_true_type(t: type):
     return degrade_union(t, NoneType, _OptFieldMarker)
