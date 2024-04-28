@@ -4,7 +4,7 @@ class ItemType(IntEnum):
     """The type of the item this object is referencing (eg. a comment on either a run or a thread)"""
     COMMENT = 1
     RUN = 2
-    THREAD = 7 
+    THREAD = 7
     GAME_NEWS = 27
     SITE_NEWS = 30
 
@@ -21,7 +21,7 @@ class ObsoleteFilter(IntEnum):
 class VerifiedFilter(IntEnum):
     OPTIONAL = 0,
     VERIFIED = 1,
-    UNVERIFIED = 2 # TODO: confirm semantics (rejected or not verified?)
+    UNVERIFIED = 2  # TODO: confirm semantics (rejected or not verified?)
 
 class VideoFilter(IntEnum):
     OPTIONAL = 0,
@@ -36,7 +36,7 @@ class EmulatorFilter(IntEnum):
 class ForumType(IntEnum):
     FRONT_PAGE = 1
     SUPPORTER = 2
-    GAME = 3 
+    GAME = 3
 
 class TimerName(IntEnum):
     """`time` is LRT if present, otherwise RTA.
@@ -121,15 +121,15 @@ class EventType(StrEnum):
     LEVEL_CREATED = "level-created"
 
 class TicketQueueType(IntEnum):
-    GAME_REQUESTS = 1 
-    SERIES_REQUESTS = 2 
-    MOD_REPORTS = 3 
-    MARATHON_REQUESTS = 4 
-    CONTENT_REPORTS = 5 
-    USER_REPORTS = 6 
-    BUG_REPORTS = 7 
-    FRONT_PAGE_REQUESTS = 8 
-    FEEDBACK = 9 
+    GAME_REQUESTS = 1
+    SERIES_REQUESTS = 2
+    MOD_REPORTS = 3
+    MARATHON_REQUESTS = 4
+    CONTENT_REPORTS = 5
+    USER_REPORTS = 6
+    BUG_REPORTS = 7
+    FRONT_PAGE_REQUESTS = 8
+    FEEDBACK = 9
     STAFF_APPLICATIONS = 10
     SUPPORT = 11
     CONTENT_REQUESTS = 12

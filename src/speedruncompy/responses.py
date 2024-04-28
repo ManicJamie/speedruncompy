@@ -1,10 +1,9 @@
 from .datatypes import *
 from typing import Any
 
-class r_DefaultResponse(dict):
-    ...
 
 """GET responses"""
+
 
 class r_GetArticle(Datatype):
     article: Article
@@ -68,7 +67,7 @@ class r_GetGameData(Datatype):
     variables: list[Variable]
 
 class r_GetGameLeaderboard(Datatype):
-    leaderboard: Leaderboard # not funny. didn't laugh
+    leaderboard: Leaderboard  # not funny. didn't laugh
 
 class r_GetGameLeaderboard2(Datatype):
     runList: list[Run]
@@ -101,7 +100,7 @@ class r_GetGameSummary(Datatype):
     theme: Theme
     threadList: list[Thread]
     users: list[User]
-    challengeList: list[Challenge] #TODO: Check (Any)
+    challengeList: list[Challenge]  # TODO: Check (Any)
     challengeCount: int
     guideCount: int
     levelCount: int
@@ -160,7 +159,7 @@ class r_GetRun(Datatype):
 class r_GetSearch(Datatype):
     gameList: list[Game]
     newsList: list[News]
-    pageList: list[Article] #TODO: check
+    pageList: list[Article]  # TODO: check
     seriesList: list[Series]
     userList: list[User]
     challengeList: list[Challenge]
@@ -213,7 +212,7 @@ class r_GetUserLeaderboard(Datatype):
     players: list[Player]
     values: list[Value]
     variables: list[Variable]
-    followedGameIds: Optional[Any] #TODO: find if this is ever not null
+    followedGameIds: Optional[Any]  # TODO: find if this is ever not null
     """Unused null key"""
     challengeList: list[Challenge]
     challengeRunList: list[ChallengeRun]
@@ -227,7 +226,9 @@ class r_GetUserPopoverData(Datatype):
     """Contains games sometimes:tm:"""
     titleList: list[Title]
 
+
 """POST responses"""
+
 
 class r_GetAuditLogList(Datatype):
     auditLogList: list[AuditLogEntry]
@@ -263,7 +264,7 @@ class r_GetModerationGames(Datatype):
     gameModerationStats: list[GameModerationStats]
 
 class r_GetModerationRuns(Datatype):
-    categories:  list[Category]
+    categories: list[Category]
     games: list[Game]
     levels: list[Level]
     pagination: Pagination
@@ -304,12 +305,12 @@ class r_GetThreadReadStatus(Datatype):
 
 class r_GetTickets(Datatype):
     ticketList: list[Ticket]
-    ticketNoteList: Any #TODO: document
+    ticketNoteList: Any  # TODO: document
     pagination: Pagination
     userList: list[User]
     gameList: list[Game]
-    userModCountList: list[Any] #TODO: document
-    userRunCountList: list[Any] #TODO: document
+    userModCountList: list[Any]  # TODO: document
+    userRunCountList: list[Any]  # TODO: document
 
 class r_GetUserBlocks(Datatype):
     userBlocks: list[UserBlock]
@@ -323,8 +324,8 @@ class r_GetUserSettings(Datatype):
     gameList: list[Game]
     themeList: list[Theme]
     titleList: list[Title]
-    supporterCreditList: list[Any] #TODO: document
-    supporterCodeList: list[Any] #TODO: document
+    supporterCreditList: list[Any]  # TODO: document
+    supporterCodeList: list[Any]  # TODO: document
     supporterSubscription: OptField[Any]
     experimentList: Any
     enabledExperimentIds: Any
@@ -433,4 +434,4 @@ class r_PutUserSocialConnectionDelete(Datatype):
     """No content"""
 
 class r_PutUserUpdatePassword(Datatype):
-    ... #TODO: document
+    ...  # TODO: document

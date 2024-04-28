@@ -1,9 +1,7 @@
-from typing import Any, Coroutine
-from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log, R
+from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log
 from .exceptions import SrcpyException
 from .enums import *
 from .responses import *
-from .datatypes import Datatype, LenientDatatype
 import asyncio
 
 SUPPRESS_WARNINGS = False
@@ -21,7 +19,7 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard2", returns=r_GetGameLeaderboard2, _api=_api,
-                          page=page, **param_construct)
+                         page=page, **param_construct)
 
     def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
         runList = []
@@ -48,7 +46,7 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
         numpages = self.pages[1]["leaderboard"]["pagination"]["pages"]
         if numpages > 1:
             results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
-            self.pages.update({p + 2:result for p, result in enumerate(results)})
+            self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
 
     def _combine_results(self, pages: dict):
@@ -164,7 +162,7 @@ class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
 
 class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
     """Note: This can take a `page` param but does not split into pages?"""
-    #TODO: check what's going on here
+    # TODO: check what's going on here
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
@@ -221,7 +219,7 @@ class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCom
         super().__init__("GetCommentList", returns=r_GetCommentList, itemId=itemId, itemType=itemType, **params)
     
     def _combine_results(self, pages: dict[int, r_GetCommentList]) -> r_GetCommentList:
-        #TODO: check likeList, userList for page separation
+        # TODO: check likeList, userList for page separation
         commentList = []
         for p in pages.values():
             commentList += p["commentList"]
@@ -245,6 +243,7 @@ class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
 class GetForumList(GetRequest[r_GetForumList]):
     def __init__(self, **params) -> None:
         super().__init__("GetForumList", returns=r_GetForumList, **params)
+
 
 """
 POST requests may require auth
@@ -281,7 +280,7 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
         super().__init__("GetAuditLogList", returns=r_GetAuditLogList, gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
     
     def _combine_results(self, pages: dict):
-        #TODO: Method stub
+        # TODO: Method stub
         return super()._combine_results(pages)
 
 # Mod actions
@@ -293,7 +292,7 @@ class PutGameSettings(PostRequest[r_PutGameSettings]):
     def __init__(self, gameId: str, settings: dict, **params) -> None:
         super().__init__("PutGameSettings", returns=r_PutGameSettings, gameId=gameId, settings=settings, **params)
 
-#TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+# TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 
 # Run verification
 class GetModerationGames(PostRequest[r_GetModerationGames]):
@@ -305,7 +304,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
         super().__init__("GetModerationRuns", returns=r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
-        #TODO: is this all really necessary?
+        # TODO: is this all really necessary?
         games = [pages[1]["games"][0]]
         categories, levels, platforms, players, regions, runs, users, values, variables = ([] for i in range(9))
         for page in pages.values():
@@ -322,7 +321,8 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
         extras: r_GetModerationRuns = pages[1]
         extras.pagination.page = 0
         return extras | r_GetModerationRuns({"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
-                "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}, skipChecking=True)
+                                             "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables},
+                                            skipChecking=True)
 
 class PutRunAssignee(PostRequest[r_PutRunAssignee]):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
@@ -388,7 +388,7 @@ class PutComment(PostRequest[r_PutComment]):
     def __init__(self, itemId: str, itemType: ItemType, text: str, **params) -> None:
         super().__init__("PutComment", returns=r_PutComment, itemId=itemId, itemType=itemType, text=text, **params)
 
-#TODO: test params
+# TODO: test params
 class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
         super().__init__("PutCommentableSettings", returns=r_PutCommentableSettings, itemId=itemId, itemType=itemType, **params)
@@ -418,7 +418,7 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
 class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
     """WARN: Not currently depaginated, use _perform_all_raw!"""
     def __init__(self, **params) -> None:
-        super().__init__("GetTickets", returns=r_GetTickets, **params) #TODO: needs param testing
+        super().__init__("GetTickets", returns=r_GetTickets, **params)  # TODO: needs param testing
     
     def _combine_results(self, pages: dict):
         """TODO: method stub"""
@@ -444,23 +444,23 @@ class PutConversationMessage(PostRequest[r_PutConversationMessage]):
     def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
         super().__init__("PutConversationMessage", returns=r_PutConversationMessage, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
 
-class PutGame(PostRequest[r_PutGame]): #TODO: needs param testing
+class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
         super().__init__("PutGame", returns=r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
 
-class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]): #TODO: test type of `anonymous`
+class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):  # TODO: test type of `anonymous`
     def __init__(self, gameId: str, anonymous: bool, **params) -> None:
         super().__init__("PutGameBoostGrant", returns=r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
 
-class PutGameModerator(PostRequest[r_PutGameModerator]): #TODO: level enum type
+class PutGameModerator(PostRequest[r_PutGameModerator]):  # TODO: level enum type
     def __init__(self, gameId: str, userId: str, level: int, **params) -> None:
         super().__init__("PutGameModerator", returns=r_PutGameModerator, gameId=gameId, userId=userId, level=level, **params)
 
-class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]): #TODO: test `level` necessity & enum type
+class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]):  # TODO: test `level` necessity & enum type
     def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
         super().__init__("PutGameModeratorDelete", returns=r_PutGameModeratorDelete, gameId=gameId, userId=userId, level=level, **params)
 
-class PutSeriesGame(PostRequest[r_PutSeriesGame]): #TODO: reminder on who can do this & what this does lol
+class PutSeriesGame(PostRequest[r_PutSeriesGame]):  # TODO: reminder on who can do this & what this does lol
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
         super().__init__("PutSeriesGame", returns=r_PutSeriesGame, seriesId=seriesId, gameId=gameId, **params)
 
@@ -468,7 +468,7 @@ class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
         super().__init__("PutSeriesGameDelete", returns=r_PutSeriesGameDelete, seriesId=seriesId, gameId=gameId, **params)
 
-class PutTicket(PostRequest[r_PutTicket]): #TODO: test parameter types
+class PutTicket(PostRequest[r_PutTicket]):  # TODO: test parameter types
     def __init__(self, metadata, type, **params) -> None:
         super().__init__("PutTicket", returns=r_PutTicket, metadata=metadata, type=type, **params)
 

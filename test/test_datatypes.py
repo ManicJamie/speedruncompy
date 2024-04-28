@@ -13,9 +13,9 @@ import pytest, pytest_asyncio, logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-game_id = "76rqmld8" # Hollow Knight
-category_id = "02q8o4p2" # Any%
-challenge_id = "42ymr396" # Ghostrunner 2
+game_id = "76rqmld8"  # Hollow Knight
+category_id = "02q8o4p2"  # Any%
+challenge_id = "42ymr396"  # Ghostrunner 2
 
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
@@ -40,18 +40,18 @@ class TestDatatypes():
         dt_raw = {"some": "data", "that's": True}
         different = {"some": "data", "that's": False}
         dt = Datatype(dt_raw)
-        assert dt["some"] == dt_raw["some"] # Dict access conformance
+        assert dt["some"] == dt_raw["some"]  # Dict access conformance
         with pytest.raises(KeyError): dt["a"]
-        assert dt == dt_raw # Equivalence
+        assert dt == dt_raw  # Equivalence
         assert not (dt == different)
-        assert not (dt != dt_raw) # Nonequivalence
+        assert not (dt != dt_raw)  # Nonequivalence
         assert dt != different
         
-        assert dt.some == "data" # Attribute get
-        dt.some = "different data" # Attribute set
+        assert dt.some == "data"  # Attribute get
+        dt.some = "different data"  # Attribute set
         assert dt.some == "different data"
         assert dt["some"] == "different data"
-        dt["some"] = "data" # Dictlike set
+        dt["some"] = "data"  # Dictlike set
         assert dt["some"] == "data"
         assert dt.some == "data"
         extra = {"new": "kvp"}
@@ -63,32 +63,32 @@ class TestDatatypes():
     def test_Missing_Fields_Loose(self, caplog: pytest.LogCaptureFixture, loose_type_conformance: None):
         """Missing fields should raise a warning"""
         with caplog.at_level(logging.WARNING):
-            var_value_raw = {"variableId": "v"} # Missing valueId
+            var_value_raw = {"variableId": "v"}  # Missing valueId
             vv = VarValue(var_value_raw)
-            assert vv == var_value_raw # Construction still worked
+            assert vv == var_value_raw  # Construction still worked
         assert "Datatype VarValue constructed missing mandatory fields ['valueId']" in caplog.text
 
     def test_Missing_Fields(self):
         """Missing fields should raise an error in Strict mode"""
-        var_value_raw = {"variableId": "v"} # Missing valueId
+        var_value_raw = {"variableId": "v"}  # Missing valueId
         with pytest.raises(IncompleteDatatype):
-            VarValue(var_value_raw) # Construction fails due to strictness
+            VarValue(var_value_raw)  # Construction fails due to strictness
 
     raw_run_settings = {"runId": "a", "gameId": "b", "categoryId": "c",
-            "playerNames": ["p"],
-            "time": {"hour": 0, "minute": 1, "second": 2, "millisecond": 3},
-            "platformId": "p", "emulator": False,
-            "video": "url", "comment": "comment", "date": 11111,
-            "values": [{"variableId": "38dopp1l", "valueId": "4lxogy4l"},
-                {"variableId": "onvkzmlm", "valueId": "gq7o3rnl"}]}
+                        "playerNames": ["p"],
+                        "time": {"hour": 0, "minute": 1, "second": 2, "millisecond": 3},
+                        "platformId": "p", "emulator": False,
+                        "video": "url", "comment": "comment", "date": 11111,
+                        "values": [{"variableId": "38dopp1l", "valueId": "4lxogy4l"},
+                                   {"variableId": "onvkzmlm", "valueId": "gq7o3rnl"}]}
     
     def test_RunSettings(self, caplog: pytest.LogCaptureFixture):
         raw = self.raw_run_settings.copy()
-        settings = RunSettings(raw) # Does not fail w/ strict typechecking, as missing field timeWithLoads is opt
+        settings = RunSettings(raw)  # Does not fail w/ strict typechecking, as missing field timeWithLoads is opt
 
-        assert settings.timeWithLoads is None # Missing attribute defaults to None
+        assert settings.timeWithLoads is None  # Missing attribute defaults to None
         with pytest.raises(AttributeError, match="'RunSettings' object has no attribute 'aaaa'"):
-            settings.aaaa # Nonexistant attribute still raises AttributeError
+            settings.aaaa  # Nonexistant attribute still raises AttributeError
         
         assert isinstance(settings.values[0], VarValue)
 
@@ -133,7 +133,7 @@ class TestDatatypes_Integration_Heavy():
         """1 leaderboard per game, 1 page per board (to avoid rate limit on an average > 2 boards per game)"""
         return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform_async() for g, c in small_game_subset_categories])
 
-    def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):        
+    def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
         for board in small_game_subset_leaderboards:
             for run in board.runList:
                 check_datatype_coverage(run)

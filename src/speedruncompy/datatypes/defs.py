@@ -1,7 +1,7 @@
 """
 Useful datatypes in both a dictlike and objectlike interface, to facilitate type hinting.
 
-Note that the attribute hints may not be exhaustive; 
+Note that the attribute hints may not be exhaustive;
 while I endeavour to keep these up to date, updates to the v2 API are unannounced and may be missed.
 
 Missing attributes should remain available through both objectlike and dictlike interfaces,
@@ -49,7 +49,7 @@ class RuntimeTuple(Datatype):
         super().__init__(template)
     
     def __str__(self):
-        return f"{f'{self.hour}:' if self.hour != 0 else ''}{self.minute:02}:{self.second:02}{f'.{self.millisecond:03}' if self.millisecond != 0 else ''}" 
+        return f"{f'{self.hour}:' if self.hour != 0 else ''}{self.minute:02}:{self.second:02}{f'.{self.millisecond:03}' if self.millisecond != 0 else ''}"
     
     def __repr__(self) -> str:
         return f"{self.hour}:{self.minute:02}:{self.second:02}.{self.millisecond:03}"
@@ -66,7 +66,7 @@ class CommentPermissions(Datatype):
 class Commentable(Datatype):
     itemType: ItemType
     itemId: str
-    properties: dict # disabled, locked
+    properties: dict  # disabled, locked
     permissions: CommentPermissions
 
 class Comment(Datatype):
@@ -130,10 +130,10 @@ class RunSettings(Datatype):
     date: int
     values: list[VarValue]
     
-    def _get_rta(self): return self.timeWithLoads if "timeWithLoads" in self else self.time
-    #TODO: this only guarantees RTA if both time and timeWithLoads is present in the run, 
+    # TODO: this only guarantees RTA if both time and timeWithLoads is present in the run,
     # but if a LRT run is missing RTA then it will incorrectly return `time` rather than `None`
     # Correctly doing this would require knowledge of the Game data, so with cacheing or autoreqs.
+    def _get_rta(self): return self.timeWithLoads if "timeWithLoads" in self else self.time
     def _set_rta(self, _val):
         if "timeWithLoads" in self:
             self.timeWithLoads = _val
@@ -163,12 +163,12 @@ class Game(Datatype):
     id: str
     name: str
     url: str
-    type: str # enum? is this true? afaict is always "game"
+    type: str  # enum? is this true? afaict is always "game"
     loadtimes: bool
     milliseconds: bool
     igt: bool
     verification: bool
-    autoVerify: OptField[bool] # Why is this OptField????? I hate SRC
+    autoVerify: OptField[bool]  # Why is this OptField????? I hate SRC
     requireVideo: bool
     emulator: EmulatorType
     defaultTimer: TimerName
@@ -192,7 +192,7 @@ class Game(Datatype):
     viewPowerLevel: SitePowerLevel
     platformIds: list[str]
     regionIds: list[str]
-    gameTypeIds: list[GameType] 
+    gameTypeIds: list[GameType]
     websiteUrl: OptField[str]
     discordUrl: OptField[str]
     defaultView: DefaultViewType
@@ -302,8 +302,8 @@ class Article(Datatype):
     updateDate: int
     publishDate: OptField[int]
     rejectDate: OptField[int]
-    publishTarget: str # enum?
-    publishTags: list[str] # enum? probably not
+    publishTarget: str  # enum?
+    publishTags: list[str]  # enum? probably not
     coverImagePath: OptField[str]
     commentsCount: int
     community: OptField[bool]
@@ -327,14 +327,14 @@ class Player(Datatype):
     # Actual OptFields (always present in non-anon players) marked #OPT
     id: str
     name: str
-    url: OptField[str] 
+    url: OptField[str]
     powerLevel: OptField[int]
     color1Id: OptField[str]
-    color2Id: OptField[str] #OPT
+    color2Id: OptField[str]
     """OptField even on full `player`"""
     colorAnimate: OptField[int]
     areaId: OptField[str]
-    isSupporter: OptField[bool] #OPT
+    isSupporter: OptField[bool]
     """OptField even on full `player`"""
 
     def _is_user(self): return not self.id.startswith("u")
@@ -353,8 +353,8 @@ class User(Datatype):
     color2Id: OptField[str]
     colorAnimate: OptField[int]
     areaId: str
-    isSupporter: OptField[bool] # ?
-    avatarDecoration: OptField[dict[str, bool]] # {enabled: bool}, add type for this later
+    isSupporter: OptField[bool]  # TODO: ?
+    avatarDecoration: OptField[dict[str, bool]]  # {enabled: bool}, add type for this later
     iconType: IconType
     onlineDate: int
     signupDate: int
@@ -487,16 +487,16 @@ class Run(Datatype):
     playerIds: list[str]
     valueIds: list[str]
     orphaned: OptField[bool]
-    estimated: OptField[bool] #TODO: Figure out what this means
+    estimated: OptField[bool]  # TODO: Figure out what this means
     """Only shown in GetModerationRuns"""
-    issues: OptField[Optional[list[str]]] #TODO: fails when present
+    issues: OptField[Optional[list[str]]]  # TODO: fails when present
 
 class ChallengeStanding(Datatype):
     challengeId: str
     place: int
     registeredPlayerIds: list[str]
     prizeAmount: int
-    unregisteredPlayers: list[str] #TODO: str is an assumption
+    unregisteredPlayers: list[str]  # TODO: str is an assumption
     prizeCurrency: str
 
 class ChallengePrize(Datatype):
@@ -558,7 +558,7 @@ class ChallengeRun(Datatype):
     dateSubmitted: int
     dateVerified: OptField[int]
     dateScreened: OptField[int]
-    issues: OptField[Any] #TODO: Unknown type (Any)
+    issues: OptField[Any]  # TODO: Unknown type (Any)
     playerIds: list[str]
     commentsCount: int
     place: OptField[int]
@@ -620,7 +620,7 @@ class Resource(Datatype):
     path: OptField[str]
     link: OptField[str]
     fileName: OptField[str]
-    authorNames: str #TODO: exhaustive check for lists
+    authorNames: str  # TODO: exhaustive check for lists
 
 class Stream(Datatype):
     id: str
@@ -633,7 +633,7 @@ class Stream(Datatype):
     channelName: str
     viewers: int
     hasPb: bool
-    """If the stream has a PB on SRC (and has their account linked)""" #TODO: check
+    """If the stream has a PB on SRC (and has their account linked)"""  # TODO: check
 
 class GameSettings(Datatype):
     id: str
@@ -654,10 +654,10 @@ class GameSettings(Datatype):
     autoVerify: bool
     regionsObsolete: bool
     platformsObsolete: bool
-    discordUrl: str 
+    discordUrl: str
     websiteUrl: str
     rules: str
-    showOnStreamsPage: int # enum
+    showOnStreamsPage: int  # enum
     touchDate: int
     noEvents: bool
     promoted: bool
@@ -669,7 +669,7 @@ class GameSettings(Datatype):
     guidePermissionType: PermissionType
     resourcePermissionType: PermissionType
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any # undocumented list
+    staticAssetUpdates: Any  # undocumented list
 
 class SeriesSettings(Datatype):
     name: str
@@ -677,11 +677,11 @@ class SeriesSettings(Datatype):
     discordUrl: str
     websiteUrl: str
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any #TODO: undocumented list
+    staticAssetUpdates: Any  # TODO: undocumented list
 
 class GameModerationStats(Datatype):
     gameId: str
-    state: int # enum? appears to always be 0
+    state: int  # enum? appears to always be 0
     count: int
     minDate: OptField[int]
     maxDate: OptField[int]
@@ -689,10 +689,10 @@ class GameModerationStats(Datatype):
 class AuditLogEntry(Datatype):
     id: str
     date: int
-    eventType: str # enum
+    eventType: str  # enum
     actorId: str
     gameId: str
-    context: Any #TODO: check
+    context: Any  # TODO: check
 
 class Conversation(Datatype):
     id: str
@@ -707,11 +707,11 @@ class ConversationParticipant(Datatype):
     conversationId: str
     userId: str
     joinedDate: int
-    leftDate: int #TODO: OptField?
+    leftDate: int  # TODO: OptField?
 
 class ConversationMessage(Datatype):
     id: str
-    conversationId: str 
+    conversationId: str
     userId: str
     text: str
     date: int
@@ -728,7 +728,7 @@ class ForumReadStatus(Datatype):
     date: int
 
 class Notification(Datatype):
-    id: str 
+    id: str
     date: int
     title: str
     path: str
@@ -742,7 +742,7 @@ class GameFollower(Datatype):
     lastAccessDate: int
 
 class GameRunner(Datatype):
-    gameId: str 
+    gameId: str
     userId: str
     runCount: int
 
@@ -763,7 +763,7 @@ class Session(Datatype):
     homepageStream: HomepageStreamType
     disableThemes: bool
     csrfToken: str
-    networkToken: OptField[str] #TODO: check
+    networkToken: OptField[str]  # TODO: check
     gameList: list[Game]
     gameFollowerList: list[GameFollower]
     gameModeratorList: list[GameModerator]
@@ -774,8 +774,8 @@ class Session(Datatype):
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
-    enabledExperimentIds: list[str] # May not be this idk
-    challengeModeratorList: Any # undocumented list
+    enabledExperimentIds: list[str]  # May not be this idk
+    challengeModeratorList: Any  # undocumented list
 
 class ThemeSettings(Datatype):
     primaryColor: str
@@ -792,7 +792,7 @@ class ThemeSettings(Datatype):
     foregroundRepeat: RepeatType
     foregroundScrolling: ScrollType
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: list[StaticAsset] # TODO: check optional
+    staticAssetUpdates: list[StaticAsset]  # TODO: check optional
 
 class ThreadReadStatus(Datatype):
     threadId: str
@@ -814,7 +814,7 @@ class UserBlock(Datatype):
     blockeeId: str
 
 class NotificationSetting(Datatype):
-    type: int # enum
+    type: int  # enum
     gameId: OptField[str]
     site: bool
     email: bool
@@ -831,8 +831,8 @@ class UserSettings(Datatype):
     """May be `<gameUrl>`, `user/<userUrl>` or `Default`"""
     color1Id: str
     color2Id: OptField[str]
-    colorAnimate: int # enum
-    avatarDecoration: dict #TODO: enabled: bool
+    colorAnimate: int  # enum
+    avatarDecoration: dict  # TODO: enabled: bool
     defaultView: DefaultViewType
     timeReference: TimeReference
     timeUnits: TimeDisplayUnits
@@ -859,22 +859,22 @@ class UserSettings(Datatype):
     supporterIconType: IconType
     supporterIconPosition: IconPosition
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any # Undocumented list
+    staticAssetUpdates: Any  # Undocumented list
 
 class SupporterSubscription(Datatype):
     id: str
     userId: str
-    providerId: int # enum
+    providerId: int  # enum
     createdAt: int
     updatedAt: int
     expiresAt: int
-    planId: int # enum
-    nextPeriodPlanId: int # enum
-    status: int # enum
+    planId: int  # enum
+    nextPeriodPlanId: int  # enum
+    status: int  # enum
     trialEndsAt: int
     """Default 0, undocumented but assume timestamp otherwise"""
     cancelAtPeriodEnd: bool
-    canceledAt: int # assume timestamp
+    canceledAt: int  # assume timestamp
     
 class Title(Datatype):
     id: str

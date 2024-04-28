@@ -1,10 +1,10 @@
 import base64, json
-from .exceptions import *
 import logging
 import asyncio, aiohttp
 from typing import Awaitable, Callable, Any, Generic, TypeVar
 
 from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype
+from .exceptions import *
 
 API_URI = "https://www.speedrun.com/api/v2/"
 LANG = "en"
@@ -13,9 +13,10 @@ DEFAULT_USER_AGENT = "speedruncompy/"
 
 _log = logging.getLogger("speedruncompy")
 
+
 class SpeedrunComPy():
     """Api class. Holds a unique PHPSESSID and user_agent, as well as its own logger."""
-    def __init__(self, user_agent = None) -> None:
+    def __init__(self, user_agent: str | None = None) -> None:
         self.cookie_jar = aiohttp.CookieJar()
         self._header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
         if user_agent is None:
@@ -45,29 +46,33 @@ class SpeedrunComPy():
             async with session.get(url=f"{API_URI}{endpoint}", params={"_r": self._encode_r(params)}) as response:
                 return (await response.read(), response.status)
         
-    async def do_post(self, endpoint:str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
+    async def do_post(self, endpoint: str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
         # Construct a dummy jar if we wish to ignore Set_Cookie responses (only on PutAuthLogin and PutAuthSignup)
         if _setCookie: liveJar = self.cookie_jar
-        else: 
+        else:
             liveJar = aiohttp.CookieJar()
             liveJar.update_cookies(self.cookie_jar._cookies)
         self._log.debug(f"POST {endpoint} w/ params {params}")
         async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder),
                                          headers=self._header, cookie_jar=liveJar) as session:
             async with session.post(url=f"{API_URI}{endpoint}", json=params) as response:
-                return (await response.read(), response.status) 
+                return (await response.read(), response.status)
+
 
 _default = SpeedrunComPy()
+
 
 def set_default_PHPSESSID(phpsessionid):
     _default.cookie_jar.update({"PHPSESSID": phpsessionid})
 
+
 R = TypeVar('R', bound=Datatype)
 
+
 class BaseRequest(Generic[R]):
-    def __init__(self, 
+    def __init__(self,
                  method: Callable[[str, dict[str, Any]], Awaitable[tuple[bytes, int]]],
-                 endpoint: str, 
+                 endpoint: str,
                  returns: type[R],
                  **params):
         self.method = method
@@ -85,7 +90,7 @@ class BaseRequest(Generic[R]):
         NB: This uses its own event loop, so if using `asyncio` use `perform_async()` instead."""
         try:
             return asyncio.run(self.perform_async(retries, delay, **kwargs))
-        except RuntimeError as e:
+        except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
     async def perform_async(self, retries=5, delay=1, **kwargs) -> R:
@@ -97,11 +102,11 @@ class BaseRequest(Generic[R]):
         if (status >= 500 and status <= 599) or status == 408:
             if retries > 0:
                 _log.error(f"SRC returned error {status} {content!r}. Retrying with delay {delay}:")
-                for attempt in range(0, retries+1):
+                for attempt in range(0, retries + 1):
                     self.response = await self.method(self.endpoint, self.params)
                     content = self.response[0]
                     status = self.response[1]
-                    if not (status >= 500 and status <= 599) or status == 408: 
+                    if not (status >= 500 and status <= 599) or status == 408:
                         break
                     _log.error(f"Retry {attempt} returned error {status} {content!r}")
                     await asyncio.sleep(delay)
@@ -125,6 +130,7 @@ class BaseRequest(Generic[R]):
 
         return self.return_type(json.loads(content.decode()))
 
+
 class BasePaginatedRequest(BaseRequest[R], Generic[R]):
     def _combine_results(self, pages: dict[int, R]) -> R:
         raise NotImplementedError("perform_all or perform_all_async on {type(self).__name__} is NOT yet implemented! Use _perform_all_raw() or _perform_all_async_raw()")
@@ -139,7 +145,7 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         """Get all pages and return a dict of {pageNo : pageData}."""
         try:
             return asyncio.run(self._perform_all_async_raw(retries, delay))
-        except RuntimeError as e:
+        except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
     async def perform_all_async(self, retries=5, delay=1) -> R:
@@ -154,15 +160,17 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         numpages = self.pages[1]["pagination"]["pages"]
         if numpages > 1:
             results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
-            self.pages.update({p + 2:result for p, result in enumerate(results)})
+            self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
 
+
 class GetRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns:type=LenientDatatype, _api:SpeedrunComPy|None=None, **params) -> None:
+    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunComPy | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_get, endpoint=endpoint, returns=returns, **params)
 
+
 class PostRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns:type=LenientDatatype, _api:SpeedrunComPy|None=None, **params) -> None:
+    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunComPy | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_post, endpoint=endpoint, returns=returns, **params)

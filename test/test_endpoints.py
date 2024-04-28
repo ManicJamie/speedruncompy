@@ -4,7 +4,7 @@ from speedruncompy.exceptions import *
 from speedruncompy import datatypes
 from utils import check_datatype_coverage, check_pages
 
-import pytest, os, logging, json, asyncio
+import pytest, os, logging, asyncio
 
 """
     NB: you may not be able to perform some of these tests depending on account permissions.
@@ -15,16 +15,16 @@ import pytest, os, logging, json, asyncio
 
     Please carefully test any functionality requiring supermod endpoints.
 
-    Also note that testing is omitted for POST actions that add data to the site; this is to avoid spamming the site with data. 
+    Also note that testing is omitted for POST actions that add data to the site; this is to avoid spamming the site with data.
     Be careful when modifying these endpoints.
 """
 
-if "HORNET_PHPSESSID" in os.environ: # Github action setup
+if "HORNET_PHPSESSID" in os.environ:  # Github action setup
     SESSID = os.environ["HORNET_PHPSESSID"]
 else:
     from secret import SESSID
 
-if "LOW_PHPSESSID" in os.environ: # Account that is logged in, but does not have permission to perform moderator actions
+if "LOW_PHPSESSID" in os.environ:  # Account that is logged in, but does not have permission to perform moderator actions
     LOW_SESSID = os.environ["LOW_PHPSESSID"]
 else:
     from secret import LOW_SESSID
@@ -33,22 +33,23 @@ if "LOW_USERNAME" in os.environ and "LOW_PASSWORD" in os.environ:
     LOW_USERNAME = os.environ["LOW_USERNAME"]
     LOW_PASSWORD = os.environ["LOW_PASSWORD"]
 else:
-    from secret import LOW_USERNAME, LOW_PASSWORD
+    # from secret import LOW_USERNAME, LOW_PASSWORD
+    ...
 
-IS_SUPERMOD = False # Set to True to activate full test suite including supermod endpoints
+IS_SUPERMOD = False  # Set to True to activate full test suite including supermod endpoints
 
-game_id = "76rqmld8" # Hollow Knight
+game_id = "76rqmld8"  # Hollow Knight
 game_url = "hollowknight"
-category_id = "02q8o4p2" # Any%
-level_category = "wkpq608d" # Hollow Knight "Level" category
-run_id = "mrrg8k4m" # ManicJamie's Hollow Knight: All Skills LP run
-comment_list_source = "y8k99ndy" # Must have multiple pages of comments & match itemType below
+category_id = "02q8o4p2"  # Any%
+level_category = "wkpq608d"  # Hollow Knight "Level" category
+run_id = "mrrg8k4m"  # ManicJamie's Hollow Knight: All Skills LP run
+comment_list_source = "y8k99ndy"  # Must have multiple pages of comments & match itemType below
 comment_list_type = ItemType.RUN
 thread_id = "mbkmj"
-user_id = "j4r6pwm8" # ManicJamie (must have leaderboard)
+user_id = "j4r6pwm8"  # ManicJamie (must have leaderboard)
 user_url = "manicjamie"
-forum_id = "gz5lqd21" # Hollow Knight
-guide_id = "ew8s2" # Hollow Knight code of conduct
+forum_id = "gz5lqd21"  # Hollow Knight
+guide_id = "ew8s2"  # Hollow Knight code of conduct
 article_id = "jd5y09v2"
 article_slug = "the-worlds-first-speedrunning-dog-at-agdq-2024"
 challenge_id = "5e3eoymq"
@@ -57,8 +58,8 @@ challenge_run_id = "m9vk8gy3"
 # Details required for private data; these are all accessible by Hornet_Bot
 hornet_uid = "x76p3d6j"
 hornet_url = "Hornet_Bot"
-conversation_id = "4xEDO" # ManicJamie <-> Hornet_Bot
-series_id = "8nw2ygxn" # Shrek Fangames
+conversation_id = "4xEDO"  # ManicJamie <-> Hornet_Bot
+series_id = "8nw2ygxn"  # Shrek Fangames
 
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
@@ -96,7 +97,6 @@ class TestGeneric():
     low_api = SpeedrunComPy("Test_LOWAUTH")
     low_api.set_phpsessid(LOW_SESSID)
 
-
     def test_GetAsync(self):
         result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_async())
         standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform()
@@ -109,7 +109,7 @@ class TestGeneric():
 
     def test_AsyncSyncWarning(self):
         """Calls to the synchronous interface from an asynchronous context should raise an error and tell you to use async interface"""
-        with pytest.raises(AIOException) as e:
+        with pytest.raises(AIOException):
             async def main(): return GetGameLeaderboard2("76rqmld8", "02q8o4p2").perform_all()
             asyncio.run(main())
     
@@ -117,11 +117,11 @@ class TestGeneric():
         """Ensure separation between default api instance and the declared api instance"""
         session = GetSession().perform()
         assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == False, "Default API incorrectly signed in"
+        assert session["session"]["signedIn"] is False, "Default API incorrectly signed in"
 
         session = GetSession(_api=self.api).perform()
         assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] == True, "High-auth api not signed in"
+        assert session["session"]["signedIn"] is True, "High-auth api not signed in"
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
@@ -175,7 +175,7 @@ class TestGetRequests():
         assert result.game.url == game_url
     
     def test_GetGameData_badreq(self):
-        with pytest.raises(BadRequest) as e: # The ID not being found does NOT 404, but 400s. Good website
+        with pytest.raises(BadRequest):  # The ID not being found does NOT 404, but 400s. Good website
             GetGameData(_api=self.api, gameId="a").perform()
     
     def test_GetGameSummary(self):
@@ -247,7 +247,7 @@ class TestGetRequests():
     
     def test_GetThread_nonexistent(self):
         with pytest.raises(NotFound):
-            result = GetThread("10000000").perform()
+            GetThread("10000000").perform()
 
     def test_GetUserLeaderboard(self):
         result = GetUserLeaderboard(userId=user_id).perform()
@@ -362,33 +362,33 @@ class TestPostRequests():
         check_datatype_coverage(result)
         assert not result["session"]["signedIn"]
 
-    @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
+    @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList(self):
         result = GetAuditLogList(_api=self.api, gameId=game_id).perform()
         log_result(result)
         check_datatype_coverage(result)
     
-    @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
+    @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList_paginated_raw(self):
         result = GetAuditLogList(_api=self.api, gameId=game_id)._perform_all_raw()
         log_result(result)
-        ... # TODO: Finish test
+        ...  # TODO: Finish test
     
-    @pytest.mark.skipif(not IS_SUPERMOD, reason = "Insufficient auth to complete test")
+    @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList_paginated(self):
         result = GetAuditLogList(_api=self.api, gameId=game_id).perform_all()
         log_result(result)
-        ... # TODO: Finish test
+        ...  # TODO: Finish test
     
     def test_GetAuditLogList_unauthed(self):
-        with pytest.raises(Unauthorized) as e:
+        with pytest.raises(Unauthorized):
             GetAuditLogList(gameId=game_id).perform()
     
     def test_GetAuditLogList_lowperms(self):
-        with pytest.raises(Unauthorized) as e: # This *should* return `Forbidden`, but SRC doesn't.
+        with pytest.raises(Unauthorized):  # This *should* return `Forbidden`, but SRC doesn't.
             GetAuditLogList(_api=self.low_api, gameId=game_id).perform()
 
     def test_GetCommentable(self):
@@ -432,7 +432,7 @@ class TestPostRequests():
         check_datatype_coverage(result)
     
     def test_GetGameSettings_unauthed(self):
-        with pytest.raises(Unauthorized) as e:
+        with pytest.raises(Unauthorized):
             GetGameSettings(gameId=game_id).perform()
     
     def test_GetModerationGames(self):
