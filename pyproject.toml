@@ -37,7 +37,8 @@ packages = [
 [project.optional-dependencies]
 test = [
     "pytest",
-    "pytest-asyncio"
+    "pytest-asyncio",
+    "pytest-cov"
 ]
 
 [project.urls]
