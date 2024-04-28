@@ -70,7 +70,7 @@ class Datatype():
                 self.__dict__[name] = template[pos]
         elif isinstance(template, Datatype):
             self.__dict__ |= template.get_dict()
-        if not skipChecking and not config.DISABLE_TYPE_CONFORMANCE: 
+        if not skipChecking and config.COERCION != -1: 
             self.enforce_types()
     
     @classmethod
@@ -108,12 +108,12 @@ class Datatype():
                 if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
                 elif not is_type(attr, hint):
                     msg = f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__} = {attr}"
-                    if config.STRICT_TYPE_CONFORMANCE: raise AttributeError(msg)
+                    if config.COERCION == 1: raise AttributeError(msg)
                     else: _log.warning(msg)
 
         if len(missing_fields) > 0:
             msg = f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}"
-            if config.STRICT_TYPE_CONFORMANCE: raise IncompleteDatatype(msg)
+            if config.COERCION == 1: raise IncompleteDatatype(msg)
             else: _log.warning(msg)
         
     

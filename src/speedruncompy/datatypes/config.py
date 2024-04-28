@@ -1,14 +1,14 @@
-STRICT_TYPE_CONFORMANCE = False
-"""Whether to raise an error or just warn when a type is incomplete.
+import enum, typing
 
-Setting this to True might screw you over if SRC decide to remove parts of a type."""
+class CoercionLevel(enum.IntEnum):
+    DISABLED = -1
+    ENABLED = 0
+    STRICT = 1
 
-DISABLE_TYPE_CONFORMANCE = False
-"""Whether to automatically convert calls and nested datatypes from dictionaries to their typed equivalents.
+COERCION: typing.Union[CoercionLevel, int] = 0
+"""How aggressively to enforce type coercion.
 
-Will probably improve performance on responses that retrieve a lot of data."""
-
-#TODO: combine into single param, since Strict does nothing when Disabled
-
-SUPPRESS_FIELD_WARNINGS = False
-"""Suppress warnings that a type is """
+-1: Disabled; types will not be coerced. WARN: field accessors will break!
+0: Enabled; types will be coerced. Sends log warnings on incomplete types.
+1: Strict; types will be coerced. Raises errors on incomplete types.
+"""

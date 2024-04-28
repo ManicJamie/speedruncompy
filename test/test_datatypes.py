@@ -3,7 +3,6 @@ import os
 from random import randint, sample
 
 from speedruncompy.datatypes import *
-from speedruncompy.datatypes._impl import _OptFieldMarker
 from speedruncompy import datatypes
 from speedruncompy.endpoints import *
 from speedruncompy.exceptions import IncompleteDatatype
@@ -21,19 +20,19 @@ challenge_id = "42ymr396" # Ghostrunner 2
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
 # See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
-datatypes.config.STRICT_TYPE_CONFORMANCE = True
+datatypes.config.COERCION = 1
 
 @pytest.fixture()
 def loose_type_conformance():
-    datatypes.config.STRICT_TYPE_CONFORMANCE = False
+    datatypes.config.COERCION = 0
     yield
-    datatypes.config.STRICT_TYPE_CONFORMANCE = True
+    datatypes.config.COERCION = 1
 
 @pytest.fixture()
 def disable_type_checking():
-    datatypes.config.DISABLE_TYPE_CONFORMANCE = True
+    datatypes.config.COERCION = -1
     yield
-    datatypes.config.DISABLE_TYPE_CONFORMANCE = False
+    datatypes.config.COERCION = 1
 
 class TestDatatypes():
     def test_Datatype_conformance(self):

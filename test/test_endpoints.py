@@ -66,19 +66,19 @@ logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
 # See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
-defs.STRICT_TYPE_CONFORMANCE = True
+datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
 
 @pytest.fixture()
 def loose_type_conformance():
-    defs.STRICT_TYPE_CONFORMANCE = False
+    datatypes.config.COERCION = datatypes.config.CoercionLevel.ENABLED
     yield
-    defs.STRICT_TYPE_CONFORMANCE = True
+    datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
 
 @pytest.fixture()
 def disable_type_checking():
-    defs.DISABLE_TYPE_CONFORMANCE = True
+    datatypes.config.COERCION = datatypes.config.CoercionLevel.DISABLED
     yield
-    defs.DISABLE_TYPE_CONFORMANCE = False
+    datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
 
 @pytest.fixture(autouse=True)
 def check_api_conformance():
