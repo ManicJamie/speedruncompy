@@ -423,6 +423,9 @@ class r_PutTicket(Datatype):
 class r_PutUserSettings(Datatype):
     settings: UserSettings
 
+class r_PutUserUpdateFeaturedRun(Datatype):
+    """No content"""
+
 class r_PutUserSocialConnection(Datatype):
     """No content"""
 

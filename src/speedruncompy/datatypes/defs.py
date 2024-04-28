@@ -173,7 +173,7 @@ class Game(Datatype):
     emulator: EmulatorType
     defaultTimer: TimerName
     validTimers: list[TimerName]
-    releaseDate: int
+    releaseDate: OptField[int]
     addedDate: int
     touchDate: int
     baseGameId: OptField[str]

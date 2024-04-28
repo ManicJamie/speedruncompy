@@ -1,5 +1,5 @@
 from typing import Any, Coroutine
-from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log
+from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy, _log, R
 from .exceptions import SrcpyException
 from .enums import *
 from .responses import *
@@ -12,30 +12,18 @@ SUPPRESS_WARNINGS = False
 GET requests are all unauthed & do not require PHPSESSID.
 """
 
-class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
+class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedRequest[r_GetGameLeaderboard2]):
     """The default leaderboard view.
     
     Note that by default runs without video are excluded; provide `video = 0` to include them."""
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard2", returns=r_GetGameLeaderboard2, _api=_api,
                           page=page, **param_construct)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameLeaderboard2:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameLeaderboard2]:
-        return super().perform_async(retries, delay, **kwargs)
 
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetGameLeaderboard2]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetGameLeaderboard2:
-        return super().perform_all(retries, delay)
-
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
         runList = []
         for p in pages.values():
             runList += p["runList"]
@@ -44,30 +32,18 @@ class GetGameLeaderboard2(GetRequest, BasePaginatedRequest):
         extras.pagination.page = 0
         return extras | {"runList": runList}
 
-class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
+class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[r_GetGameLeaderboard]):
     """WARN: This is NOT the view used by SRC! It may be removed at any time!
 
     This view is included as it is special & returns a bunch of extra information that may be useful."""
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard", returns=r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameLeaderboard:
-        return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameLeaderboard]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetGameLeaderboard]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetGameLeaderboard:
-        return super().perform_all(retries, delay)
-    
-    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, dict]:
-        self.pages: dict[int, Datatype] = {}
+    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, r_GetGameLeaderboard]:
+        self.pages: dict[int, r_GetGameLeaderboard] = {}
         self.pages[1] = await self.perform_async(retries, delay, page=1)
         numpages = self.pages[1]["leaderboard"]["pagination"]["pages"]
         if numpages > 1:
@@ -84,47 +60,29 @@ class GetGameLeaderboard(GetRequest, BasePaginatedRequest):
         extras["pagination"]["page"] = 0
         return r_GetGameLeaderboard({"leaderboard": Leaderboard(extras | {"runs": runList})})
 
-class GetGameData(GetRequest):
-    def __init__(self, gameId: str = None, gameUrl: str = None, **params) -> None:
+class GetGameData(GetRequest[r_GetGameData]):
+    def __init__(self, gameId: str | None = None, gameUrl: str | None = None, **params) -> None:
         if gameId is None and gameUrl is None: raise SrcpyException("GetGameData requires gameId or gameUrl")
         super().__init__("GetGameData", returns=r_GetGameData, gameId=gameId, gameUrl=gameUrl, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameData:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameData]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetGameSummary(GetRequest):
-    def __init__(self, gameId:str, **params) -> None:
+class GetGameSummary(GetRequest[r_GetGameSummary]):
+    def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGameSummary", returns=r_GetGameSummary, gameId=gameId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameSummary:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameSummary]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetGameRecordHistory(GetRequest):
+class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
     """Get the record history of a category.
     
     #### Other parameters
     - `values[]: list[variableId, valueIds[]]`
     - `emulator: (bool?)` TODO: check
     - `obsolete: bool`"""
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameRecordHistory", returns=r_GetGameRecordHistory, _api=_api, page=page, **param_construct)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameRecordHistory:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameRecordHistory]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetSearch(GetRequest):
+class GetSearch(GetRequest[r_GetSearch]):
     """Search for an object based on its name.
 
     #### Other parameters:
@@ -137,60 +95,24 @@ class GetSearch(GetRequest):
     """
     def __init__(self, query: str, **params) -> None:
         super().__init__("GetSearch", returns=r_GetSearch, query=query, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSearch:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSearch]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetLatestLeaderboard(GetRequest):
+class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     def __init__(self, **params) -> None:
         super().__init__("GetLatestLeaderboard", returns=r_GetLatestLeaderboard, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetLatestLeaderboard:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetLatestLeaderboard]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetRun(GetRequest):
+class GetRun(GetRequest[r_GetRun]):
     def __init__(self, runId: str, **params) -> None:
         super().__init__("GetRun", returns=r_GetRun, runId=runId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetRun:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetRun]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetUserPopoverData(GetRequest):
+class GetUserPopoverData(GetRequest[r_GetUserPopoverData]):
     def __init__(self, userId, **params) -> None:
         super().__init__("GetUserPopoverData", returns=r_GetUserPopoverData, userId=userId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserPopoverData:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserPopoverData]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetArticleList(GetRequest, BasePaginatedRequest):
+class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArticleList]):
     def __init__(self, **params) -> None:
         super().__init__("GetArticleList", returns=r_GetArticleList, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetArticleList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetArticleList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetArticleList]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetArticleList:
-        return super().perform_all(retries, delay)
-
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetArticleList]) -> r_GetArticleList:
         if not SUPPRESS_WARNINGS:
             _log.warning("GetArticleList depagination is currently untested, as fewer than 500 pages exist on the site.")
         articleList = []
@@ -201,34 +123,16 @@ class GetArticleList(GetRequest, BasePaginatedRequest):
         extras.pagination.page = 0
         return extras | {"articleList": articleList}
 
-class GetArticle(GetRequest):
-    def __init__(self, id: str = None, slug: str = None, **params) -> None:
+class GetArticle(GetRequest[r_GetArticle]):
+    def __init__(self, id: str | None = None, slug: str | None = None, **params) -> None:
         if id is None and slug is None: raise SrcpyException("GetArticle requires id or slug")
         super().__init__("GetArticle", returns=r_GetArticle, id=id, slug=slug, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetArticle:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetArticle]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetGameList(GetRequest, BasePaginatedRequest):
+class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]):
     def __init__(self, **params) -> None:
         super().__init__("GetGameList", returns=r_GetGameList, **params)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameList:
-        return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetGameList]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetGameList:
-        return super().perform_all(retries, delay)
-    
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
         gameList = []
         for p in pages.values():
             gameList += p["gameList"]
@@ -237,33 +141,15 @@ class GetGameList(GetRequest, BasePaginatedRequest):
         extras.pagination.page = 0
         return extras | {"gameList": gameList}
 
-class GetHomeSummary(GetRequest):
+class GetHomeSummary(GetRequest[r_GetHomeSummary]):
     def __init__(self, **params) -> None:
         super().__init__("GetHomeSummary", returns=r_GetHomeSummary, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetHomeSummary:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetHomeSummary]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetSeriesList(GetRequest, BasePaginatedRequest):
+class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSeriesList]):
     def __init__(self, **params) -> None:
         super().__init__("GetSeriesList", returns=r_GetSeriesList, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSeriesList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSeriesList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetSeriesList]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetSeriesList:
-        return super().perform_all(retries, delay)
-
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
         seriesList = []
         for p in pages.values():
             seriesList += p["seriesList"]
@@ -272,331 +158,151 @@ class GetSeriesList(GetRequest, BasePaginatedRequest):
         extras["pagination"]["page"] = 0
         return extras | {"seriesList": seriesList}
 
-class GetSeriesSummary(GetRequest):
+class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
     def __init__(self, **params) -> None:
         super().__init__("GetSeriesSummary", returns=r_GetSeriesSummary, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSeriesSummary:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSeriesSummary]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetGameLevelSummary(GetRequest):
+class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
     """Note: This can take a `page` param but does not split into pages?"""
     #TODO: check what's going on here
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
         super().__init__("GetGameLevelSummary", returns=r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameLevelSummary:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameLevelSummary]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetGuideList(GetRequest):
+class GetGuideList(GetRequest[r_GetGuideList]):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGuideList", returns=r_GetGuideList, gameId=gameId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGuideList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGuideList]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetGuide(GetRequest):
+class GetGuide(GetRequest[r_GetGuide]):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetGuide", returns=r_GetGuide, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGuide:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGuide]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetNewsList(GetRequest):
+class GetNewsList(GetRequest[r_GetNewsList]):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetNewsList", returns=r_GetNewsList, gameId=gameId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetNewsList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetNewsList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetNews(GetRequest):
+class GetNews(GetRequest[r_GetNews]):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetNews", returns=r_GetNews, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetNews:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetNews]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetResourceList(GetRequest):
+class GetResourceList(GetRequest[r_GetResourceList]):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetResourceList", returns=r_GetResourceList, gameId=gameId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetResourceList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetResourceList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetStreamList(GetRequest):
+class GetStreamList(GetRequest[r_GetStreamList]):
     def __init__(self, **params) -> None:
         super().__init__("GetStreamList", returns=r_GetStreamList, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetStreamList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetStreamList]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetThreadList(GetRequest):
+class GetThreadList(GetRequest[r_GetThreadList]):
     def __init__(self, forumId: str, **params) -> None:
         super().__init__("GetThreadList", returns=r_GetThreadList, forumId=forumId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetThreadList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetThreadList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetChallenge(GetRequest):
+class GetChallenge(GetRequest[r_GetChallenge]):
     def __init__(self, id, **params) -> None:
         super().__init__("GetChallenge", returns=r_GetChallenge, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetChallenge:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetChallenge]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetChallengeLeaderboard(GetRequest, BasePaginatedRequest):
+class GetChallengeLeaderboard(GetRequest[r_GetChallengeLeaderboard], BasePaginatedRequest[r_GetChallengeLeaderboard]):
     def __init__(self, challengeId, **params) -> None:
         super().__init__("GetChallengeLeaderboard", returns=r_GetChallengeLeaderboard, challengeId=challengeId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetChallengeLeaderboard:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetChallengeLeaderboard]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetChallengeRun(GetRequest):
+class GetChallengeRun(GetRequest[r_GetChallengeRun]):
     def __init__(self, id, **params) -> None:
         super().__init__("GetChallengeRun", returns=r_GetChallengeRun, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetChallengeRun:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetChallengeRun]:
-        return super().perform_async(retries, delay, **kwargs)
-
 # The below are POSTed by the site, but also accept GET so are placed here to separate from endpoints requiring auth.
-class GetUserLeaderboard(GetRequest):
+class GetUserLeaderboard(GetRequest[r_GetUserLeaderboard]):
     def __init__(self, userId: str, **params) -> None:
         super().__init__("GetUserLeaderboard", returns=r_GetUserLeaderboard, userId=userId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserLeaderboard:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserLeaderboard]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class GetCommentList(GetRequest, BasePaginatedRequest):
+class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCommentList]):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
         super().__init__("GetCommentList", returns=r_GetCommentList, itemId=itemId, itemType=itemType, **params)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetCommentList:
-        return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetCommentList]:
-        return super().perform_async(retries, delay, **kwargs)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetCommentList:
-        return super().perform_all(retries, delay)
-    
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetCommentList]:
-        return super().perform_all_async(retries, delay)
-    
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetCommentList]) -> r_GetCommentList:
         #TODO: check likeList, userList for page separation
         commentList = []
         for p in pages.values():
             commentList += p["commentList"]
-        extras: dict = pages[1]
+        extras = pages[1]
         extras.pop("commentList")
         return extras | {"commentList": commentList}
 
-class GetThread(GetRequest , BasePaginatedRequest):
+class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", returns=r_GetThread, id=id, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetThread:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetThread]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetThread]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetThread:
-        return super().perform_all(retries, delay)
-
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetThread]) -> r_GetThread:
         commentList = []
         for p in pages.values():
             commentList += p["commentList"]
-        extras: dict = pages[1]
+        extras = pages[1]
         extras.pop("commentList")
         extras["pagination"]["page"] = 0
         return extras | {"commentList": commentList}
 
-class GetForumList(GetRequest):
+class GetForumList(GetRequest[r_GetForumList]):
     def __init__(self, **params) -> None:
         super().__init__("GetForumList", returns=r_GetForumList, **params)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetForumList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetForumList]:
-        return super().perform_async(retries, delay, **kwargs)
 
 """
 POST requests may require auth
 """
 
 # Session
-class PutAuthLogin(PostRequest):
-    def __init__(self, name: str, password: str, token: str = None, **params) -> None:
+class PutAuthLogin(PostRequest[r_PutAuthLogin]):
+    def __init__(self, name: str, password: str, token: str | None = None, **params) -> None:
         super().__init__("PutAuthLogin", returns=r_PutAuthLogin, name=name, password=password, token=token, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutAuthLogin:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutAuthLogin]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutAuthLogout(PostRequest):
+class PutAuthLogout(PostRequest[r_PutAuthLogout]):
     def __init__(self, **params) -> None:
         super().__init__("PutAuthLogout", returns=r_PutAuthLogout, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutAuthLogout:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutAuthLogout]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutAuthSignup(PostRequest):
+class PutAuthSignup(PostRequest[r_PutAuthSignup]):
     def __init__(self, **params) -> None:
         super().__init__("PutAuthSignup", returns=r_PutAuthSignup, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutAuthSignup:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutAuthSignup]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetSession(PostRequest):
+class GetSession(PostRequest[r_GetSession]):
     def __init__(self, **params) -> None:
         super().__init__("GetSession", returns=r_GetSession, **params)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSession:
-        return super().perform(retries, delay, **kwargs)
     
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSession]:
-        return super().perform_async(retries, delay, **kwargs)
-    
-class PutSessionPing(PostRequest):
+class PutSessionPing(PostRequest[r_PutSessionPing]):
     def __init__(self, **params) -> None:
-        super().__init__("PutSessionPing", returns=r_PutSessionPing **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutSessionPing:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutSessionPing]:
-        return super().perform_async(retries, delay, **kwargs)
+        super().__init__("PutSessionPing", returns=r_PutSessionPing, **params)
 
 # Supermod actions
-class GetAuditLogList(PostRequest, BasePaginatedRequest):
+class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_GetAuditLogList]):
     """WARN: not currently depaginated due to lack of testing availaibility.
     
     To protect against future updates before v1.0, use `._perform_all_raw()`"""
-    def __init__(self, gameId: str = None, seriesId: str = None, eventType: EventType = EventType.NONE, page: int = 1, **params) -> None:
+    def __init__(self, gameId: str | None = None, seriesId: str | None = None, eventType: EventType = EventType.NONE, page: int = 1, **params) -> None:
         if gameId is None and seriesId is None: raise SrcpyException("GetAuditLogList requires gameId or seriesId")
         super().__init__("GetAuditLogList", returns=r_GetAuditLogList, gameId=gameId, seriesId=seriesId, eventType=eventType, page=page, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetAuditLogList:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetAuditLogList]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetAuditLogList]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetAuditLogList:
-        return super().perform_all(retries, delay)
     
     def _combine_results(self, pages: dict):
         #TODO: Method stub
         return super()._combine_results(pages)
 
 # Mod actions
-class GetGameSettings(PostRequest):
+class GetGameSettings(PostRequest[r_GetGameSettings]):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGameSettings", returns=r_GetGameSettings, gameId=gameId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetGameSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetGameSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutGameSettings(PostRequest):
+class PutGameSettings(PostRequest[r_PutGameSettings]):
     def __init__(self, gameId: str, settings: dict, **params) -> None:
         super().__init__("PutGameSettings", returns=r_PutGameSettings, gameId=gameId, settings=settings, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutGameSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutGameSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
 #TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
 
 # Run verification
-class GetModerationGames(PostRequest):
+class GetModerationGames(PostRequest[r_GetModerationGames]):
     def __init__(self, **params) -> None:
         super().__init__("GetModerationGames", returns=r_GetModerationGames, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetModerationGames:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetModerationGames]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetModerationRuns(PostRequest, BasePaginatedRequest):
+class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r_GetModerationRuns]):
     def __init__(self, gameId: str, limit: int = 100, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", returns=r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetModerationRuns:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetModerationRuns]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetModerationRuns]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetModerationRuns:
-        return super().perform_all(retries, delay)
     
     def _combine_results(self, pages: dict):
         #TODO: is this all really necessary?
@@ -618,422 +324,186 @@ class GetModerationRuns(PostRequest, BasePaginatedRequest):
         return extras | r_GetModerationRuns({"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
                 "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables}, skipChecking=True)
 
-class PutRunAssignee(PostRequest):
+class PutRunAssignee(PostRequest[r_PutRunAssignee]):
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
         super().__init__("PutRunAssignee", returns=r_PutRunAssignee, assigneeId=assigneeId, runId=runId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutRunAssignee:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutRunAssignee]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutRunVerification(PostRequest):
+class PutRunVerification(PostRequest[r_PutRunVerification]):
     def __init__(self, runId: str, verified: int, **params) -> None:
         super().__init__("PutRunVerification", returns=r_PutRunVerification, runId=runId, verified=verified, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutRunVerification:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutRunVerification]:
-        return super().perform_async(retries, delay, **kwargs)
 
 # Run management
-class GetRunSettings(PostRequest):
+class GetRunSettings(PostRequest[r_GetRunSettings]):
     def __init__(self, runId: str, **params) -> None:
         super().__init__("GetRunSettings", returns=r_GetRunSettings, runId=runId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetRunSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetRunSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutRunSettings(PostRequest):
+class PutRunSettings(PostRequest[r_PutRunSettings]):
     def __init__(self, csrfToken: str, settings: dict, **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
         super().__init__("PutRunSettings", returns=r_PutRunSettings, csrfToken=csrfToken, settings=settings, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutRunSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutRunSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
 # User inbox actions
-class GetConversations(PostRequest):
+class GetConversations(PostRequest[r_GetConversations]):
     def __init__(self, **params) -> None:
         super().__init__("GetConversations", returns=r_GetConversations, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetConversations:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetConversations]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetConversationMessages(PostRequest):
+class GetConversationMessages(PostRequest[r_GetConversationMessages]):
     def __init__(self, conversationId, **params) -> None:
         super().__init__("GetConversationMessages", returns=r_GetConversationMessages, conversationId=conversationId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetConversationMessages:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetConversationMessages]:
-        return super().perform_async(retries, delay, **kwargs)
 
 # User notifications
-class GetNotifications(PostRequest, BasePaginatedRequest):
+class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_GetNotifications]):
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", returns=r_GetNotifications, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetNotifications:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetNotifications]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetNotifications]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetNotifications:
-        return super().perform_all(retries, delay)
-
-    def _combine_results(self, pages: dict):
+    def _combine_results(self, pages: dict[int, r_GetNotifications]) -> r_GetNotifications:
         notifications = []
         for p in pages.values():
             notifications += p["notifications"]
-        extras: dict = pages[1]
+        extras = pages[1]
         extras.pop("notifications")
         extras.pop("pagination")
         return extras | {"notifications": notifications}
 
 # User settings
-class GetUserSettings(PostRequest):
+class GetUserSettings(PostRequest[r_GetUserSettings]):
     """Gets a user's settings. Note that unless you are a site mod, you can only get your own settings."""
     def __init__(self, userUrl: str, **params) -> None:
         super().__init__("GetUserSettings", returns=r_GetUserSettings, userUrl=userUrl, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutUserSettings(PostRequest):
+class PutUserSettings(PostRequest[r_PutUserSettings]):
     def __init__(self, userUrl: str, settings: dict, **params) -> None:
         super().__init__("PutUserSettings", returns=r_PutUserSettings, userUrl=userUrl, settings=settings, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutUserSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutUserSettings]:
-        return super().perform_async(retries, delay, **kwargs)
+
+class PutUserUpdateFeaturedRun(PostRequest[r_PutUserUpdateFeaturedRun]):
+    def __init__(self, userUrl: str, fullRunId: str | None = None, **params) -> None:
+        super().__init__("PutUserUpdateFeaturedRun", returns=r_PutUserUpdateFeaturedRun, userUrl=userUrl, fullRunId=fullRunId, **params)
 
 # Comment Actions
-class GetCommentable(PostRequest):
+class GetCommentable(PostRequest[r_GetCommentable]):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
         super().__init__("GetCommentable", returns=r_GetCommentable, itemId=itemId, itemType=itemType, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetCommentable:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetCommentable]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class PutComment(PostRequest):
-    def __init__(self, itemId: str, itemType: int, text: str, **params) -> None:
+class PutComment(PostRequest[r_PutComment]):
+    def __init__(self, itemId: str, itemType: ItemType, text: str, **params) -> None:
         super().__init__("PutComment", returns=r_PutComment, itemId=itemId, itemType=itemType, text=text, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutComment:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutComment]:
-        return super().perform_async(retries, delay, **kwargs)
-
 #TODO: test params
-class PutCommentableSettings(PostRequest):
+class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
     def __init__(self, itemId: str, itemType: int, **params) -> None:
         super().__init__("PutCommentableSettings", returns=r_PutCommentableSettings, itemId=itemId, itemType=itemType, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutCommentableSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutCommentableSettings]:
-        return super().perform_async(retries, delay, **kwargs)
-
 # Thread Actions
-class GetThreadReadStatus(PostRequest):
+class GetThreadReadStatus(PostRequest[r_GetThreadReadStatus]):
     """NB: when called without auth will return an empty list"""
     def __init__(self, threadIds: list[str], **params) -> None:
         super().__init__("GetThreadReadStatus", returns=r_GetThreadReadStatus, threadIds=threadIds, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetThreadReadStatus:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetThreadReadStatus]:
-        return super().perform_async(retries, delay, **kwargs)
-
-class PutThreadRead(PostRequest):
+class PutThreadRead(PostRequest[r_PutThreadRead]):
     def __init__(self, threadId: str, **params) -> None:
         super().__init__("PutThreadRead", returns=r_PutThreadRead, threadId=threadId, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutThreadRead:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutThreadRead]:
-        return super().perform_async(retries, delay, **kwargs)
-
 # Forum actions
-class GetForumReadStatus(PostRequest):
+class GetForumReadStatus(PostRequest[r_GetForumReadStatus]):
     def __init__(self, forumIds: list[str], **params) -> None:
         super().__init__("GetForumReadStatus", returns=r_GetForumReadStatus, forumIds=forumIds, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetForumReadStatus:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetForumReadStatus]:
-        return super().perform_async(retries, delay, **kwargs)
-
 # Theme actions
-class GetThemeSettings(PostRequest):
+class GetThemeSettings(PostRequest[r_GetThemeSettings]):
     def __init__(self, **params) -> None:
         """Provide either userId or gameId"""
         super().__init__("GetThemeSettings", returns=r_GetThemeSettings, **params)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetThemeSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetThemeSettings]:
-        return super().perform_async(retries, delay, **kwargs)
-
 # To Be Sorted
-class GetTickets(PostRequest, BasePaginatedRequest):
+class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
     """WARN: Not currently depaginated, use _perform_all_raw!"""
     def __init__(self, **params) -> None:
         super().__init__("GetTickets", returns=r_GetTickets, **params) #TODO: needs param testing
-
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetTickets:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetTickets]:
-        return super().perform_async(retries, delay, **kwargs)
-
-    def perform_all_async(self, retries=5, delay=1) -> Coroutine[Any, Any, r_GetTickets]:
-        return super().perform_all_async(retries, delay)
-    
-    def perform_all(self, retries=5, delay=1) -> r_GetTickets:
-        return super().perform_all(retries, delay)
     
     def _combine_results(self, pages: dict):
         """TODO: method stub"""
         return super()._combine_results(pages)
 
-class GetSeriesSettings(PostRequest):
+class GetSeriesSettings(PostRequest[r_GetSeriesSettings]):
     def __init__(self, seriesId: str, **params) -> None:
         super().__init__("GetSeriesSettings", returns=r_GetSeriesSettings, seriesId=seriesId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetSeriesSettings:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetSeriesSettings]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetUserBlocks(PostRequest):
+class GetUserBlocks(PostRequest[r_GetUserBlocks]):
     def __init__(self, **params) -> None:
         super().__init__("GetUserBlocks", returns=r_GetUserBlocks, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserBlocks:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserBlocks]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class GetUserSupporterData(PostRequest):
+class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
     def __init__(self, userUrl: str, **params) -> None:
         super().__init__("GetUserSupporterData", returns=r_GetUserSupporterData, userUrl=userUrl, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_GetUserSupporterData:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_GetUserSupporterData]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutConversation(PostRequest):
+class PutConversation(PostRequest[r_PutConversation]):
     def __init__(self, csrfToken: str, recipientIds: list[str], text: str, **params) -> None:
         super().__init__("PutConversation", returns=r_PutConversation, csrfToken=csrfToken, recipientIds=recipientIds, text=text, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutConversation:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutConversation]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutConversationMessage(PostRequest):
+class PutConversationMessage(PostRequest[r_PutConversationMessage]):
     def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
         super().__init__("PutConversationMessage", returns=r_PutConversationMessage, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutConversationMessage:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutConversationMessage]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutGame(PostRequest): #TODO: needs param testing
+class PutGame(PostRequest[r_PutGame]): #TODO: needs param testing
     def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
         super().__init__("PutGame", returns=r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutGame:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutGame]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutGameBoostGrant(PostRequest): #TODO: test type of `anonymous`
+class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]): #TODO: test type of `anonymous`
     def __init__(self, gameId: str, anonymous: bool, **params) -> None:
         super().__init__("PutGameBoostGrant", returns=r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutGameBoostGrant:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutGameBoostGrant]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutGameModerator(PostRequest): #TODO: level enum type
+class PutGameModerator(PostRequest[r_PutGameModerator]): #TODO: level enum type
     def __init__(self, gameId: str, userId: str, level: int, **params) -> None:
         super().__init__("PutGameModerator", returns=r_PutGameModerator, gameId=gameId, userId=userId, level=level, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutGameModerator:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutGameModerator]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutGameModeratorDelete(PostRequest): #TODO: test `level` necessity & enum type
-    def __init__(self, gameId: str, userId: str, level: int, **params) -> None:
+class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]): #TODO: test `level` necessity & enum type
+    def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
         super().__init__("PutGameModeratorDelete", returns=r_PutGameModeratorDelete, gameId=gameId, userId=userId, level=level, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutGameModeratorDelete:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutGameModeratorDelete]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutSeriesGame(PostRequest): #TODO: reminder on who can do this & what this does lol
+class PutSeriesGame(PostRequest[r_PutSeriesGame]): #TODO: reminder on who can do this & what this does lol
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
         super().__init__("PutSeriesGame", returns=r_PutSeriesGame, seriesId=seriesId, gameId=gameId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutSeriesGame:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutSeriesGame]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutSeriesGameDelete(PostRequest):
+class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
         super().__init__("PutSeriesGameDelete", returns=r_PutSeriesGameDelete, seriesId=seriesId, gameId=gameId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutSeriesGameDelete:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutSeriesGameDelete]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutTicket(PostRequest): #TODO: test parameter types
+class PutTicket(PostRequest[r_PutTicket]): #TODO: test parameter types
     def __init__(self, metadata, type, **params) -> None:
         super().__init__("PutTicket", returns=r_PutTicket, metadata=metadata, type=type, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutTicket:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutTicket]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutUserSocialConnection(PostRequest):
+class PutUserSocialConnection(PostRequest[r_PutUserSocialConnection]):
     def __init__(self, userId: str, networkId: NetworkId, value: str, **params) -> None:
         super().__init__("PutUserSocialConnection", returns=r_PutUserSocialConnection, userId=userId, networkId=networkId, value=value, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutUserSocialConnection:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutUserSocialConnection]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutUserSocialConnectionDelete(PostRequest):
+class PutUserSocialConnectionDelete(PostRequest[r_PutUserSocialConnectionDelete]):
     def __init__(self, userId: str, networkId: NetworkId, **params) -> None:
         super().__init__("PutUserSocialConnectionDelete", returns=r_PutUserSocialConnectionDelete, userId=userId, networkId=networkId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutUserSocialConnectionDelete:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutUserSocialConnectionDelete]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutUserUpdatePassword(PostRequest):
+class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     def __init__(self, userUrl: str, oldPassword: str, newPassword: str, **params) -> None:
         super().__init__("PutUserUpdatePassword", returns=r_PutUserUpdatePassword, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutUserUpdatePassword:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutUserUpdatePassword]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutCommentDelete(PostRequest):
+class PutCommentDelete(PostRequest[r_PutCommentDelete]):
     def __init__(self, commentId: str, **params) -> None:
         super().__init__("PutCommentDelete", returns=r_PutCommentDelete, commentId=commentId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutCommentDelete:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutCommentDelete]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutCommentRestore(PostRequest):
+class PutCommentRestore(PostRequest[r_PutCommentRestore]):
     def __init__(self, commentId: str, **params) -> None:
         super().__init__("PutCommentRestore", returns=r_PutCommentRestore, commentId=commentId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutCommentRestore:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutCommentRestore]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutThread(PostRequest):
+class PutThread(PostRequest[r_PutThread]):
     def __init__(self, forumId: str, name: str, body: str, **params) -> None:
         super().__init__("PutThread", returns=r_PutThread, forumId=forumId, name=name, body=body, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutThread:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutThread]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutThreadLocked(PostRequest):
+class PutThreadLocked(PostRequest[r_PutThreadLocked]):
     def __init__(self, threadId: str, locked: bool, **params) -> None:
         super().__init__("PutThreadLocked", returns=r_PutThreadLocked, threadId=threadId, locked=locked, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutThreadLocked:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutThreadLocked]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutThreadSticky(PostRequest):
+class PutThreadSticky(PostRequest[r_PutThreadSticky]):
     def __init__(self, threadId: str, sticky: bool, **params) -> None:
         super().__init__("PutThreadSticky", returns=r_PutThreadSticky, threadId=threadId, sticky=sticky, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutThreadSticky:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutThreadSticky]:
-        return super().perform_async(retries, delay, **kwargs)
 
-class PutThreadDelete(PostRequest):
+class PutThreadDelete(PostRequest[r_PutThreadDelete]):
     def __init__(self, threadId: str, **params) -> None:
         super().__init__("PutThreadDelete", returns=r_PutThreadDelete, threadId=threadId, **params)
-    
-    def perform(self, retries=5, delay=1, **kwargs) -> r_PutThreadDelete:
-        return super().perform(retries, delay, **kwargs)
-    
-    def perform_async(self, retries=5, delay=1, **kwargs) -> Coroutine[Any, Any, r_PutThreadDelete]:
-        return super().perform_async(retries, delay, **kwargs)
