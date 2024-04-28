@@ -5,6 +5,7 @@ class CoercionLevel(enum.IntEnum):
     ENABLED = 0
     STRICT = 1
 
+
 COERCION: typing.Union[CoercionLevel, int] = 0
 """How aggressively to enforce type coercion.
 

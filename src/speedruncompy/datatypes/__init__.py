@@ -1,4 +1,4 @@
-from .defs import *
-from ._impl import LenientDatatype, srcpyJSONEncoder, Datatype, LenientDatatype
+from .defs import *  # noqa
+from ._impl import LenientDatatype, srcpyJSONEncoder, Datatype, LenientDatatype  # noqa
 
-from . import config
+from . import config  # noqa
