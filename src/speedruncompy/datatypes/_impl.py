@@ -1,20 +1,17 @@
 from enum import Enum
 from types import NoneType
-from typing import Any, Optional, Union, get_type_hints, get_origin, get_args, _SpecialForm, _type_check
+from typing import Any, Optional, TypeVar, Union, get_type_hints, get_origin, get_args
 from json import JSONEncoder, dumps
 import typing
 
-from ..enums import *
 from ..exceptions import IncompleteDatatype
 from . import config
 import logging
 
 class _OptFieldMarker(): pass
-@_SpecialForm
-def OptField(self, parameters):
-    """Field that may not be present. Will return `None` if not present."""
-    arg = _type_check(parameters, f"{self} requires a single type.")
-    return Union[arg, _OptFieldMarker]
+
+T = TypeVar("T")
+OptField = Union[T, _OptFieldMarker]
 
 class srcpyJSONEncoder(JSONEncoder):
     """Converts Datatypes to dicts when encountered"""
@@ -54,7 +51,7 @@ def degrade_union(union: type, *to_remove: type):
         return Union[tuple(newargs)]
     return union
 
-def in_enum(enum: type, value):
+def in_enum(enum: type[Enum], value):
     return value in (v for v in enum.__members__.values())
 
 class Datatype():
