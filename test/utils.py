@@ -1,5 +1,5 @@
 from types import NoneType
-from typing import get_origin, get_args, Optional, Union, get_type_hints
+from typing import get_origin, get_args, get_type_hints
 from speedruncompy.datatypes import Datatype
 from speedruncompy.datatypes._impl import _OptFieldMarker, degrade_union
 
@@ -10,7 +10,7 @@ def check_datatype_coverage(dt: Datatype):
     keys = set(dt.keys())
     try:
         hints = get_type_hints(dt)
-    except TypeError: hints = dict() # Errors on empty datatype
+    except TypeError: hints = dict()  # Errors on empty datatype
     hintNames = set(hints)
     unseenAttrs = keys.difference(hintNames)
     assert unseenAttrs == set(), f"{type(dt)} missing keys: {[a + ' = ' + str(dt[a]) for a in unseenAttrs]}"

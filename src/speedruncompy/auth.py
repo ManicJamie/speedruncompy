@@ -5,10 +5,10 @@ from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
 
 log = logging.getLogger("speedruncompy.auth")
 
-def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = False):
+def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry: bool = False):
     """Quick workflow to set sessid using username & pwd. Will prompt for 2FA if tokenEntry is True, otherwise will return False."""
     try:
-        result: dict = PutAuthLogin(username, pwd, _api=_api).perform()
+        result = PutAuthLogin(username, pwd, _api=_api).perform()
     except NotFound:
         print("Password is incorrect!")
         return False
@@ -19,7 +19,7 @@ def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = 
         if tokenEntry:
             log.warning("2FA is enabled - Not logged in!")
             key = input("Enter 2FA token: ")
-            result: dict = PutAuthLogin(username, pwd, key, _api=_api).perform()
+            result = PutAuthLogin(username, pwd, key, _api=_api).perform()
             if result.get("loggedIn", False):
                 log.info("Logged in using 2fa")
                 return True
@@ -32,7 +32,7 @@ def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry = 
 def login_PHPSESSID(sessID: str, _api: SpeedrunComPy = _default):
     """Login using PHPSESSID. Uses GetSession to check if session is logged in."""
     _api.set_phpsessid(sessID)
-    result: dict = GetSession(_api=_api).perform()
+    result = GetSession(_api=_api).perform()
     if not result["session"]["signedIn"]:
         log.error("Provided PHPSESSID is not logged in - use speedruncompy.auth.login() instead")
         return False
@@ -45,7 +45,7 @@ def logout(_api: SpeedrunComPy = _default):
 
 def get_CSRF(_api: SpeedrunComPy = _default):
     """Get the csrfToken of the currently logged in user, required for some endpoints."""
-    result: dict[str, dict] = GetSession(_api=_api).perform()
+    result = GetSession(_api=_api).perform()
     if not result["session"].get("signedIn", False):
         raise AuthException("Not logged in, cannot retrieve csrfToken")
     return result["session"].get("csrfToken")
