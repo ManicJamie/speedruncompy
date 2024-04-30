@@ -298,8 +298,12 @@ class TestGetRequests():
         check_datatype_coverage(result)
     
     def test_GetHomeSummary(self):
-        """TODO: this is an empty result; check authed"""
         result = GetHomeSummary().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetHomeSummary_authed(self):
+        result = GetHomeSummary(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
 

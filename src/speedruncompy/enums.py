@@ -2,11 +2,27 @@ from enum import IntEnum, StrEnum
 
 class ItemType(IntEnum):
     """The type of the item this object is referencing (eg. a comment on either a run or a thread)"""
+    UNKNOWN = 0
     COMMENT = 1
     RUN = 2
+    GAME = 3
+    GUIDE = 4
+    RESOURCE = 5
+    USER = 6
     THREAD = 7
-    GAME_NEWS = 27
-    SITE_NEWS = 30
+    GAME_MOD = 8
+    CATEGORY = 9
+    LEVEL = 10
+    GAME_REQUEST = 11
+    TICKET = 22
+    TICKET_NOTE = 23
+    NEWS = 27
+    GAME_BOOST_TOKEN = 28
+    GAME_BOOST = 29
+    ARTICLE = 30
+    USER_FOLLOWER = 31
+    CHALLENGE = 32
+    CHALLENGE_RUN = 33
 
 class Verified(IntEnum):
     PENDING = 0
@@ -252,20 +268,42 @@ class TimeFormat(IntEnum):
     HH_MM_SS_12h = 3
 
 class NetworkId(IntEnum):
-    """NB: does not include deprecated values that may still be visible to the API"""
-    BILIBILI = 3,
-    DISCORD = 5,
-    FACEBOOK = 8,
-    INSTAGRAM = 11,
-    NICONICO = 15,
-    REDDIT = 18,
-    TWITCH = 29,
-    TWITTER = 30,
-    URL = 31,
+    """NB: Values prefixed with `_` are deprecated and not visible on the site or settable, but may still be returned by the API."""
+    BILIBILI = 3
+    DISCORD = 5
+    FACEBOOK = 8
+    INSTAGRAM = 11
+    NICONICO = 15
+    REDDIT = 18
+    TWITCH = 29
+    TWITTER = 30
+    WEBSITE = 31
     YOUTUBE = 32
     # Deprecated values
-    _1 = 22
-    _2 = 26
+    _ASK_FM = 1
+    _BATTLE_NET = 2
+    _DEVIANTART = 4
+    _DOUYU = 6
+    _DUOLINGO = 7
+    _GOOGLEPLUS = 9
+    _GPODCASTS = 10
+    _ITUNES = 12
+    _MIXER = 13
+    _SPLITS_IO = 22
+    _MMRTA = 14
+    _PATREON = 16
+    _PINTEREST = 17
+    _SMASHCAST = 19
+    _SNAPCHAT = 20
+    _SOUNDCLOUD = 21
+    _SPLITSIO = 22
+    _SPOTIFY = 23
+    _SPOTIFYSHOW = 24
+    _SRL = 25
+    _STEAM = 26
+    _STITCHER = 27
+    _TUMBLR = 28
+    _ZSR = 33
 
 #endregion User
 

@@ -99,7 +99,7 @@ class Datatype():
                         _log.warning(f"{type(self)}.{fieldname} enum {true_type} does not contain value {raw}!")
                     else:
                         self[fieldname] = true_type(raw)
-            elif get_origin(true_type) is list:
+            elif get_origin(true_type) is list and type(raw) is list:
                 list_type = get_args(true_type)[0]
                 if is_compliant_type(list_type):  # Coerce list types
                     self[fieldname] = [list_type(r) if not isinstance(self[fieldname], list_type) else r for r in raw]

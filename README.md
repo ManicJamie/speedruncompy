@@ -14,6 +14,12 @@ Note that this uses the API in the same way as https://speedrun.com. The v2 API 
 
 As such, authorisation requires your username & password (and 2FA token). ***This means logging in requires a massive leap of trust***, and so I encourage you to [inspect the auth module](src/speedruncompy/auth.py), and if you're very concerned consider either changing your SRC password or manually get an authed PHPSESSID with your own requests, then use `auth.loginSESSID`. 
 
+## Omissions
+Admin-only endpoints will not be added due to lack of testability and usability. These include:
+- GetAdminStatusSummary
+- GetTicketQueueCounts
+- GetTicketStatusCounts
+
 ## Goals
 Future versions will aim to assist further in development;
 - Complete datatype coverage & testing to detect regressions & SRC-side additions

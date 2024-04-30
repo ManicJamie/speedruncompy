@@ -1,6 +1,15 @@
 from .datatypes import *
 from typing import Any
 
+class r_Empty(Datatype):
+    """No Content"""
+
+class r_Ok(Datatype):
+    """Response only including `ok`."""
+    ok: bool
+
+    def __bool__(self): return self.ok
+
 
 """GET responses"""
 
@@ -39,6 +48,10 @@ class r_GetChallengeRun(Datatype):
     challengeRun: ChallengeRun
     game: Game
     playerList: list[Player]
+    userList: list[User]
+
+class r_GetChallengeGlobalRankingList(Datatype):
+    rankingList: list[GlobalChallengeRanking]
     userList: list[User]
 
 class r_GetCommentList(Datatype):
@@ -226,6 +239,9 @@ class r_GetUserPopoverData(Datatype):
     """Contains games sometimes:tm:"""
     titleList: list[Title]
 
+class r_GetTitleList(Datatype):
+    titleList: list[Title]
+
 
 """POST responses"""
 
@@ -305,7 +321,8 @@ class r_GetThreadReadStatus(Datatype):
 
 class r_GetTickets(Datatype):
     ticketList: list[Ticket]
-    ticketNoteList: Any  # TODO: document
+    ticketNoteList: list[TicketNote]
+    """May only be accessible to admins"""
     pagination: Pagination
     userList: list[User]
     gameList: list[Game]

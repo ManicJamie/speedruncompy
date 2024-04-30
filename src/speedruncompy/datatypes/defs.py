@@ -337,7 +337,7 @@ class Player(Datatype):
     isSupporter: OptField[bool]
     """OptField even on full `player`"""
 
-    def _is_user(self): return not self.id.startswith("u")
+    def _is_user(self): return not self.id.startswith("u-")
     _is_registered = property(fget=_is_user)
     """Checks if a player has an account or is a text label"""
 
@@ -354,7 +354,7 @@ class User(Datatype):
     colorAnimate: OptField[int]
     areaId: str
     isSupporter: OptField[bool]  # TODO: ?
-    avatarDecoration: OptField[dict[str, bool]]  # {enabled: bool}, add type for this later
+    avatarDecoration: OptField[dict[str, bool]]  # {enabled: bool}, TODO add type for this later
     iconType: IconType
     onlineDate: int
     signupDate: int
@@ -507,6 +507,16 @@ class ChallengePrizeConfig(Datatype):
     prizePool: int
     currency: str
     prizes: list[ChallengePrize]
+
+class GlobalChallengeRanking(Datatype):
+    """Sitewide rank based on all challenges entered."""
+    userId: str
+    rank: int
+    totalEarnings: int
+    firstPlaces: int
+    secondPlaces: int
+    thirdPlaces: int
+    challengesEntered: int
 
 class Challenge(Datatype):
 
@@ -809,6 +819,15 @@ class Ticket(Datatype):
     metadata: str
     """This is a json object that may be dependent on type"""
 
+class TicketNote(Datatype):
+    id: str
+    ticketId: str
+    readerId: str
+    dateSubmitted: int
+    note: str
+    isMessage: bool
+    isRead: bool
+
 class UserBlock(Datatype):
     blockerId: str
     blockeeId: str
@@ -874,9 +893,10 @@ class SupporterSubscription(Datatype):
     trialEndsAt: int
     """Default 0, undocumented but assume timestamp otherwise"""
     cancelAtPeriodEnd: bool
-    canceledAt: int  # assume timestamp
+    canceledAt: int  # TODO assume timestamp
     
 class Title(Datatype):
+    """User reward for completing a Challenge."""
     id: str
     title: str
     comment: str
