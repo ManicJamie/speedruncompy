@@ -462,23 +462,23 @@ class TestPostRequests():
         assert result.games is None
     
     def test_GetModerationRuns(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id).perform()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1).perform()
         log_result(result)
         check_datatype_coverage(result)
     
     def test_GetModerationRuns_paginated(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=Verified.PENDING).perform_all()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
     def test_GetModerationRuns_paginated_raw(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id, verified=Verified.PENDING)._perform_all_raw()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING)._perform_all_raw()
         log_result(result)
         check_pages(result)
 
     def test_GetModerationRuns_unauthed(self):
         with pytest.raises(Unauthorized):
-            GetModerationRuns(gameId=game_id, verified=Verified.PENDING).perform()
+            GetModerationRuns(gameId=game_id, limit=20, page=1, verified=Verified.PENDING).perform()
     
     def test_GetNotifications(self):
         result = GetNotifications(_api=self.api).perform()

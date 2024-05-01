@@ -546,12 +546,16 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
 
     ### Mandatory:
     - @gameId
+    - @limit:  # TODO: range
+    - @page
 
     ### Optional:
-    - @limit:
+    - @search
+    - @verified: `Verified`
+    - @verifiedById
     """
-    def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetModerationRuns", returns=r_GetModerationRuns, gameId=gameId, **params)
+    def __init__(self, gameId: str, limit: int, page: int = 1, **params) -> None:
+        super().__init__("GetModerationRuns", returns=r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
         # TODO: is this all really necessary?
