@@ -242,6 +242,9 @@ class r_GetUserPopoverData(Datatype):
 class r_GetTitleList(Datatype):
     titleList: list[Title]
 
+class r_GetTitle(Datatype):
+    title: Title
+
 
 """POST responses"""
 
@@ -276,8 +279,10 @@ class r_GetGameSettings(Datatype):
     userList: list[User]
 
 class r_GetModerationGames(Datatype):
-    games: list[Game]
-    gameModerationStats: list[GameModerationStats]
+    games: Optional[list[Game]]
+    """Is null when not logged in."""
+    gameModerationStats: Optional[list[GameModerationStats]]
+    """Is null when not logged in."""
 
 class r_GetModerationRuns(Datatype):
     categories: list[Category]
@@ -354,9 +359,6 @@ class r_GetUserSupporterData(Datatype):
 class r_PutAuthLogin(Datatype):
     loggedIn: bool
     tokenChallengeSent: OptField[bool]
-
-class r_PutAuthLogout(Datatype):
-    """No content"""
 
 class r_PutAuthSignup(Datatype):
     loggedIn: bool

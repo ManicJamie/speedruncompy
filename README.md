@@ -19,6 +19,7 @@ Admin-only endpoints will not be added due to lack of testability and usability.
 - GetAdminStatusSummary
 - GetTicketQueueCounts
 - GetTicketStatusCounts
+- PutGameDelete
 
 ## Goals
 Future versions will aim to assist further in development;

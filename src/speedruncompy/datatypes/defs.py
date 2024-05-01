@@ -116,12 +116,15 @@ class Thread(Datatype):
 
 class RunSettings(Datatype):
 
-    runId: str
+    runId: OptField[str]
+    """Omitted when submitting a new run."""
     gameId: str
     categoryId: str
     playerNames: list[str]
     time: OptField[RuntimeTuple]  # Note: whichever timing method is primary to the game is required
+    """LRT if it is enabled, otherwise RTA."""
     timeWithLoads: OptField[RuntimeTuple]
+    """RTA if LRT is enabled."""
     igt: OptField[RuntimeTuple]
     platformId: str
     emulator: bool
@@ -577,7 +580,7 @@ class ChallengeRun(Datatype):
 class Theme(Datatype):
     id: str
     url: str
-    name: OptField[str]
+    name: OptField[str]  # TODO: check optional
     primaryColor: str
     panelColor: str
     panelOpacity: int

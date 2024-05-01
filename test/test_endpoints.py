@@ -274,9 +274,19 @@ class TestGetRequests():
         result = GetChallenge(_api=self.api, id="5e3eoymq").perform()
         log_result(result)
         check_datatype_coverage(result)
+    
+    def test_GetTitleList(self):
+        result = GetTitleList().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetTitle(self):
+        result = GetTitle("m2p98y5x").perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
     def test_GetArticleList(self):
-        result = GetArticleList().perform()
+        result = GetArticleList(limit=50).perform_all()
         log_result(result)
         check_datatype_coverage(result)
     
@@ -443,6 +453,13 @@ class TestPostRequests():
         result = GetModerationGames(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
+
+    def test_GetModerationGames_unauthed(self):
+        result = GetModerationGames().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+        assert result.gameModerationStats is None
+        assert result.games is None
     
     def test_GetModerationRuns(self):
         result = GetModerationRuns(_api=self.api, gameId=game_id).perform()
