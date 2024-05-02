@@ -615,7 +615,7 @@ class TestPutRequests():
     @pytest.fixture(scope="class")
     def testingThread(self):
         """Provides a thread for testing"""
-        threadPut = PutThread("qj2qrkn8", "Testing", "A test thread for speedruncompy.", _api=self.api).perform()
+        threadPut = PutThread("9nwlwk4z", "Testing", "A test thread for speedruncompy.", _api=self.api).perform()
         yield threadPut.thread
         threadDelete = PutThreadDelete(_api=self.api, threadId=threadPut.thread.id).perform()
         with pytest.raises(NotFound): GetThread(threadPut.thread.id).perform()
