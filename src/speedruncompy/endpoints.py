@@ -485,12 +485,12 @@ class GetSession(PostRequest[r_GetSession]):
     def __init__(self, **params) -> None:
         super().__init__("GetSession", r_GetSession, **params)
     
-class PutSessionPing(PostRequest[r_PutSessionPing]):
+class PutSessionPing(PostRequest[r_Empty]):
     """Tells SRC to renew your session. Some other endpoints will renew your session.
     May be required to keep your session alive without re-login.
     """
     def __init__(self, **params) -> None:
-        super().__init__("PutSessionPing", r_PutSessionPing, **params)
+        super().__init__("PutSessionPing", r_Empty, **params)
 
 # Supermod actions
 class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_GetAuditLogList]):
@@ -525,7 +525,7 @@ class GetGameSettings(PostRequest[r_GetGameSettings]):
     def __init__(self, gameId: str, **params) -> None:
         super().__init__("GetGameSettings", r_GetGameSettings, gameId=gameId, **params)
 
-class PutGameSettings(PostRequest[r_PutGameSettings]):
+class PutGameSettings(PostRequest[r_Empty]):
     """Set a game's settings. Must be at least a moderator on the game.
 
     ### Mandatory:
@@ -533,7 +533,7 @@ class PutGameSettings(PostRequest[r_PutGameSettings]):
     - @settings
     """
     def __init__(self, gameId: str, settings: GameSettings, **params) -> None:
-        super().__init__("PutGameSettings", r_PutGameSettings, gameId=gameId, settings=settings, **params)
+        super().__init__("PutGameSettings", r_Empty, gameId=gameId, settings=settings, **params)
 
 class PutVariable(PostRequest[r_Empty]):
     """Add a new variable to a game. TODO: check if values / defaultValue are required.
@@ -611,12 +611,12 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
                                              "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables},
                                             skipChecking=True)
 
-class PutRunAssignee(PostRequest[r_PutRunAssignee]):
+class PutRunAssignee(PostRequest[r_Empty]):
     """Assigns a verifier to a run."""
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
-        super().__init__("PutRunAssignee", r_PutRunAssignee, assigneeId=assigneeId, runId=runId, **params)
+        super().__init__("PutRunAssignee", r_Empty, assigneeId=assigneeId, runId=runId, **params)
 
-class PutRunVerification(PostRequest[r_PutRunVerification]):
+class PutRunVerification(PostRequest[r_Ok]):
     """Assigns a verification level `Verified` to a run.
     
     ### Mandatory:
@@ -624,7 +624,7 @@ class PutRunVerification(PostRequest[r_PutRunVerification]):
     - @verified: `Verified.PENDING`, `Verified.VERIFIED`, `Verified.REJECTED`
     """
     def __init__(self, runId: str, verified: Verified, **params) -> None:
-        super().__init__("PutRunVerification", r_PutRunVerification, runId=runId, verified=verified, **params)
+        super().__init__("PutRunVerification", r_Ok, runId=runId, verified=verified, **params)
 
 # Run management
 class GetRunSettings(PostRequest[r_GetRunSettings]):
@@ -662,6 +662,9 @@ class GetConversationMessages(PostRequest[r_GetConversationMessages]):
 
 class PutConversation(PostRequest[r_PutConversation]):
     """Creates a new conversation. May include several users.
+    If the conversation already exists, the message is sent to the existing conversation.
+    
+    NOTE: if the conversation exists but the user has left it, they will _not_ rejoin the conversation.
     
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
@@ -739,7 +742,7 @@ class PutUserSettings(PostRequest[r_PutUserSettings]):
     def __init__(self, userUrl: str, settings: UserSettings, **params) -> None:
         super().__init__("PutUserSettings", r_PutUserSettings, userUrl=userUrl, settings=settings, **params)
 
-class PutUserUpdateFeaturedRun(PostRequest[r_PutUserUpdateFeaturedRun]):
+class PutUserUpdateFeaturedRun(PostRequest[r_Empty]):
     """Sets the run featured on a user's profile.
     
     ### Mandatory:
@@ -747,7 +750,7 @@ class PutUserUpdateFeaturedRun(PostRequest[r_PutUserUpdateFeaturedRun]):
     - @fullRunId: If omitted, clears the featured run.
     """
     def __init__(self, userUrl: str, fullRunId: str | None = None, **params) -> None:  # TODO: check if levelId is different
-        super().__init__("PutUserUpdateFeaturedRun", r_PutUserUpdateFeaturedRun, userUrl=userUrl, fullRunId=fullRunId, **params)
+        super().__init__("PutUserUpdateFeaturedRun", r_Empty, userUrl=userUrl, fullRunId=fullRunId, **params)
 
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
@@ -760,7 +763,7 @@ class GetCommentable(PostRequest[r_GetCommentable]):
     def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
         super().__init__("GetCommentable", r_GetCommentable, itemId=itemId, itemType=itemType, **params)
 
-class PutComment(PostRequest[r_PutComment]):
+class PutComment(PostRequest[r_Empty]):
     """Posts a comment on an item.
     
     ### Mandatory:
@@ -769,9 +772,9 @@ class PutComment(PostRequest[r_PutComment]):
     - @text
     """
     def __init__(self, itemId: str, itemType: ItemType, text: str, **params) -> None:
-        super().__init__("PutComment", r_PutComment, itemId=itemId, itemType=itemType, text=text, **params)
+        super().__init__("PutComment", r_Empty, itemId=itemId, itemType=itemType, text=text, **params)
 
-class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
+class PutCommentableSettings(PostRequest[r_Empty]):
     """Updates commentable settings on an item.
 
     ### Mandatory:
@@ -781,7 +784,7 @@ class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
     - @locked
     """
     def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
-        super().__init__("PutCommentableSettings", r_PutCommentableSettings, itemId=itemId, itemType=itemType, **params)
+        super().__init__("PutCommentableSettings", r_Empty, itemId=itemId, itemType=itemType, **params)
 
 # Thread Actions
 class GetThreadReadStatus(PostRequest[r_GetThreadReadStatus]):
@@ -793,14 +796,14 @@ class GetThreadReadStatus(PostRequest[r_GetThreadReadStatus]):
     def __init__(self, threadIds: list[str], **params) -> None:
         super().__init__("GetThreadReadStatus", r_GetThreadReadStatus, threadIds=threadIds, **params)
 
-class PutThreadRead(PostRequest[r_PutThreadRead]):
+class PutThreadRead(PostRequest[r_Empty]):
     """Sets a thread as read by the user.
 
     ### Mandatory:
     - @threadId
     """
     def __init__(self, threadId: str, **params) -> None:
-        super().__init__("PutThreadRead", r_PutThreadRead, threadId=threadId, **params)
+        super().__init__("PutThreadRead", r_Empty, threadId=threadId, **params)
 
 # Forum actions
 class GetForumReadStatus(PostRequest[r_GetForumReadStatus]):
@@ -845,7 +848,7 @@ class PutUserSupporterNewSubscription(PostRequest[r_PutUserSupporterNewSubscript
     def __init__(self, planKey: SupportPlanPeriod, userUrl: str, **params) -> None:
         super().__init__("PutUserSuppoprterNewSubscription", r_PutUserSupporterNewSubscription, planKey=planKey, userUrl=userUrl, **params)
 
-class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):
+class PutGameBoostGrant(PostRequest[r_Empty]):
     """Adds a boost to a game.
     
     ### Mandatory:
@@ -853,7 +856,7 @@ class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):
     - @anonymous
     """
     def __init__(self, gameId: str, anonymous: bool, **params) -> None:
-        super().__init__("PutGameBoostGrant", r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
+        super().__init__("PutGameBoostGrant", r_Empty, gameId=gameId, anonymous=anonymous, **params)
 
 # To Be Sorted
 class PutAdvertiseContact(PostRequest[r_Empty]):
@@ -917,7 +920,7 @@ class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
         super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
 
-class PutGameModerator(PostRequest[r_PutGameModerator]):
+class PutGameModerator(PostRequest[r_Empty]):
     """Add a moderator to a game.
     
     ### Mandatory:
@@ -926,9 +929,9 @@ class PutGameModerator(PostRequest[r_PutGameModerator]):
     - @level: GamePowerLevel (-1 = verifier, 0 = mod, 1 = supermod)
     """
     def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
-        super().__init__("PutGameModerator", r_PutGameModerator, gameId=gameId, userId=userId, level=level, **params)
+        super().__init__("PutGameModerator", r_Empty, gameId=gameId, userId=userId, level=level, **params)
 
-class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]):  # TODO: test `level` necessity & enum type
+class PutGameModeratorDelete(PostRequest[r_Empty]):  # TODO: test `level` necessity & enum type
     """Remove a moderator from a game.
     
     ### Mandatory:
@@ -937,9 +940,9 @@ class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]):  # TODO: te
     - @level: TODO check necessity
     """
     def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
-        super().__init__("PutGameModeratorDelete", r_PutGameModeratorDelete, gameId=gameId, userId=userId, level=level, **params)
+        super().__init__("PutGameModeratorDelete", r_Empty, gameId=gameId, userId=userId, level=level, **params)
 
-class PutSeriesGame(PostRequest[r_PutSeriesGame]):
+class PutSeriesGame(PostRequest[r_Empty]):
     """Add an existing game to a series.
     
     ### Mandatory:
@@ -947,9 +950,9 @@ class PutSeriesGame(PostRequest[r_PutSeriesGame]):
     - @gameId
     """
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
-        super().__init__("PutSeriesGame", r_PutSeriesGame, seriesId=seriesId, gameId=gameId, **params)
+        super().__init__("PutSeriesGame", r_Empty, seriesId=seriesId, gameId=gameId, **params)
 
-class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
+class PutSeriesGameDelete(PostRequest[r_Empty]):
     """Remove a game from a series. Does not delete the game.
     
     ### Mandatory:
@@ -957,7 +960,7 @@ class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
     - @gameId
     """
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
-        super().__init__("PutSeriesGameDelete", r_PutSeriesGameDelete, seriesId=seriesId, gameId=gameId, **params)
+        super().__init__("PutSeriesGameDelete", r_Empty, seriesId=seriesId, gameId=gameId, **params)
 
 class PutTicket(PostRequest[r_PutTicket]):
     """Submits support tickets.
@@ -980,7 +983,7 @@ class PutTicketNote(PostRequest[r_Ok]):
     def __init__(self, ticketId: str, note: str, isMessage: bool, **params) -> None:
         super().__init__("PutTicketNote", r_Ok, ticketId=ticketId, note=note, isMessage=isMessage, **params)
 
-class PutUserSocialConnection(PostRequest[r_PutUserSocialConnection]):  # TODO: verification?
+class PutUserSocialConnection(PostRequest[r_Empty]):  # TODO: verification?
     """Modifies a user's social connection.
 
     ### Mandatory:
@@ -989,9 +992,9 @@ class PutUserSocialConnection(PostRequest[r_PutUserSocialConnection]):  # TODO: 
     - @value
     """
     def __init__(self, userId: str, networkId: NetworkId, value: str, **params) -> None:
-        super().__init__("PutUserSocialConnection", r_PutUserSocialConnection, userId=userId, networkId=networkId, value=value, **params)
+        super().__init__("PutUserSocialConnection", r_Empty, userId=userId, networkId=networkId, value=value, **params)
 
-class PutUserSocialConnectionDelete(PostRequest[r_PutUserSocialConnectionDelete]):
+class PutUserSocialConnectionDelete(PostRequest[r_Empty]):
     """Remove a user's social connection.
     
     ### Mandatory:
@@ -999,7 +1002,7 @@ class PutUserSocialConnectionDelete(PostRequest[r_PutUserSocialConnectionDelete]
     - @networkId: see `NetworkId`
     """
     def __init__(self, userId: str, networkId: NetworkId, **params) -> None:
-        super().__init__("PutUserSocialConnectionDelete", r_PutUserSocialConnectionDelete, userId=userId, networkId=networkId, **params)
+        super().__init__("PutUserSocialConnectionDelete", r_Empty, userId=userId, networkId=networkId, **params)
 
 class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     """Update a user's password.
@@ -1012,23 +1015,23 @@ class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     def __init__(self, userUrl: str, oldPassword: str, newPassword: str, **params) -> None:
         super().__init__("PutUserUpdatePassword", r_PutUserUpdatePassword, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
 
-class PutCommentDelete(PostRequest[r_PutCommentDelete]):
+class PutCommentDelete(PostRequest[r_Empty]):
     """Delete a comment.
 
     ### Mandatory:
     - @commentId
     """
     def __init__(self, commentId: str, **params) -> None:
-        super().__init__("PutCommentDelete", r_PutCommentDelete, commentId=commentId, **params)
+        super().__init__("PutCommentDelete", r_Empty, commentId=commentId, **params)
 
-class PutCommentRestore(PostRequest[r_PutCommentRestore]):
+class PutCommentRestore(PostRequest[r_Empty]):
     """Restore a deleted comment (?). #TODO check
 
     ### Mandatory:
     - @commentId
     """
     def __init__(self, commentId: str, **params) -> None:
-        super().__init__("PutCommentRestore", r_PutCommentRestore, commentId=commentId, **params)
+        super().__init__("PutCommentRestore", r_Empty, commentId=commentId, **params)
 
 class PutThread(PostRequest[r_PutThread]):
     """Create a new thread on a forum.
@@ -1041,7 +1044,7 @@ class PutThread(PostRequest[r_PutThread]):
     def __init__(self, forumId: str, name: str, body: str, **params) -> None:
         super().__init__("PutThread", r_PutThread, forumId=forumId, name=name, body=body, **params)
 
-class PutThreadLocked(PostRequest[r_PutThreadLocked]):
+class PutThreadLocked(PostRequest[r_Empty]):
     """Lock or unlock a thread.
 
     ### Mandatory:
@@ -1049,9 +1052,9 @@ class PutThreadLocked(PostRequest[r_PutThreadLocked]):
     - @locked
     """
     def __init__(self, threadId: str, locked: bool, **params) -> None:
-        super().__init__("PutThreadLocked", r_PutThreadLocked, threadId=threadId, locked=locked, **params)
+        super().__init__("PutThreadLocked", r_Empty, threadId=threadId, locked=locked, **params)
 
-class PutThreadSticky(PostRequest[r_PutThreadSticky]):
+class PutThreadSticky(PostRequest[r_Empty]):
     """Sticky or un-sticky a thread.
 
     ### Mandatory:
@@ -1059,13 +1062,13 @@ class PutThreadSticky(PostRequest[r_PutThreadSticky]):
     - @sticky
     """
     def __init__(self, threadId: str, sticky: bool, **params) -> None:
-        super().__init__("PutThreadSticky", r_PutThreadSticky, threadId=threadId, sticky=sticky, **params)
+        super().__init__("PutThreadSticky", r_Empty, threadId=threadId, sticky=sticky, **params)
 
-class PutThreadDelete(PostRequest[r_PutThreadDelete]):
+class PutThreadDelete(PostRequest[r_Empty]):
     """Delete a thread.
 
     ### Mandatory:
     - @threadId
     """
     def __init__(self, threadId: str, **params) -> None:
-        super().__init__("PutThreadDelete", r_PutThreadDelete, threadId=threadId, **params)
+        super().__init__("PutThreadDelete", r_Empty, threadId=threadId, **params)
