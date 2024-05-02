@@ -331,7 +331,7 @@ class Player(Datatype):
     id: str
     name: str
     url: OptField[str]
-    powerLevel: OptField[int]
+    powerLevel: OptField[SitePowerLevel]
     color1Id: OptField[str]
     color2Id: OptField[str]
     """OptField even on full `player`"""
@@ -512,9 +512,9 @@ class Run(Datatype):
     playerIds: list[str]
     valueIds: list[str]
     orphaned: OptField[bool]
-    estimated: OptField[bool]  # TODO: Figure out what this means
+    estimated: OptField[bool]
     """Only shown in GetModerationRuns"""
-    issues: OptField[Optional[list[str]]]  # TODO: fails when present
+    issues: OptField[Optional[list[str]]]
 
 class ChallengeStanding(Datatype):
     challengeId: str
@@ -809,7 +809,7 @@ class Session(Datatype):
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
-    enabledExperimentIds: list[str]  # May not be this idk
+    enabledExperimentIds: list[str]  # TODO: check
     challengeModeratorList: Any  # undocumented list
 
 class ThemeSettings(Datatype):

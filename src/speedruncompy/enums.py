@@ -341,3 +341,10 @@ class FitType(IntEnum):
     FIT = 1
 
 #endregion Theme
+
+#region Supporter
+class SupportPlanPeriod(StrEnum):
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+
+#endregion Supporter

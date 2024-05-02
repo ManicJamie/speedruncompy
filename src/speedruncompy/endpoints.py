@@ -825,6 +825,36 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
     def __init__(self, **params) -> None:
         super().__init__("GetThemeSettings", r_GetThemeSettings, **params)
 
+# Supporter
+class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
+    """Gets supporter data for a user. # TODO: check auth
+
+    ### Mandatory:
+    - @userUrl
+    """
+    def __init__(self, userUrl: str, **params) -> None:
+        super().__init__("GetUserSupporterData", r_GetUserSupporterData, userUrl=userUrl, **params)
+
+class PutUserSupporterNewSubscription(PostRequest[r_PutUserSupporterNewSubscription]):
+    """Get data used to construct a payment form.
+    
+    ## Mandatory:
+    - @planKey: strEnum ("monthly" or "yearly")
+    - @userUrl
+    """
+    def __init__(self, planKey: SupportPlanPeriod, userUrl: str, **params) -> None:
+        super().__init__("PutUserSuppoprterNewSubscription", r_PutUserSupporterNewSubscription, planKey=planKey, userUrl=userUrl, **params)
+
+class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):
+    """Adds a boost to a game.
+    
+    ### Mandatory:
+    - @gameId
+    - @anonymous
+    """
+    def __init__(self, gameId: str, anonymous: bool, **params) -> None:
+        super().__init__("PutGameBoostGrant", r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
+
 # To Be Sorted
 class PutAdvertiseContact(PostRequest[r_Empty]):
     """Sends a request for contact to SRC for collaboration.
@@ -874,15 +904,6 @@ class PutUserBlock(PostRequest[r_Empty]):
     def __init__(self, block: bool, blockeeId: str, **params) -> None:
         super().__init__("PutUserBlock", r_Empty, block=block, blockeeId=blockeeId, **params)
 
-class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
-    """Gets supporter data for a user. # TODO: check auth
-
-    ### Mandatory:
-    - @userUrl
-    """
-    def __init__(self, userUrl: str, **params) -> None:
-        super().__init__("GetUserSupporterData", r_GetUserSupporterData, userUrl=userUrl, **params)
-
 class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     """Add a new game.
 
@@ -895,16 +916,6 @@ class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     """
     def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
         super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
-
-class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):
-    """Adds a boost to a game.
-    
-    ### Mandatory:
-    - @gameId
-    - @anonymous
-    """
-    def __init__(self, gameId: str, anonymous: bool, **params) -> None:
-        super().__init__("PutGameBoostGrant", r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
 
 class PutGameModerator(PostRequest[r_PutGameModerator]):
     """Add a moderator to a game.

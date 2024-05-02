@@ -369,6 +369,10 @@ class r_GetUserSupporterData(Datatype):
     supporterEndDate: int
     boostEndDate: int
 
+class r_PutUserSupporterNewSubscription(Datatype):
+    subscription: SupporterSubscription
+    paymentIntentClientSecret: str
+
 class r_PutAuthLogin(Datatype):
     loggedIn: bool
     tokenChallengeSent: OptField[bool]
