@@ -6,7 +6,7 @@ class CoercionLevel(enum.IntEnum):
     STRICT = 1
 
 
-COERCION: typing.Union[CoercionLevel, int] = 0
+COERCION: typing.Union[CoercionLevel, int] = CoercionLevel.ENABLED
 """How aggressively to enforce type coercion.
 
 -1: Disabled; types will not be coerced. WARN: field accessors will break!

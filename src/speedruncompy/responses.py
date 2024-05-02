@@ -219,7 +219,7 @@ class r_GetUserLeaderboard(Datatype):
     regions: list[Region]
     runs: list[Run]
     user: User
-    userProfile: UserLeaderboardProfile
+    userProfile: UserReducedProfile
     users: list[User]
     """Always empty"""
     players: list[Player]
@@ -230,9 +230,22 @@ class r_GetUserLeaderboard(Datatype):
     challengeList: list[Challenge]
     challengeRunList: list[ChallengeRun]
 
+class r_GetUserSummary(Datatype):
+    user: User
+    userProfile: UserReducedProfile
+    userStats: UserStats
+    userGameFollowerStats: list[UserGameFollow]
+    """Empty list if the user has set game follows to private."""
+    userGameModeratorStats: list[UserModerationStats]
+    userGameRunnerStats: list[UserGameRunnerStats]
+    userSocialConnectionList: list[UserSocialConnection]
+    games: list[Game]
+    theme: Theme
+    titleList: list[Title]
+
 class r_GetUserPopoverData(Datatype):
     user: User
-    userProfile: UserLeaderboardProfile
+    userProfile: UserReducedProfile
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
     games: list[Game]

@@ -395,6 +395,28 @@ class UserSocialConnection(Datatype):
     value: str
     verified: bool
 
+class UserModerationStats(Datatype):
+    gameId: str
+    level: GamePowerLevel
+    totalRuns: int
+    totalTime: int
+    minDate: int
+    maxDate: int
+
+class UserGameFollow(Datatype):
+    gameId: str
+    accessCount: int
+    lastAccessDate: int
+
+class UserGameRunnerStats(Datatype):
+    gameId: str
+    totalRuns: int
+    totalTime: int
+    uniqueLevels: int
+    uniqueCategories: int
+    minDate: int
+    maxDate: int
+
 class GameOrderGroup(Datatype):
     id: str
     name: str
@@ -416,8 +438,8 @@ class UserProfile(Datatype):
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
 
-class UserLeaderboardProfile(Datatype):
-    """UserProfile as returned by GetUserLeaderboard & GetUserPopoverData.
+class UserReducedProfile(Datatype):
+    """UserProfile as returned by GetUserLeaderboard, GetUserSummary & GetUserPopoverData.
     
     Missing userStats and userSocialConnectionList."""
     userId: str

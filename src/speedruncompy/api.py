@@ -1,9 +1,12 @@
 import base64, json
 import logging
 import asyncio, aiohttp
+import random
 from typing import Awaitable, Callable, Any, Generic, TypeVar
 
-from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype
+from yarl import URL
+
+from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype, Pagination
 from .exceptions import *
 
 API_URI = "https://www.speedrun.com/api/v2/"
@@ -24,13 +27,15 @@ class SpeedrunComPy():
         else:
             self._log = _log.getChild(user_agent)
 
-    def set_phpsessid(self, phpsessid):
+    def _get_PHPSESSID(self) -> str | None:
+        cookie = self.cookie_jar.filter_cookies(URL("/")).get("PHPSESSID")
+        return None if cookie is None else cookie.value
+
+    def _set_PHPSESSID(self, phpsessid):
         self.cookie_jar.update_cookies({"PHPSESSID": phpsessid})
     
-    def get_phpsessid(self):
-        return self.cookie_jar
-    
-    PHPSessID = property(get_phpsessid, set_phpsessid)
+    PHPSESSID = property(_get_PHPSESSID, _set_PHPSESSID)
+    """Login token. Set by `PutAuthLogin`, or you may set it manually to a logged in session."""
 
     @staticmethod
     def _encode_r(params: dict):
@@ -63,7 +68,7 @@ _default = SpeedrunComPy()
 
 
 def set_default_PHPSESSID(phpsessionid):
-    _default.cookie_jar.update({"PHPSESSID": phpsessionid})
+    _default.PHPSESSID = phpsessionid
 
 
 R = TypeVar('R', bound=Datatype)
@@ -84,17 +89,18 @@ class BaseRequest(Generic[R]):
         """Updates parameters using values set in kwargs"""
         self.params.update(kwargs)
 
-    def perform(self, retries=5, delay=1, **kwargs) -> R:
+    def perform(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
         """Synchronously perform the request.
         
         NB: This uses its own event loop, so if using `asyncio` use `perform_async()` instead."""
         try:
-            return asyncio.run(self.perform_async(retries, delay, **kwargs))
+            return asyncio.run(self.perform_async(retries, delay, autovary, **kwargs))
         except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
-    async def perform_async(self, retries=5, delay=1, **kwargs) -> R:
+    async def perform_async(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
         """Asynchronously perform the request. Remember to `await` me!"""
+        if autovary is True: kwargs | {"vary": random.randint(1, 1000000000)}
         self.response = await self.method(self.endpoint, self.params | kwargs)
         content = self.response[0]
         status = self.response[1]
@@ -114,13 +120,14 @@ class BaseRequest(Generic[R]):
                     if status == 408: raise RequestTimeout(self)
                     else: raise ServerException(self)
         
-        if status == 400: raise BadRequest(self)
-        if status == 401: raise Unauthorized(self)
-        if status == 403: raise Forbidden(self)
-        if status == 404: raise NotFound(self)
-        if status == 405: raise MethodNotAllowed(self)
-        if status == 408: raise RequestTimeout(self)
-        if status == 429: raise RateLimitExceeded(self)
+        match status:
+            case 400: raise BadRequest(self)
+            case 401: raise Unauthorized(self)
+            case 403: raise Forbidden(self)
+            case 404: raise NotFound(self)
+            case 405: raise MethodNotAllowed(self)
+            case 408: raise RequestTimeout(self)
+            case 429: raise RateLimitExceeded(self)
 
         if (status >= 500 and status <= 599): raise ServerException(self)
 
@@ -133,33 +140,38 @@ class BaseRequest(Generic[R]):
 
 class BasePaginatedRequest(BaseRequest[R], Generic[R]):
     def _combine_results(self, pages: dict[int, R]) -> R:
-        raise NotImplementedError("perform_all or perform_all_async on {type(self).__name__} is NOT yet implemented! Use _perform_all_raw() or _perform_all_async_raw()")
-        return pages
+        raise NotImplementedError(f"perform_all or perform_all_async on {type(self).__name__} is NOT yet implemented! Use _perform_all_raw() or _perform_all_async_raw()")
 
-    def perform_all(self, retries=5, delay=1) -> R:
+    def _get_pagination(self, p: R) -> Pagination:
+        """Locates the pagination object on a response. Overriden on certain subclasses."""
+        return p["pagination"]
+    
+    def perform_all(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = self._perform_all_raw(retries, delay)
+        pages = self._perform_all_raw(retries, delay, max_pages, autovary, **kwargs)
         return self._combine_results(pages)
     
-    def _perform_all_raw(self, retries=5, delay=1) -> dict[int, R]:
+    def _perform_all_raw(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         try:
-            return asyncio.run(self._perform_all_async_raw(retries, delay))
+            return asyncio.run(self._perform_all_async_raw(retries, delay, max_pages, autovary, **kwargs))
         except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
-    async def perform_all_async(self, retries=5, delay=1) -> R:
+    async def perform_all_async(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await self._perform_all_async_raw(retries, delay)
+        pages = await self._perform_all_async_raw(retries, delay, max_pages, autovary, **kwargs)
         return self._combine_results(pages)
     
-    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, R]:
+    async def _perform_all_async_raw(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages: dict[int, R] = {}
-        self.pages[1] = await self.perform_async(retries, delay, page=1)
-        numpages = self.pages[1]["pagination"]["pages"]
+        self.pages[1] = await self.perform_async(retries, delay, autovary, page=1, **kwargs)
+        numpages = self._get_pagination(self.pages[1])["pages"]
+        if max_pages != -1:
+            numpages = min(numpages, max_pages)
         if numpages > 1:
-            results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
+            results = await asyncio.gather(*[self.perform_async(retries, delay, autovary, page=p, **kwargs) for p in range(2, numpages + 1)])
             self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
 

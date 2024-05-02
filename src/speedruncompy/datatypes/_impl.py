@@ -5,7 +5,7 @@ from json import JSONEncoder, dumps
 import typing
 
 from ..exceptions import IncompleteDatatype
-from . import config
+from .. import config
 import logging
 
 
@@ -71,7 +71,7 @@ class Datatype():
                 self.__dict__[name] = template[pos]
         elif isinstance(template, Datatype):
             self.__dict__ |= template.get_dict()
-        if not skipChecking and config.COERCION != -1:
+        if not skipChecking and config.COERCION != config.CoercionLevel.DISABLED:
             self.enforce_types()
     
     @classmethod
@@ -109,7 +109,7 @@ class Datatype():
                 if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
                 elif not is_type(attr, hint):
                     msg = f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__} = {attr}"
-                    if config.COERCION == 1: raise AttributeError(msg)
+                    if config.COERCION == config.CoercionLevel.STRICT: raise AttributeError(msg)
                     else: _log.warning(msg)
 
         if len(missing_fields) > 0:

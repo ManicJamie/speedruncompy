@@ -1,7 +1,7 @@
 from speedruncompy.endpoints import *
 from speedruncompy.api import SpeedrunComPy, _default
 from speedruncompy.exceptions import *
-from speedruncompy import datatypes
+from speedruncompy import config as srccfg
 from utils import check_datatype_coverage, check_pages
 
 import pytest, os, logging, asyncio
@@ -67,19 +67,19 @@ logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.
 # See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
-datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
+srccfg.COERCION = srccfg.CoercionLevel.STRICT
 
 @pytest.fixture()
 def loose_type_conformance():
-    datatypes.config.COERCION = datatypes.config.CoercionLevel.ENABLED
+    srccfg.COERCION = srccfg.CoercionLevel.ENABLED
     yield
-    datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
+    srccfg.COERCION = srccfg.CoercionLevel.STRICT
 
 @pytest.fixture()
 def disable_type_checking():
-    datatypes.config.COERCION = datatypes.config.CoercionLevel.DISABLED
+    srccfg.COERCION = srccfg.CoercionLevel.DISABLED
     yield
-    datatypes.config.COERCION = datatypes.config.CoercionLevel.STRICT
+    srccfg.COERCION = srccfg.CoercionLevel.STRICT
 
 @pytest.fixture(autouse=True)
 def check_api_conformance():
@@ -92,10 +92,10 @@ def log_result(result: dict):
 
 class TestGeneric():
     api = SpeedrunComPy("Test")
-    api.set_phpsessid(SESSID)
+    api.PHPSESSID = SESSID
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
-    low_api.set_phpsessid(LOW_SESSID)
+    low_api.PHPSESSID = LOW_SESSID
 
     def test_GetAsync(self):
         result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_async())
@@ -133,7 +133,7 @@ class TestGeneric():
 
 class TestGetRequests():
     api = SpeedrunComPy("Test")
-    api.set_phpsessid(SESSID)
+    api.PHPSESSID = SESSID
 
     def test_GetGameLeaderboard(self):
         result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform()
@@ -206,6 +206,11 @@ class TestGetRequests():
     
     def test_GetRun(self):
         result = GetRun(run_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserSummary(self):
+        result = GetUserSummary(user_url).perform()
         log_result(result)
         check_datatype_coverage(result)
     
@@ -341,6 +346,16 @@ class TestGetRequests():
         result = GetStreamList().perform()
         log_result(result)
         check_datatype_coverage(result)
+    
+    def test_GetStreamList_game(self):
+        result = GetStreamList(gameId=game_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+
+    def test_GetStreamList_series(self):
+        result = GetStreamList(seriesId=series_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
 
     def test_GetThreadList(self):
         result = GetThreadList(forum_id).perform()
@@ -359,10 +374,10 @@ class TestGetRequests():
 
 class TestPostRequests():
     api = SpeedrunComPy("Test")
-    api.set_phpsessid(SESSID)
+    api.PHPSESSID = SESSID
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
-    low_api.set_phpsessid(LOW_SESSID)
+    low_api.PHPSESSID = LOW_SESSID
 
     def test_GetSession(self):
         result = GetSession(_api=self.api).perform()
@@ -575,16 +590,16 @@ class TestPostRequests():
 class TestPutRequests():
     """Requests that modify site data"""
     api = SpeedrunComPy("Test")
-    api.set_phpsessid(SESSID)
+    api._set_PHPSESSID(SESSID)
 
     low_api = SpeedrunComPy("Test_LOWAUTH")
-    low_api.set_phpsessid(LOW_SESSID)
+    low_api._set_PHPSESSID(LOW_SESSID)
 
     @pytest.fixture(scope="class")
     def testingGame(self):
         """Provides a game for testing. Later will use PutGame to construct the game for testing"""
         # For now, using Out of the Void for the game
-        gData = GetGameData(gameUrl="out_of_the_void").perform()
+        gData = GetGameData(gameUrl="ThirdParty_Testing").perform()
         check_datatype_coverage(gData)
         yield gData
         # Teardown?

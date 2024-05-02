@@ -31,7 +31,7 @@ def login(username: str, pwd: str, _api: SpeedrunComPy = _default, tokenEntry: b
 
 def login_PHPSESSID(sessID: str, _api: SpeedrunComPy = _default):
     """Login using PHPSESSID. Uses GetSession to check if session is logged in."""
-    _api.set_phpsessid(sessID)
+    _api.PHPSESSID = sessID
     result = GetSession(_api=_api).perform()
     if not result["session"]["signedIn"]:
         log.error("Provided PHPSESSID is not logged in - use speedruncompy.auth.login() instead")

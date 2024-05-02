@@ -1,9 +1,7 @@
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy
 from .enums import *
 from .responses import *
-import asyncio
-
-SUPPRESS_WARNINGS = False
+from .datatypes import Pagination
 
 """
 GET requests are all unauthed & do not require PHPSESSID.
@@ -12,20 +10,28 @@ GET requests are all unauthed & do not require PHPSESSID.
 class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedRequest[r_GetGameLeaderboard2]):
     """The default leaderboard view.
     
+    NB: by default runs without video are excluded; provide `video = 0` to include them.
+    
     ### Mandatory:
-    @gameId
-    @categoryId
-    @levelId: If `categoryId` refers to a level category.
+    - @gameId
+    - @categoryId
 
     ### Optional:
-    TODO
-
-    Note that by default runs without video are excluded; provide `video = 0` to include them."""
+    - @levelId: If `categoryId` refers to a level category. # TODO: check if mandatory
+    - @video: `VideoFilter` = 1 (=Required (!))
+    - @timer: TimerName to sort by
+    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    - @platformIds
+    - @regionIds
+    - @dateFrom: datestr
+    - @dateTo: datestr
+    - @page
+    """
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        super().__init__("GetGameLeaderboard2", returns=r_GetGameLeaderboard2, _api=_api,
+        super().__init__("GetGameLeaderboard2", r_GetGameLeaderboard2, _api=_api,
                          page=page, **param_construct)
 
     def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
@@ -43,25 +49,26 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
     ### Mandatory:
     - @gameId
     - @categoryId
-    - @levelId: If `categoryId` refers to a level category.
 
-    ### Optional:
-    TODO
+    ### Optional: # TODO: These are copied from GetGameLeaderboard2, check if correct
+    - @levelId: If `categoryId` refers to a level category. # TODO: check if mandatory
+    - @video: `VideoFilter` = 1 (=Required) (!)
+    - @timer: TimerName to sort by
+    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    - @platformIds
+    - @regionIds
+    - @dateFrom: datestr
+    - @dateTo: datestr
+    - @page
     """
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        super().__init__("GetGameLeaderboard", returns=r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
+        super().__init__("GetGameLeaderboard", r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
     
-    async def _perform_all_async_raw(self, retries=5, delay=1) -> dict[int, r_GetGameLeaderboard]:
-        self.pages: dict[int, r_GetGameLeaderboard] = {}
-        self.pages[1] = await self.perform_async(retries, delay, page=1)
-        numpages = self.pages[1]["leaderboard"]["pagination"]["pages"]
-        if numpages > 1:
-            results = await asyncio.gather(*[self.perform_async(retries, delay, page=p) for p in range(2, numpages + 1)])
-            self.pages.update({p + 2: result for p, result in enumerate(results)})
-        return self.pages
+    def _get_pagination(self, p: r_GetGameLeaderboard) -> Pagination:
+        return p["leaderboard"]["pagination"]
 
     def _combine_results(self, pages: dict):
         runList = []
@@ -73,7 +80,7 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
         return r_GetGameLeaderboard({"leaderboard": Leaderboard(extras | {"runs": runList})})
 
 class GetGameData(GetRequest[r_GetGameData]):
-    """ TODO
+    """Gets game data used for discovering runs.
     
     ### Mandatory:
     #### One of:
@@ -81,10 +88,10 @@ class GetGameData(GetRequest[r_GetGameData]):
     - @gameUrl
     """
     def __init__(self, gameId: str | None = None, gameUrl: str | None = None, **params) -> None:
-        super().__init__("GetGameData", returns=r_GetGameData, gameId=gameId, gameUrl=gameUrl, **params)
+        super().__init__("GetGameData", r_GetGameData, gameId=gameId, gameUrl=gameUrl, **params)
 
 class GetGameSummary(GetRequest[r_GetGameSummary]):
-    """ TODO
+    """Gets game metadata used for discovering forums, news, stats, threads etc.
     
     ### Mandatory:
     #### One of:
@@ -92,7 +99,7 @@ class GetGameSummary(GetRequest[r_GetGameSummary]):
     - @gameUrl
     """
     def __init__(self, gameId: str | None = None, gameUrl: str | None = None, **params) -> None:
-        super().__init__("GetGameSummary", returns=r_GetGameSummary, gameId=gameId, gameUrl=gameUrl, **params)
+        super().__init__("GetGameSummary", r_GetGameSummary, gameId=gameId, gameUrl=gameUrl, **params)
 
 class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
     """Get the record history of a category.
@@ -110,7 +117,7 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
-        super().__init__("GetGameRecordHistory", returns=r_GetGameRecordHistory, _api=_api, page=page, **param_construct)
+        super().__init__("GetGameRecordHistory", r_GetGameRecordHistory, _api=_api, page=page, **param_construct)
 
 class GetSearch(GetRequest[r_GetSearch]):
     """Search for an object based on its name. May include multiple types to search for at once.
@@ -125,7 +132,7 @@ class GetSearch(GetRequest[r_GetSearch]):
     - @includeChallenges
     """
     def __init__(self, query: str, **params) -> None:
-        super().__init__("GetSearch", returns=r_GetSearch, query=query, **params)
+        super().__init__("GetSearch", r_GetSearch, query=query, **params)
 
 class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     """Gets most recent runs.
@@ -136,7 +143,7 @@ class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     - @limit: <= 999 = 10
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetLatestLeaderboard", returns=r_GetLatestLeaderboard, **params)
+        super().__init__("GetLatestLeaderboard", r_GetLatestLeaderboard, **params)
 
 class GetRun(GetRequest[r_GetRun]):
     """Gets all parameters pertinent to displaying a single run.
@@ -145,7 +152,16 @@ class GetRun(GetRequest[r_GetRun]):
     - @runId
     """
     def __init__(self, runId: str, **params) -> None:
-        super().__init__("GetRun", returns=r_GetRun, runId=runId, **params)
+        super().__init__("GetRun", r_GetRun, runId=runId, **params)
+
+class GetUserSummary(GetRequest[r_GetUserSummary]):
+    """Gets a user's profile data.
+    
+    ### Mandatory:
+    - @url
+    """
+    def __init__(self, url: str, **params) -> None:
+        super().__init__("GetUserSummary", r_GetUserSummary, url=url, **params)
 
 class GetUserPopoverData(GetRequest[r_GetUserPopoverData]):
     """Gets data for user popovers. Includes `userSocialConnectionList`, `userStats` & `titleList`.
@@ -154,13 +170,13 @@ class GetUserPopoverData(GetRequest[r_GetUserPopoverData]):
     - @userId
     """
     def __init__(self, userId, **params) -> None:
-        super().__init__("GetUserPopoverData", returns=r_GetUserPopoverData, userId=userId, **params)
+        super().__init__("GetUserPopoverData", r_GetUserPopoverData, userId=userId, **params)
 
 class GetTitleList(GetRequest[r_GetTitleList]):
     """Gets a list of all titles available on the site.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetTitleList", returns=r_GetTitleList, **params)
+        super().__init__("GetTitleList", r_GetTitleList, **params)
 
 class GetTitle(GetRequest[r_GetTitle]):
     """Gets a specific title.
@@ -169,7 +185,7 @@ class GetTitle(GetRequest[r_GetTitle]):
     - @titleId
     """
     def __init__(self, titleId, **params) -> None:
-        super().__init__("GetTitle", returns=r_GetTitle, titleId=titleId, **params)
+        super().__init__("GetTitle", r_GetTitle, titleId=titleId, **params)
 
 class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArticleList]):
     """Gets a list of articles on the site.
@@ -178,7 +194,7 @@ class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArt
     - @limit: <= 500 = 500. Number of elements per page.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetArticleList", returns=r_GetArticleList, **params)
+        super().__init__("GetArticleList", r_GetArticleList, **params)
 
     def _combine_results(self, pages: dict[int, r_GetArticleList]) -> r_GetArticleList:
         articleList: list[Article] = []
@@ -204,7 +220,7 @@ class GetArticle(GetRequest[r_GetArticle]):
     - @slug
     """
     def __init__(self, id: str | None = None, slug: str | None = None, **params) -> None:
-        super().__init__("GetArticle", returns=r_GetArticle, id=id, slug=slug, **params)
+        super().__init__("GetArticle", r_GetArticle, id=id, slug=slug, **params)
 
 class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]):
     """Gets a list of all games on the site.
@@ -212,7 +228,7 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
     ### Optional:
     - @limit: <= 200 = 500 (!)"""
     def __init__(self, **params) -> None:
-        super().__init__("GetGameList", returns=r_GetGameList, **params)
+        super().__init__("GetGameList", r_GetGameList, **params)
     
     def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
         gameList = []
@@ -227,7 +243,7 @@ class GetHomeSummary(GetRequest[r_GetHomeSummary]):
     """Gets information for the home page. Often empty.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetHomeSummary", returns=r_GetHomeSummary, **params)
+        super().__init__("GetHomeSummary", r_GetHomeSummary, **params)
 
 class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSeriesList]):
     """Gets a list of series on the site.
@@ -236,7 +252,7 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
     - @limit: <= 500 = 500
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetSeriesList", returns=r_GetSeriesList, **params)
+        super().__init__("GetSeriesList", r_GetSeriesList, **params)
 
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
         seriesList = []
@@ -256,15 +272,28 @@ class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
     - @seriesUrl
     """
     def __init__(self, seriesId: str | None = None, seriesUrl: str | None = None, **params) -> None:
-        super().__init__("GetSeriesSummary", returns=r_GetSeriesSummary, seriesId=seriesId, seriesUrl=seriesUrl, **params)
+        super().__init__("GetSeriesSummary", r_GetSeriesSummary, seriesId=seriesId, seriesUrl=seriesUrl, **params)
 
 class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
-    """Note: This can take a `page` param but does not split into pages?"""
-    # TODO: check what's going on here
+    """Gets the top 3 runs from all levels under a level category.
+    
+    ### Mandatory:
+    - @gameId
+    - @categoryId
+    
+    ### Optional:
+    - @video: `VideoFilter` = 1 (required) (!)
+    - @timer: TimerName to sort by
+    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    - @platformIds
+    - @regionIds
+    - @dateFrom: datestr
+    - @dateTo: datestr
+    """
     def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId} | params}
-        super().__init__("GetGameLevelSummary", returns=r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
+        super().__init__("GetGameLevelSummary", r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
 
 class GetGuideList(GetRequest[r_GetGuideList]):
     """Gets all guides on a game.
@@ -273,7 +302,7 @@ class GetGuideList(GetRequest[r_GetGuideList]):
     - @gameId
     """
     def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetGuideList", returns=r_GetGuideList, gameId=gameId, **params)
+        super().__init__("GetGuideList", r_GetGuideList, gameId=gameId, **params)
 
 class GetGuide(GetRequest[r_GetGuide]):
     """Get a specific guide by id.
@@ -282,7 +311,7 @@ class GetGuide(GetRequest[r_GetGuide]):
     - @id
     """
     def __init__(self, id: str, **params) -> None:
-        super().__init__("GetGuide", returns=r_GetGuide, id=id, **params)
+        super().__init__("GetGuide", r_GetGuide, id=id, **params)
 
 class GetNewsList(GetRequest[r_GetNewsList]):
     """Get a list of game news articles.
@@ -291,7 +320,7 @@ class GetNewsList(GetRequest[r_GetNewsList]):
     - @gameId
     """
     def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetNewsList", returns=r_GetNewsList, gameId=gameId, **params)
+        super().__init__("GetNewsList", r_GetNewsList, gameId=gameId, **params)
 
 class GetNews(GetRequest[r_GetNews]):
     """Get a game news article.
@@ -300,7 +329,7 @@ class GetNews(GetRequest[r_GetNews]):
     - @id
     """
     def __init__(self, id: str, **params) -> None:
-        super().__init__("GetNews", returns=r_GetNews, id=id, **params)
+        super().__init__("GetNews", r_GetNews, id=id, **params)
 
 class GetResourceList(GetRequest[r_GetResourceList]):
     """Get a list of a game's resources.
@@ -309,13 +338,17 @@ class GetResourceList(GetRequest[r_GetResourceList]):
     - @gameId
     """
     def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetResourceList", returns=r_GetResourceList, gameId=gameId, **params)
+        super().__init__("GetResourceList", r_GetResourceList, gameId=gameId, **params)
 
 class GetStreamList(GetRequest[r_GetStreamList]):
-    """TODO: documentation
+    """Gets a list of live runners.
+    
+    ## Optional:
+    - @seriesId
+    - @gameId
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetStreamList", returns=r_GetStreamList, **params)
+        super().__init__("GetStreamList", r_GetStreamList, **params)
 
 class GetThreadList(GetRequest[r_GetThreadList]):
     """Get threads on a forum.
@@ -324,7 +357,7 @@ class GetThreadList(GetRequest[r_GetThreadList]):
     - @forumId
     """
     def __init__(self, forumId: str, **params) -> None:
-        super().__init__("GetThreadList", returns=r_GetThreadList, forumId=forumId, **params)
+        super().__init__("GetThreadList", r_GetThreadList, forumId=forumId, **params)
 
 class GetChallenge(GetRequest[r_GetChallenge]):
     """Get a specific Challenge.
@@ -333,7 +366,7 @@ class GetChallenge(GetRequest[r_GetChallenge]):
     - @id
     """
     def __init__(self, id, **params) -> None:
-        super().__init__("GetChallenge", returns=r_GetChallenge, id=id, **params)
+        super().__init__("GetChallenge", r_GetChallenge, id=id, **params)
 
 class GetChallengeLeaderboard(GetRequest[r_GetChallengeLeaderboard], BasePaginatedRequest[r_GetChallengeLeaderboard]):
     """Get runs from a Challenge board.
@@ -342,13 +375,13 @@ class GetChallengeLeaderboard(GetRequest[r_GetChallengeLeaderboard], BasePaginat
     - @challengeId
     """
     def __init__(self, challengeId, **params) -> None:
-        super().__init__("GetChallengeLeaderboard", returns=r_GetChallengeLeaderboard, challengeId=challengeId, **params)
+        super().__init__("GetChallengeLeaderboard", r_GetChallengeLeaderboard, challengeId=challengeId, **params)
 
 class GetChallengeGlobalRankingList(GetRequest[r_GetChallengeGlobalRankingList]):
     """Get a sitewide leaderboard for users who have won the most in Challenges.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetChallengeGlobalRankingList", returns=r_GetChallengeGlobalRankingList, **params)
+        super().__init__("GetChallengeGlobalRankingList", r_GetChallengeGlobalRankingList, **params)
 
 class GetChallengeRun(GetRequest[r_GetChallengeRun]):
     """Get a specific Challenge run (not the same as a normal run!)
@@ -357,7 +390,7 @@ class GetChallengeRun(GetRequest[r_GetChallengeRun]):
     - @id
     """
     def __init__(self, id, **params) -> None:
-        super().__init__("GetChallengeRun", returns=r_GetChallengeRun, id=id, **params)
+        super().__init__("GetChallengeRun", r_GetChallengeRun, id=id, **params)
 
 # The below are POSTed by the site, but also accept GET so are placed here to separate from endpoints requiring auth.
 class GetUserLeaderboard(GetRequest[r_GetUserLeaderboard]):
@@ -367,7 +400,7 @@ class GetUserLeaderboard(GetRequest[r_GetUserLeaderboard]):
     - @userId
     """
     def __init__(self, userId: str, **params) -> None:
-        super().__init__("GetUserLeaderboard", returns=r_GetUserLeaderboard, userId=userId, **params)
+        super().__init__("GetUserLeaderboard", r_GetUserLeaderboard, userId=userId, **params)
 
 class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCommentList]):
     """Get a list of comments on an item.
@@ -376,8 +409,8 @@ class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCom
     - @itemId
     - @itemType: ItemType of the above `itemId`
     """
-    def __init__(self, itemId: str, itemType: int, **params) -> None:
-        super().__init__("GetCommentList", returns=r_GetCommentList, itemId=itemId, itemType=itemType, **params)
+    def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
+        super().__init__("GetCommentList", r_GetCommentList, itemId=itemId, itemType=itemType, **params)
     
     def _combine_results(self, pages: dict[int, r_GetCommentList]) -> r_GetCommentList:
         # TODO: check likeList, userList for page separation
@@ -395,7 +428,7 @@ class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     - @id
     """
     def __init__(self, id: str, **params) -> None:
-        super().__init__("GetThread", returns=r_GetThread, id=id, **params)
+        super().__init__("GetThread", r_GetThread, id=id, **params)
 
     def _combine_results(self, pages: dict[int, r_GetThread]) -> r_GetThread:
         commentList = []
@@ -410,7 +443,7 @@ class GetForumList(GetRequest[r_GetForumList]):
     """Get a list of site-wide forums. When logged in, may include forums of followed games.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetForumList", returns=r_GetForumList, **params)
+        super().__init__("GetForumList", r_GetForumList, **params)
 
 
 """
@@ -428,14 +461,14 @@ class PutAuthLogin(PostRequest[r_PutAuthLogin]):
     - @token: On second attempt if 2FA is enabled.
     """
     def __init__(self, name: str, password: str, token: str | None = None, **params) -> None:
-        super().__init__("PutAuthLogin", returns=r_PutAuthLogin, name=name, password=password, token=token, **params)
+        super().__init__("PutAuthLogin", r_PutAuthLogin, name=name, password=password, token=token, **params)
 
 class PutAuthLogout(PostRequest[r_Empty]):
     """Logs out.
     Provide `_api` to log out a specific API instance, otherwise the default instance will be used.
     """
     def __init__(self, **params) -> None:
-        super().__init__("PutAuthLogout", returns=r_Empty, **params)
+        super().__init__("PutAuthLogout", r_Empty, **params)
 
 class PutAuthSignup(PostRequest[r_PutAuthSignup]):
     """Creates & logs in to a new account.
@@ -443,21 +476,21 @@ class PutAuthSignup(PostRequest[r_PutAuthSignup]):
     Parameters undocumented.
     """
     def __init__(self, **params) -> None:
-        super().__init__("PutAuthSignup", returns=r_PutAuthSignup, **params)
+        super().__init__("PutAuthSignup", r_PutAuthSignup, **params)
 
 class GetSession(PostRequest[r_GetSession]):
     """Gets information about the current user's session.
     Includes `csrfToken`, required for some endpoints.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetSession", returns=r_GetSession, **params)
+        super().__init__("GetSession", r_GetSession, **params)
     
 class PutSessionPing(PostRequest[r_PutSessionPing]):
     """Tells SRC to renew your session. Some other endpoints will renew your session.
     May be required to keep your session alive without re-login.
     """
     def __init__(self, **params) -> None:
-        super().__init__("PutSessionPing", returns=r_PutSessionPing, **params)
+        super().__init__("PutSessionPing", r_PutSessionPing, **params)
 
 # Supermod actions
 class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_GetAuditLogList]):
@@ -475,7 +508,7 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
     """
     def __init__(self, gameId: str | None = None, seriesId: str | None = None, userId: str | None = None, actorId: str | None = None,
                  eventType: EventType = EventType.NONE, page: int = 1, **params) -> None:
-        super().__init__("GetAuditLogList", returns=r_GetAuditLogList, gameId=gameId, seriesId=seriesId,
+        super().__init__("GetAuditLogList", r_GetAuditLogList, gameId=gameId, seriesId=seriesId,
                          userId=userId, actorId=actorId, eventType=eventType, page=page, **params)
     
     def _combine_results(self, pages: dict):
@@ -484,13 +517,13 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
 
 # Mod actions
 class GetGameSettings(PostRequest[r_GetGameSettings]):
-    """Get a game's settings. Must be at least a verifier(?) on the game. #  TODO: check
+    """Get a game's settings. Must be at least a verifier on the game.
     
     ### Mandatory:
     - @gameId
     """
     def __init__(self, gameId: str, **params) -> None:
-        super().__init__("GetGameSettings", returns=r_GetGameSettings, gameId=gameId, **params)
+        super().__init__("GetGameSettings", r_GetGameSettings, gameId=gameId, **params)
 
 class PutGameSettings(PostRequest[r_PutGameSettings]):
     """Set a game's settings. Must be at least a moderator on the game.
@@ -500,7 +533,7 @@ class PutGameSettings(PostRequest[r_PutGameSettings]):
     - @settings
     """
     def __init__(self, gameId: str, settings: GameSettings, **params) -> None:
-        super().__init__("PutGameSettings", returns=r_PutGameSettings, gameId=gameId, settings=settings, **params)
+        super().__init__("PutGameSettings", r_PutGameSettings, gameId=gameId, settings=settings, **params)
 
 class PutVariable(PostRequest[r_Empty]):
     """Add a new variable to a game. TODO: check if values / defaultValue are required.
@@ -510,7 +543,7 @@ class PutVariable(PostRequest[r_Empty]):
     - @variable: Constructed `Variable` object. `defaultValue` must be equal to the id on `values`
     - @values: List of constructed `Value` objects. One of these `id`s must match `defaultValue`"""
     def __init__(self, gameId: str, variable: Variable, values: list[Value], **params) -> None:
-        super().__init__("PutVariable", returns=r_Empty, gameId=gameId, variable=variable, values=values, **params)
+        super().__init__("PutVariable", r_Empty, gameId=gameId, variable=variable, values=values, **params)
 
 class PutVariableUpdate(PostRequest[r_Empty]):
     """Add a new variable to a game. TODO: check if values / defaultValue are required.
@@ -521,7 +554,7 @@ class PutVariableUpdate(PostRequest[r_Empty]):
     - @variable: Constructed `Variable` object.
     - @values: List of constructed `Value` objects."""
     def __init__(self, gameId: str, variableId: str, variable: Variable, values: list[Value], **params) -> None:
-        super().__init__("PutVariable", returns=r_Empty, gameId=gameId, variableId=variableId, variable=variable, values=values, **params)
+        super().__init__("PutVariable", r_Empty, gameId=gameId, variableId=variableId, variable=variable, values=values, **params)
 
 class PutVariableApplyDefault(PostRequest[r_Ok]):
     """Set the default value on a variable.
@@ -531,7 +564,7 @@ class PutVariableApplyDefault(PostRequest[r_Ok]):
     - @variableId
     """
     def __init__(self, gameId: str, variableId: str, **params) -> None:
-        super().__init__("PutVariable", returns=r_Ok, gameId=gameId, variableId=variableId, **params)
+        super().__init__("PutVariable", r_Ok, gameId=gameId, variableId=variableId, **params)
 
 # Run verification
 class GetModerationGames(PostRequest[r_GetModerationGames]):
@@ -539,7 +572,7 @@ class GetModerationGames(PostRequest[r_GetModerationGames]):
         WARN: does not error when not logged in, instead the response fields will be None.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetModerationGames", returns=r_GetModerationGames, **params)
+        super().__init__("GetModerationGames", r_GetModerationGames, **params)
 
 class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r_GetModerationRuns]):
     """Get data for runs waiting in the moderation queue for a game.
@@ -555,7 +588,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
     - @verifiedById
     """
     def __init__(self, gameId: str, limit: int, page: int = 1, **params) -> None:
-        super().__init__("GetModerationRuns", returns=r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
+        super().__init__("GetModerationRuns", r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
         # TODO: is this all really necessary?
@@ -581,7 +614,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
 class PutRunAssignee(PostRequest[r_PutRunAssignee]):
     """Assigns a verifier to a run."""
     def __init__(self, assigneeId: str, runId: str, **params) -> None:
-        super().__init__("PutRunAssignee", returns=r_PutRunAssignee, assigneeId=assigneeId, runId=runId, **params)
+        super().__init__("PutRunAssignee", r_PutRunAssignee, assigneeId=assigneeId, runId=runId, **params)
 
 class PutRunVerification(PostRequest[r_PutRunVerification]):
     """Assigns a verification level `Verified` to a run.
@@ -591,14 +624,14 @@ class PutRunVerification(PostRequest[r_PutRunVerification]):
     - @verified: `Verified.PENDING`, `Verified.VERIFIED`, `Verified.REJECTED`
     """
     def __init__(self, runId: str, verified: Verified, **params) -> None:
-        super().__init__("PutRunVerification", returns=r_PutRunVerification, runId=runId, verified=verified, **params)
+        super().__init__("PutRunVerification", r_PutRunVerification, runId=runId, verified=verified, **params)
 
 # Run management
 class GetRunSettings(PostRequest[r_GetRunSettings]):
     """Gets a run's settings
     """
     def __init__(self, runId: str, **params) -> None:
-        super().__init__("GetRunSettings", returns=r_GetRunSettings, runId=runId, **params)
+        super().__init__("GetRunSettings", r_GetRunSettings, runId=runId, **params)
 
 class PutRunSettings(PostRequest[r_PutRunSettings]):
     """Sets a run's settings OR submit a new run if `settings.runId` is None.
@@ -609,14 +642,14 @@ class PutRunSettings(PostRequest[r_PutRunSettings]):
     """
     def __init__(self, csrfToken: str, settings: RunSettings, **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
-        super().__init__("PutRunSettings", returns=r_PutRunSettings, csrfToken=csrfToken, settings=settings, **params)
+        super().__init__("PutRunSettings", r_PutRunSettings, csrfToken=csrfToken, settings=settings, **params)
 
 # User inbox actions
 class GetConversations(PostRequest[r_GetConversations]):
     """Gets conversations the user is involved in.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetConversations", returns=r_GetConversations, **params)
+        super().__init__("GetConversations", r_GetConversations, **params)
 
 class GetConversationMessages(PostRequest[r_GetConversationMessages]):
     """Gets messages from a given conversation.
@@ -625,7 +658,7 @@ class GetConversationMessages(PostRequest[r_GetConversationMessages]):
     - @conversationId
     """
     def __init__(self, conversationId, **params) -> None:
-        super().__init__("GetConversationMessages", returns=r_GetConversationMessages, conversationId=conversationId, **params)
+        super().__init__("GetConversationMessages", r_GetConversationMessages, conversationId=conversationId, **params)
 
 class PutConversation(PostRequest[r_PutConversation]):
     """Creates a new conversation. May include several users.
@@ -633,10 +666,10 @@ class PutConversation(PostRequest[r_PutConversation]):
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
     - @recipientIds: A list of other users to add to the conversation.
-    - @text: Content of the initial message. (?) #  TODO: check it's not a title.
+    - @text: Content of the initial message.
     """
     def __init__(self, csrfToken: str, recipientIds: list[str], text: str, **params) -> None:
-        super().__init__("PutConversation", returns=r_PutConversation, csrfToken=csrfToken, recipientIds=recipientIds, text=text, **params)
+        super().__init__("PutConversation", r_PutConversation, csrfToken=csrfToken, recipientIds=recipientIds, text=text, **params)
 
 class PutConversationMessage(PostRequest[r_PutConversationMessage]):
     """Sends a message to a conversation.
@@ -647,35 +680,35 @@ class PutConversationMessage(PostRequest[r_PutConversationMessage]):
     - @text
     """
     def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
-        super().__init__("PutConversationMessage", returns=r_PutConversationMessage, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
+        super().__init__("PutConversationMessage", r_PutConversationMessage, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
 
-class PutConversationLeave(PostRequest[Datatype]):  # TODO: document response
-    """Leaves a conversation. # TODO: check when this can be done.
+class PutConversationLeave(PostRequest[r_Empty]):
+    """Leaves a conversation.
 
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
     - @conversationId
     """
     def __init__(self, csrfToken: str, conversationId: str, **params) -> None:
-        super().__init__("PutConversationLeave", returns=Datatype, csrfToken=csrfToken, conversationId=conversationId, **params)
+        super().__init__("PutConversationLeave", r_Empty, csrfToken=csrfToken, conversationId=conversationId, **params)
 
-class PutConversationReport(PostRequest[Datatype]):  # TODO: document response
+class PutConversationReport(PostRequest[r_Ok]):
     """Reports a conversation.
 
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
     - @conversationId
-    - @text: Content of the report (?)  # TODO: Document
+    - @text: User description of the report
     """
     def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
-        super().__init__("PutConversationReport", returns=Datatype, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
+        super().__init__("PutConversationReport", r_Ok, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
 
 # User notifications
 class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_GetNotifications]):
     """Gets the user's notifications.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetNotifications", returns=r_GetNotifications, **params)
+        super().__init__("GetNotifications", r_GetNotifications, **params)
 
     def _combine_results(self, pages: dict[int, r_GetNotifications]) -> r_GetNotifications:
         notifications = []
@@ -694,7 +727,7 @@ class GetUserSettings(PostRequest[r_GetUserSettings]):
     - @userUrl: must be your own unless you are a site moderator.
     """
     def __init__(self, userUrl: str, **params) -> None:
-        super().__init__("GetUserSettings", returns=r_GetUserSettings, userUrl=userUrl, **params)
+        super().__init__("GetUserSettings", r_GetUserSettings, userUrl=userUrl, **params)
 
 class PutUserSettings(PostRequest[r_PutUserSettings]):
     """Sets a user's settings.
@@ -704,7 +737,7 @@ class PutUserSettings(PostRequest[r_PutUserSettings]):
     - @settings
     """
     def __init__(self, userUrl: str, settings: UserSettings, **params) -> None:
-        super().__init__("PutUserSettings", returns=r_PutUserSettings, userUrl=userUrl, settings=settings, **params)
+        super().__init__("PutUserSettings", r_PutUserSettings, userUrl=userUrl, settings=settings, **params)
 
 class PutUserUpdateFeaturedRun(PostRequest[r_PutUserUpdateFeaturedRun]):
     """Sets the run featured on a user's profile.
@@ -714,7 +747,7 @@ class PutUserUpdateFeaturedRun(PostRequest[r_PutUserUpdateFeaturedRun]):
     - @fullRunId: If omitted, clears the featured run.
     """
     def __init__(self, userUrl: str, fullRunId: str | None = None, **params) -> None:  # TODO: check if levelId is different
-        super().__init__("PutUserUpdateFeaturedRun", returns=r_PutUserUpdateFeaturedRun, userUrl=userUrl, fullRunId=fullRunId, **params)
+        super().__init__("PutUserUpdateFeaturedRun", r_PutUserUpdateFeaturedRun, userUrl=userUrl, fullRunId=fullRunId, **params)
 
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
@@ -724,8 +757,8 @@ class GetCommentable(PostRequest[r_GetCommentable]):
     - @itemId
     - @itemType
     """
-    def __init__(self, itemId: str, itemType: int, **params) -> None:
-        super().__init__("GetCommentable", returns=r_GetCommentable, itemId=itemId, itemType=itemType, **params)
+    def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
+        super().__init__("GetCommentable", r_GetCommentable, itemId=itemId, itemType=itemType, **params)
 
 class PutComment(PostRequest[r_PutComment]):
     """Posts a comment on an item.
@@ -736,7 +769,7 @@ class PutComment(PostRequest[r_PutComment]):
     - @text
     """
     def __init__(self, itemId: str, itemType: ItemType, text: str, **params) -> None:
-        super().__init__("PutComment", returns=r_PutComment, itemId=itemId, itemType=itemType, text=text, **params)
+        super().__init__("PutComment", r_PutComment, itemId=itemId, itemType=itemType, text=text, **params)
 
 class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
     """Updates commentable settings on an item.
@@ -744,10 +777,11 @@ class PutCommentableSettings(PostRequest[r_PutCommentableSettings]):
     ### Mandatory:
     - @itemId
     - @itemType
-    - other # TODO
+    - @disabled
+    - @locked
     """
-    def __init__(self, itemId: str, itemType: int, **params) -> None:
-        super().__init__("PutCommentableSettings", returns=r_PutCommentableSettings, itemId=itemId, itemType=itemType, **params)
+    def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
+        super().__init__("PutCommentableSettings", r_PutCommentableSettings, itemId=itemId, itemType=itemType, **params)
 
 # Thread Actions
 class GetThreadReadStatus(PostRequest[r_GetThreadReadStatus]):
@@ -757,7 +791,7 @@ class GetThreadReadStatus(PostRequest[r_GetThreadReadStatus]):
     - @threadIds: list of IDs
     """
     def __init__(self, threadIds: list[str], **params) -> None:
-        super().__init__("GetThreadReadStatus", returns=r_GetThreadReadStatus, threadIds=threadIds, **params)
+        super().__init__("GetThreadReadStatus", r_GetThreadReadStatus, threadIds=threadIds, **params)
 
 class PutThreadRead(PostRequest[r_PutThreadRead]):
     """Sets a thread as read by the user.
@@ -766,7 +800,7 @@ class PutThreadRead(PostRequest[r_PutThreadRead]):
     - @threadId
     """
     def __init__(self, threadId: str, **params) -> None:
-        super().__init__("PutThreadRead", returns=r_PutThreadRead, threadId=threadId, **params)
+        super().__init__("PutThreadRead", r_PutThreadRead, threadId=threadId, **params)
 
 # Forum actions
 class GetForumReadStatus(PostRequest[r_GetForumReadStatus]):
@@ -776,7 +810,7 @@ class GetForumReadStatus(PostRequest[r_GetForumReadStatus]):
     - @forumIds: list of IDs
     """
     def __init__(self, forumIds: list[str], **params) -> None:
-        super().__init__("GetForumReadStatus", returns=r_GetForumReadStatus, forumIds=forumIds, **params)
+        super().__init__("GetForumReadStatus", r_GetForumReadStatus, forumIds=forumIds, **params)
 
 # Theme actions
 class GetThemeSettings(PostRequest[r_GetThemeSettings]):
@@ -789,7 +823,7 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
     - @seriesId
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetThemeSettings", returns=r_GetThemeSettings, **params)
+        super().__init__("GetThemeSettings", r_GetThemeSettings, **params)
 
 # To Be Sorted
 class PutAdvertiseContact(PostRequest[r_Empty]):
@@ -802,14 +836,14 @@ class PutAdvertiseContact(PostRequest[r_Empty]):
     - @message
     """
     def __init__(self, name: str, company: str, email: str, message: str, **params) -> None:
-        super().__init__("PutAdvertiseContact", returns=r_Empty,
+        super().__init__("PutAdvertiseContact", r_Empty,
                          name=name, company=company, email=email, message=message, **params)
 
 class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
     """Gets tickets submitted by the user.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetTickets", returns=r_GetTickets, **params)  # TODO: needs param testing
+        super().__init__("GetTickets", r_GetTickets, **params)  # TODO: needs param testing
     
     def _combine_results(self, pages: dict):
         """TODO: method stub"""
@@ -822,13 +856,23 @@ class GetSeriesSettings(PostRequest[r_GetSeriesSettings]):
     - @seriesId
     """
     def __init__(self, seriesId: str, **params) -> None:
-        super().__init__("GetSeriesSettings", returns=r_GetSeriesSettings, seriesId=seriesId, **params)
+        super().__init__("GetSeriesSettings", r_GetSeriesSettings, seriesId=seriesId, **params)
 
 class GetUserBlocks(PostRequest[r_GetUserBlocks]):
-    """Gets blocks relevant to a user. # TODO: check blockee/blocker
+    """Gets blocks relevant to a user, both as blocker and blockee.
     """
     def __init__(self, **params) -> None:
-        super().__init__("GetUserBlocks", returns=r_GetUserBlocks, **params)
+        super().__init__("GetUserBlocks", r_GetUserBlocks, **params)
+
+class PutUserBlock(PostRequest[r_Empty]):
+    """Blocks or unblocks a user.
+    
+    ## Mandatory:
+    - @block
+    - @blockeeId
+    """
+    def __init__(self, block: bool, blockeeId: str, **params) -> None:
+        super().__init__("PutUserBlock", r_Empty, block=block, blockeeId=blockeeId, **params)
 
 class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
     """Gets supporter data for a user. # TODO: check auth
@@ -837,7 +881,7 @@ class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
     - @userUrl
     """
     def __init__(self, userUrl: str, **params) -> None:
-        super().__init__("GetUserSupporterData", returns=r_GetUserSupporterData, userUrl=userUrl, **params)
+        super().__init__("GetUserSupporterData", r_GetUserSupporterData, userUrl=userUrl, **params)
 
 class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     """Add a new game.
@@ -850,17 +894,17 @@ class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     - @seriesId
     """
     def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
-        super().__init__("PutGame", returns=r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
+        super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
 
-class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):  # TODO: test type of `anonymous`
-    """TODO
+class PutGameBoostGrant(PostRequest[r_PutGameBoostGrant]):
+    """Adds a boost to a game.
     
     ### Mandatory:
     - @gameId
     - @anonymous
     """
     def __init__(self, gameId: str, anonymous: bool, **params) -> None:
-        super().__init__("PutGameBoostGrant", returns=r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
+        super().__init__("PutGameBoostGrant", r_PutGameBoostGrant, gameId=gameId, anonymous=anonymous, **params)
 
 class PutGameModerator(PostRequest[r_PutGameModerator]):
     """Add a moderator to a game.
@@ -871,7 +915,7 @@ class PutGameModerator(PostRequest[r_PutGameModerator]):
     - @level: GamePowerLevel (-1 = verifier, 0 = mod, 1 = supermod)
     """
     def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
-        super().__init__("PutGameModerator", returns=r_PutGameModerator, gameId=gameId, userId=userId, level=level, **params)
+        super().__init__("PutGameModerator", r_PutGameModerator, gameId=gameId, userId=userId, level=level, **params)
 
 class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]):  # TODO: test `level` necessity & enum type
     """Remove a moderator from a game.
@@ -882,7 +926,7 @@ class PutGameModeratorDelete(PostRequest[r_PutGameModeratorDelete]):  # TODO: te
     - @level: TODO check necessity
     """
     def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
-        super().__init__("PutGameModeratorDelete", returns=r_PutGameModeratorDelete, gameId=gameId, userId=userId, level=level, **params)
+        super().__init__("PutGameModeratorDelete", r_PutGameModeratorDelete, gameId=gameId, userId=userId, level=level, **params)
 
 class PutSeriesGame(PostRequest[r_PutSeriesGame]):
     """Add an existing game to a series.
@@ -892,7 +936,7 @@ class PutSeriesGame(PostRequest[r_PutSeriesGame]):
     - @gameId
     """
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
-        super().__init__("PutSeriesGame", returns=r_PutSeriesGame, seriesId=seriesId, gameId=gameId, **params)
+        super().__init__("PutSeriesGame", r_PutSeriesGame, seriesId=seriesId, gameId=gameId, **params)
 
 class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
     """Remove a game from a series. Does not delete the game.
@@ -902,7 +946,7 @@ class PutSeriesGameDelete(PostRequest[r_PutSeriesGameDelete]):
     - @gameId
     """
     def __init__(self, seriesId: str, gameId: str, **params) -> None:
-        super().__init__("PutSeriesGameDelete", returns=r_PutSeriesGameDelete, seriesId=seriesId, gameId=gameId, **params)
+        super().__init__("PutSeriesGameDelete", r_PutSeriesGameDelete, seriesId=seriesId, gameId=gameId, **params)
 
 class PutTicket(PostRequest[r_PutTicket]):
     """Submits support tickets.
@@ -912,7 +956,7 @@ class PutTicket(PostRequest[r_PutTicket]):
     - @type: TicketType # TODO: check TicketType vs TicketQueue Type
     """
     def __init__(self, metadata: str, type: TicketType, **params) -> None:
-        super().__init__("PutTicket", returns=r_PutTicket, metadata=metadata, type=type, **params)
+        super().__init__("PutTicket", r_PutTicket, metadata=metadata, type=type, **params)
 
 class PutTicketNote(PostRequest[r_Ok]):
     """Adds a note/message to a ticket. When `isMessage` is `false`, only admins can post or read the note.
@@ -923,7 +967,7 @@ class PutTicketNote(PostRequest[r_Ok]):
     - @isMessage: whether the note is a message to the user. `False` only permitted for admins.
     """
     def __init__(self, ticketId: str, note: str, isMessage: bool, **params) -> None:
-        super().__init__("PutTicketNote", returns=r_Ok, ticketId=ticketId, note=note, isMessage=isMessage, **params)
+        super().__init__("PutTicketNote", r_Ok, ticketId=ticketId, note=note, isMessage=isMessage, **params)
 
 class PutUserSocialConnection(PostRequest[r_PutUserSocialConnection]):  # TODO: verification?
     """Modifies a user's social connection.
@@ -934,7 +978,7 @@ class PutUserSocialConnection(PostRequest[r_PutUserSocialConnection]):  # TODO: 
     - @value
     """
     def __init__(self, userId: str, networkId: NetworkId, value: str, **params) -> None:
-        super().__init__("PutUserSocialConnection", returns=r_PutUserSocialConnection, userId=userId, networkId=networkId, value=value, **params)
+        super().__init__("PutUserSocialConnection", r_PutUserSocialConnection, userId=userId, networkId=networkId, value=value, **params)
 
 class PutUserSocialConnectionDelete(PostRequest[r_PutUserSocialConnectionDelete]):
     """Remove a user's social connection.
@@ -944,7 +988,7 @@ class PutUserSocialConnectionDelete(PostRequest[r_PutUserSocialConnectionDelete]
     - @networkId: see `NetworkId`
     """
     def __init__(self, userId: str, networkId: NetworkId, **params) -> None:
-        super().__init__("PutUserSocialConnectionDelete", returns=r_PutUserSocialConnectionDelete, userId=userId, networkId=networkId, **params)
+        super().__init__("PutUserSocialConnectionDelete", r_PutUserSocialConnectionDelete, userId=userId, networkId=networkId, **params)
 
 class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     """Update a user's password.
@@ -955,7 +999,7 @@ class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     - @newPassword
     """
     def __init__(self, userUrl: str, oldPassword: str, newPassword: str, **params) -> None:
-        super().__init__("PutUserUpdatePassword", returns=r_PutUserUpdatePassword, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
+        super().__init__("PutUserUpdatePassword", r_PutUserUpdatePassword, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
 
 class PutCommentDelete(PostRequest[r_PutCommentDelete]):
     """Delete a comment.
@@ -964,7 +1008,7 @@ class PutCommentDelete(PostRequest[r_PutCommentDelete]):
     - @commentId
     """
     def __init__(self, commentId: str, **params) -> None:
-        super().__init__("PutCommentDelete", returns=r_PutCommentDelete, commentId=commentId, **params)
+        super().__init__("PutCommentDelete", r_PutCommentDelete, commentId=commentId, **params)
 
 class PutCommentRestore(PostRequest[r_PutCommentRestore]):
     """Restore a deleted comment (?). #TODO check
@@ -973,7 +1017,7 @@ class PutCommentRestore(PostRequest[r_PutCommentRestore]):
     - @commentId
     """
     def __init__(self, commentId: str, **params) -> None:
-        super().__init__("PutCommentRestore", returns=r_PutCommentRestore, commentId=commentId, **params)
+        super().__init__("PutCommentRestore", r_PutCommentRestore, commentId=commentId, **params)
 
 class PutThread(PostRequest[r_PutThread]):
     """Create a new thread on a forum.
@@ -984,7 +1028,7 @@ class PutThread(PostRequest[r_PutThread]):
     - @body
     """
     def __init__(self, forumId: str, name: str, body: str, **params) -> None:
-        super().__init__("PutThread", returns=r_PutThread, forumId=forumId, name=name, body=body, **params)
+        super().__init__("PutThread", r_PutThread, forumId=forumId, name=name, body=body, **params)
 
 class PutThreadLocked(PostRequest[r_PutThreadLocked]):
     """Lock or unlock a thread.
@@ -994,7 +1038,7 @@ class PutThreadLocked(PostRequest[r_PutThreadLocked]):
     - @locked
     """
     def __init__(self, threadId: str, locked: bool, **params) -> None:
-        super().__init__("PutThreadLocked", returns=r_PutThreadLocked, threadId=threadId, locked=locked, **params)
+        super().__init__("PutThreadLocked", r_PutThreadLocked, threadId=threadId, locked=locked, **params)
 
 class PutThreadSticky(PostRequest[r_PutThreadSticky]):
     """Sticky or un-sticky a thread.
@@ -1004,7 +1048,7 @@ class PutThreadSticky(PostRequest[r_PutThreadSticky]):
     - @sticky
     """
     def __init__(self, threadId: str, sticky: bool, **params) -> None:
-        super().__init__("PutThreadSticky", returns=r_PutThreadSticky, threadId=threadId, sticky=sticky, **params)
+        super().__init__("PutThreadSticky", r_PutThreadSticky, threadId=threadId, sticky=sticky, **params)
 
 class PutThreadDelete(PostRequest[r_PutThreadDelete]):
     """Delete a thread.
@@ -1013,4 +1057,4 @@ class PutThreadDelete(PostRequest[r_PutThreadDelete]):
     - @threadId
     """
     def __init__(self, threadId: str, **params) -> None:
-        super().__init__("PutThreadDelete", returns=r_PutThreadDelete, threadId=threadId, **params)
+        super().__init__("PutThreadDelete", r_PutThreadDelete, threadId=threadId, **params)
