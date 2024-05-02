@@ -225,7 +225,7 @@ class r_GetUserLeaderboard(Datatype):
     players: list[Player]
     values: list[Value]
     variables: list[Variable]
-    followedGameIds: Optional[Any]  # TODO: find if this is ever not null
+    followedGameIds: Optional[Any]
     """Unused null key"""
     challengeList: list[Challenge]
     challengeRunList: list[ChallengeRun]

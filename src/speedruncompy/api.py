@@ -146,29 +146,29 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         """Locates the pagination object on a response. Overriden on certain subclasses."""
         return p["pagination"]
     
-    def perform_all(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> R:
+    def perform_all(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
         pages = self._perform_all_raw(retries, delay, max_pages, autovary, **kwargs)
         return self._combine_results(pages)
     
-    def _perform_all_raw(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> dict[int, R]:
+    def _perform_all_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         try:
-            return asyncio.run(self._perform_all_async_raw(retries, delay, max_pages, autovary, **kwargs))
+            return asyncio.run(self._perform_all_async_raw(retries, delay, autovary, max_pages, **kwargs))
         except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
-    async def perform_all_async(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> R:
+    async def perform_all_async(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
         pages = await self._perform_all_async_raw(retries, delay, max_pages, autovary, **kwargs)
         return self._combine_results(pages)
     
-    async def _perform_all_async_raw(self, retries=5, delay=1, max_pages=-1, autovary=False, **kwargs) -> dict[int, R]:
+    async def _perform_all_async_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages: dict[int, R] = {}
         self.pages[1] = await self.perform_async(retries, delay, autovary, page=1, **kwargs)
         numpages = self._get_pagination(self.pages[1])["pages"]
-        if max_pages != -1:
+        if max_pages >= 1:
             numpages = min(numpages, max_pages)
         if numpages > 1:
             results = await asyncio.gather(*[self.perform_async(retries, delay, autovary, page=p, **kwargs) for p in range(2, numpages + 1)])

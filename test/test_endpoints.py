@@ -597,12 +597,10 @@ class TestPutRequests():
 
     @pytest.fixture(scope="class")
     def testingGame(self):
-        """Provides a game for testing. Later will use PutGame to construct the game for testing"""
-        # For now, using Out of the Void for the game
+        """Provides a game for testing."""
         gData = GetGameData(gameUrl="ThirdParty_Testing").perform()
         check_datatype_coverage(gData)
         yield gData
-        # Teardown?
     
     @pytest.fixture(scope="class")
     def testingSeries(self):
@@ -610,7 +608,6 @@ class TestPutRequests():
         sData = GetSeriesSummary(seriesUrl="shrek_fangames").perform()
         check_datatype_coverage(sData)
         yield sData
-        # Teardown?
 
     @pytest.fixture(scope="class")
     def testingThread(self):
@@ -629,14 +626,14 @@ class TestPutRequests():
         commentPut = PutComment(testingThread.id, ItemType.THREAD, COMMENT_DESC, _api=self.api).perform()
         check_datatype_coverage(commentPut)
 
-        commentCheck = GetCommentList(testingThread.id, ItemType.THREAD, vary=1).perform()
+        commentCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform(autovary=True)
         check_datatype_coverage(commentCheck)
         comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
 
         commentDelete = PutCommentDelete(comment.id, _api=self.api).perform()
         check_datatype_coverage(commentDelete)
 
-        commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD, vary=2).perform()
+        commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform(autovary=True)
         check_datatype_coverage(commentDelCheck)
         with pytest.raises(StopIteration):
             next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
