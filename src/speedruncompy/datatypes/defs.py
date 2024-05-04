@@ -334,7 +334,6 @@ class News(Datatype):
 
 class Player(Datatype):
     """Fields from `User` present in `playerLists`. May also be an unregistered player, use property `_is_registered`"""
-    # Actual OptFields (always present in non-anon players) marked #OPT
     id: str
     name: str
     url: OptField[str]
@@ -348,6 +347,7 @@ class Player(Datatype):
     """OptField even on full `player`"""
 
     def _is_user(self): return not self.id.startswith("u-")
+    # NOTE: `minimal regex: u-[a-f0-9]{8}-?[a-f0-9]{4}-?5[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}`
     _is_registered = property(fget=_is_user)
     """Checks if a player has an account or is a text label"""
 
@@ -363,7 +363,7 @@ class User(Datatype):
     color2Id: OptField[str]
     colorAnimate: OptField[int]
     areaId: str
-    isSupporter: OptField[bool]  # TODO: ?
+    isSupporter: OptField[bool]
     avatarDecoration: OptField[dict[str, bool]]  # {enabled: bool}, TODO add type for this later
     iconType: IconType
     onlineDate: int
@@ -434,7 +434,7 @@ class GameOrdering(Datatype):
     defaultGroups: list[GameOrderGroup]
     supporterGroups: list[GameOrderGroup]
 
-class UserProfile(Datatype):
+class UserProfile(Datatype):  # TODO: check where this exists (if anywhere?)
 
     userId: str
     bio: OptField[str]
@@ -862,6 +862,10 @@ class TicketNote(Datatype):
     isMessage: bool
     isRead: bool
 
+class UserCount(Datatype):
+    userId: str
+    count: int
+
 class UserBlock(Datatype):
     blockerId: str
     blockeeId: str
@@ -913,6 +917,30 @@ class UserSettings(Datatype):
     supporterIconPosition: IconPosition
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAssetUpdate]
+
+class SupporterCredit(Datatype):
+    id: str
+    userId: str
+    providerId: int  # enum
+    createdAt: int
+    updatedAt: int
+    creditType: int  # enum
+    amount: int
+    currency: str
+    receivedAt: int
+    subscriptionId: str
+    periodStartsAt: int
+    periodEndsAt: int
+    providerItemId: str
+
+class SupporterCode(Datatype):
+    id: str
+    code: str
+    description: str
+    duration: int
+    userId: str
+    createdAt: int
+    updatedAt: int
 
 class SupporterSubscription(Datatype):
     id: str

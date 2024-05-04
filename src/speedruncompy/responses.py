@@ -113,7 +113,7 @@ class r_GetGameSummary(Datatype):
     theme: Theme
     threadList: list[Thread]
     users: list[User]
-    challengeList: list[Challenge]  # TODO: Check (Any)
+    challengeList: list[Challenge]
     challengeCount: int
     guideCount: int
     levelCount: int
@@ -349,12 +349,12 @@ class r_GetThreadReadStatus(Datatype):
 class r_GetTickets(Datatype):
     ticketList: list[Ticket]
     ticketNoteList: list[TicketNote]
-    """May only be accessible to admins"""
+    """Admins can see all notes, users can see messages here."""
     pagination: Pagination
     userList: list[User]
     gameList: list[Game]
-    userModCountList: list[Any]  # TODO: document
-    userRunCountList: list[Any]  # TODO: document
+    userModCountList: list[UserCount]
+    userRunCountList: list[UserCount]
 
 class r_GetUserBlocks(Datatype):
     userBlocks: list[UserBlock]
@@ -368,9 +368,9 @@ class r_GetUserSettings(Datatype):
     gameList: list[Game]
     themeList: list[Theme]
     titleList: list[Title]
-    supporterCreditList: list[Any]  # TODO: document
-    supporterCodeList: list[Any]  # TODO: document
-    supporterSubscription: OptField[Any]
+    supporterCreditList: list[SupporterCredit]
+    supporterCodeList: list[SupporterCode]
+    supporterSubscription: OptField[SupporterSubscription]
     experimentList: Any
     enabledExperimentIds: Any
 
