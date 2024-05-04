@@ -499,7 +499,7 @@ class Run(Datatype):
     video: OptField[str]
     comment: OptField[str]
     submittedById: OptField[str]
-    verified: int
+    verified: Verified
     verifiedById: OptField[str]
     reason: OptField[str]
     date: int
