@@ -19,6 +19,13 @@ class StaticAsset(Datatype):
     assetType: str
     path: str
 
+class StaticAssetUpdate(Datatype):
+    
+    assetType: str
+    updateContent: str
+    """Example: data:image/png;base64,examplebase64data``"""
+    deleteContent: OptField[bool]
+
 class VarValue(Datatype):
 
     variableId: str
@@ -704,7 +711,7 @@ class GameSettings(Datatype):
     guidePermissionType: PermissionType
     resourcePermissionType: PermissionType
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any  # undocumented list
+    staticAssetUpdates: list[StaticAssetUpdate]
 
 class SeriesSettings(Datatype):
     name: str
@@ -712,7 +719,7 @@ class SeriesSettings(Datatype):
     discordUrl: str
     websiteUrl: str
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any  # TODO: undocumented list
+    staticAssetUpdates: list[StaticAssetUpdate]
 
 class GameModerationStats(Datatype):
     gameId: str
@@ -829,7 +836,7 @@ class ThemeSettings(Datatype):
     foregroundRepeat: RepeatType
     foregroundScrolling: ScrollType
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: list[StaticAsset]  # TODO: check optional
+    staticAssetUpdates: list[StaticAssetUpdate]
 
 class ThreadReadStatus(Datatype):
     threadId: str
@@ -905,7 +912,7 @@ class UserSettings(Datatype):
     supporterIconType: IconType
     supporterIconPosition: IconPosition
     staticAssets: list[StaticAsset]
-    staticAssetUpdates: Any  # Undocumented list
+    staticAssetUpdates: list[StaticAssetUpdate]
 
 class SupporterSubscription(Datatype):
     id: str
