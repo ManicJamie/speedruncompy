@@ -498,7 +498,7 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
         combined["pagination"]["page"] = 0
         return combined
 
-# Mod actions
+#region GameSettings
 class GetGameSettings(PostRequest[r_GetGameSettings]):
     """Get a game's settings. Must be at least a verifier on the game.
     
@@ -518,26 +518,159 @@ class PutGameSettings(PostRequest[r_Empty]):
     def __init__(self, gameId: str, settings: GameSettings, **params) -> None:
         super().__init__("PutGameSettings", r_Empty, gameId=gameId, settings=settings, **params)
 
-class PutVariable(PostRequest[r_Empty]):
-    """Add a new variable to a game. TODO: check if values / defaultValue are required.
+class PutCategory(PostRequest[r_Empty]):
+    """Creates a new category.
     
     ### Mandatory:
     - @gameId
-    - @variable: Constructed `Variable` object. `defaultValue` must be equal to the id on `values`
-    - @values: List of constructed `Value` objects. One of these `id`s must match `defaultValue`"""
+    - @category
+    """
+    def __init__(self, gameId: str, category: Category, **params) -> None:
+        super().__init__("PutCategory", r_Empty, gameId=gameId, category=category, **params)
+
+class PutCategoryUpdate(PostRequest[r_Empty]):
+    """Updates an existing category.
+    
+    ### Mandatory:
+    - @gameId
+    - @categoryId
+    - @category
+    """
+    def __init__(self, gameId: str, categoryId: str, category: Category, **params) -> None:
+        super().__init__("PutCategoryUpdate", r_Empty, gameId=gameId, categoryId=categoryId, category=category, **params)
+
+class PutCategoryArchive(PostRequest[r_Empty]):
+    """Archives a category.
+    
+    ### Mandatory:
+    - @gameId
+    - @categoryId
+    """
+    def __init__(self, gameId: str, categoryId: str, **params) -> None:
+        super().__init__("PutCategoryArchive", r_Empty, gameId=gameId, categoryId=categoryId, **params)
+
+class PutCategoryRestore(PostRequest[r_Empty]):
+    """Restores an archived category.
+    
+    ### Mandatory:
+    - @gameId
+    - @categoryId
+    """
+    def __init__(self, gameId: str, categoryId: str, **params) -> None:
+        super().__init__("PutCategoryRestore", r_Empty, gameId=gameId, categoryId=categoryId, **params)
+
+class PutCategoryOrder(PostRequest[r_Empty]):
+    """Re-orders categories.
+    
+    ### Mandatory:
+    - @gameId
+    - @categoryIds
+    """
+    def __init__(self, gameId: str, categoryIds: list[str], **params) -> None:
+        super().__init__("PutCategoryOrder", r_Empty, gameId=gameId, categoryIds=categoryIds, **params)
+
+class PutLevel(PostRequest[r_Empty]):
+    """Creates a new level.
+    
+    ### Mandatory:
+    - @gameId
+    - @level
+    """
+    def __init__(self, gameId: str, level: Level, **params) -> None:
+        super().__init__("PutLevel", r_Empty, gameId=gameId, level=level, **params)
+
+class PutLevelUpdate(PostRequest[r_Empty]):
+    """Updates an existing level.
+    
+    ### Mandatory:
+    - @gameId
+    - @levelId
+    - @level
+    """
+    def __init__(self, gameId: str, levelId: str, level: Level, **params) -> None:
+        super().__init__("PutLevelUpdate", r_Empty, gameId=gameId, levelId=levelId, level=level, **params)
+
+class PutLevelArchive(PostRequest[r_Empty]):
+    """Archives a level.
+    
+    ### Mandatory:
+    - @gameId
+    - @levelId
+    """
+    def __init__(self, gameId: str, levelId: str, **params) -> None:
+        super().__init__("PutLevelArchive", r_Empty, gameId=gameId, levelId=levelId, **params)
+
+class PutLevelRestore(PostRequest[r_Empty]):
+    """Restores an archived level.
+    
+    ### Mandatory:
+    - @gameId
+    - @levelId
+    """
+    def __init__(self, gameId: str, levelId: str, **params) -> None:
+        super().__init__("PutLevelRestore", r_Empty, gameId=gameId, levelId=levelId, **params)
+
+class PutLevelOrder(PostRequest[r_Empty]):
+    """Re-orders levels.
+    
+    ### Mandatory:
+    - @gameId
+    - @levelIds
+    """
+    def __init__(self, gameId: str, levelIds: list[str], **params) -> None:
+        super().__init__("PutLevelOrder", r_Empty, gameId=gameId, levelIds=levelIds, **params)
+
+class PutVariable(PostRequest[r_Empty]):
+    """Creates a new variable.
+    
+    ### Mandatory:
+    - @gameId
+    - @variable
+    - @values
+    """
     def __init__(self, gameId: str, variable: Variable, values: list[Value], **params) -> None:
         super().__init__("PutVariable", r_Empty, gameId=gameId, variable=variable, values=values, **params)
 
 class PutVariableUpdate(PostRequest[r_Empty]):
-    """Add a new variable to a game. TODO: check if values / defaultValue are required.
+    """Updates an existing variable.
     
     ### Mandatory:
     - @gameId
-    - @variableId: ID of the variable to be replaced
-    - @variable: Constructed `Variable` object.
-    - @values: List of constructed `Value` objects."""
+    - @variableId
+    - @variable
+    """
     def __init__(self, gameId: str, variableId: str, variable: Variable, values: list[Value], **params) -> None:
-        super().__init__("PutVariable", r_Empty, gameId=gameId, variableId=variableId, variable=variable, values=values, **params)
+        super().__init__("PutVariableUpdate", r_Empty, gameId=gameId, variableId=variableId, variable=variable, values=values, **params)
+
+class PutVariableArchive(PostRequest[r_Empty]):
+    """Archives a variable.
+    
+    ### Mandatory:
+    - @gameId
+    - @variableId
+    """
+    def __init__(self, gameId: str, variableId: str, **params) -> None:
+        super().__init__("PutVariableArchive", r_Empty, gameId=gameId, variableId=variableId, **params)
+
+class PutVariableRestore(PostRequest[r_Empty]):
+    """Restores an archived variable.
+    
+    ### Mandatory:
+    - @gameId
+    - @variableId
+    """
+    def __init__(self, gameId: str, variableId: str, **params) -> None:
+        super().__init__("PutVariableRestore", r_Empty, gameId=gameId, variableId=variableId, **params)
+
+class PutVariableOrder(PostRequest[r_Empty]):
+    """Re-orders variables. NOTE: only all subcategories OR all annotations are taken at once.
+    
+    ### Mandatory:
+    - @gameId
+    - @variableIds
+    """
+    def __init__(self, gameId: str, variableIds: list[str], **params) -> None:
+        super().__init__("PutVariableOrder", r_Empty, gameId=gameId, variableIds=variableIds, **params)
 
 class PutVariableApplyDefault(PostRequest[r_Ok]):
     """Set the default value on a variable.
@@ -547,7 +680,145 @@ class PutVariableApplyDefault(PostRequest[r_Ok]):
     - @variableId
     """
     def __init__(self, gameId: str, variableId: str, **params) -> None:
-        super().__init__("PutVariable", r_Ok, gameId=gameId, variableId=variableId, **params)
+        super().__init__("PutVariableApplyDefault", r_Ok, gameId=gameId, variableId=variableId, **params)
+
+#endregion GameSettings
+
+#region GameMetadata
+
+class PutNews(PostRequest[r_Empty]):
+    """Posts a news item to a game.
+    
+    ### Mandatory: # TODO: check all
+    - @gameId
+    - @userId: of the author
+    - @title
+    - @body
+    - @date
+    """
+    def __init__(self, gameId: str, userId: str, title: str,
+                 body: str, date: int, **params) -> None:
+        super().__init__("PutNews", r_Ok, gameId=gameId, userId=userId, title=title, body=body, date=date, **params)
+
+class PutNewsUpdate(PostRequest[r_Empty]):
+    """Updates a news item.
+    
+    ### Mandatory: # TODO: check all
+    - @newsId
+    - @userId: of the author
+    - @title
+    - @body
+    - @date
+    """
+    def __init__(self, newsId: str, userId: str, title: str,
+                 body: str, date: int, **params) -> None:
+        super().__init__("PutNewsUpdate", r_Ok, newsId=newsId, userId=userId, title=title, body=body, date=date, **params)
+
+class PutNewsDelete(PostRequest[r_Empty]):
+    """Deletes a news item.
+    
+    ### Mandatory:
+    - @newsId
+    """
+    def __init__(self, newsId: str, **params) -> None:
+        super().__init__("PutNewsDelete", r_Empty, newsId=newsId, **params)
+
+class PutGuide(PostRequest[r_Empty]):
+    """Posts a guide item to a game.
+    
+    ### Mandatory: # TODO: check all
+    - @gameId
+    - @userId: of the author
+    - @name
+    - @text
+    - @date
+    """
+    def __init__(self, gameId: str, userId: str, name: str,
+                 text: str, date: int, **params) -> None:
+        super().__init__("PutGuide", r_Ok, gameId=gameId, userId=userId, name=name, text=text, date=date, **params)
+
+class PutGuideUpdate(PostRequest[r_Empty]):
+    """Updates a guide item.
+    
+    ### Mandatory: # TODO: check all
+    - @guideId
+    - @userId: of the author
+    - @name
+    - @text
+    - @date
+    """
+    def __init__(self, guideId: str, userId: str, name: str,
+                 text: str, date: int, **params) -> None:
+        super().__init__("PutGuideUpdate", r_Ok, guideId=guideId, userId=userId, name=name, text=text, date=date, **params)
+
+class PutGuideDelete(PostRequest[r_Empty]):
+    """Deletes a guide item.
+    
+    ### Mandatory:
+    - @guideId
+    """
+    def __init__(self, guideId: str, **params) -> None:
+        super().__init__("PutGuideDelete", r_Empty, guideId=guideId, **params)
+
+class PutResource(PostRequest[r_Empty]):
+    """Posts a resource item to a game.
+    
+    ### Mandatory: # TODO: check all, check base64 encoding of content
+    - @gameId
+    - @userId: Manager ID
+    - @authorNames: Comma-separated list of names
+    - @date
+    - @name
+    - @description
+    - @type: ResourceType
+    
+    EITHER:
+    - @link
+    
+    OR:
+    - @uploadFilename
+    - @uploadContent: str "data:application/json;base64,examplebase64data"
+    """
+    def __init__(self, gameId: str, userId: str, name: str,
+                 description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
+        super().__init__("PutResource", r_Ok, gameId=gameId, userId=userId, name=name, description=description,
+                         date=date, type=type, authorNames=authorNames, **params)
+
+class PutResourceUpdate(PostRequest[r_Empty]):
+    """Updates a resource item.
+    
+    ### Mandatory: # TODO: check all, check base64 encoding of content
+    - @gameId
+    - @userId: Manager ID
+    - @authorNames: Comma-separated list of names
+    - @date
+    - @name
+    - @description
+    - @type: ResourceType
+    ### Optional:
+    
+    EITHER
+    - @link
+    
+    OR:
+    - @uploadFilename
+    - @uploadContent: str "data:application/json;base64,examplebase64data"
+    """
+    def __init__(self, resourceId: str, userId: str, name: str,
+                 description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
+        super().__init__("PutResourceUpdate", r_Ok, resourceId=resourceId, userId=userId, name=name, description=description,
+                         date=date, type=type, authorNames=authorNames, **params)
+
+class PutResourceDelete(PostRequest[r_Empty]):
+    """Deletes a resource item.
+    
+    ### Mandatory:
+    - @resourceId
+    """
+    def __init__(self, resourceId: str, **params) -> None:
+        super().__init__("PutResourceDelete", r_Empty, resourceId=resourceId, **params)
+
+#endregion GameMetadata
 
 # Run verification
 class GetModerationGames(PostRequest[r_GetModerationGames]):
@@ -677,7 +948,7 @@ class PutConversationReport(PostRequest[r_Ok]):
     def __init__(self, csrfToken: str, conversationId: str, text: str, **params) -> None:
         super().__init__("PutConversationReport", r_Ok, csrfToken=csrfToken, conversationId=conversationId, text=text, **params)
 
-# User notifications
+# User notifications & follows
 class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_GetNotifications]):
     """Gets the user's notifications.
     """
@@ -689,6 +960,44 @@ class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_G
         combined["pagination"] = copy.copy(combined["pagination"])
         combined["pagination"]["page"] = 0
         return combined
+
+class PutGameFollower(PostRequest[r_Empty]):
+    """Follow a game.
+    
+    ### Mandatory:
+    - @gameId
+    - @userId: own userId
+    """
+    def __init__(self, gameId: str, userId: str, **params) -> None:
+        super().__init__("PutGameFollower", r_Empty, gameId=gameId, userId=userId, **params)
+
+class PutGameFollowerDelete(PostRequest[r_Empty]):
+    """Unfollow a game.
+    
+    ### Mandatory:
+    - @gameId
+    - @userId: own userId
+    """
+    def __init__(self, gameId: str, userId: str, **params) -> None:
+        super().__init__("PutGameFollowerDelete", r_Empty, gameId=gameId, userId=userId, **params)
+
+class PutUserFollower(PostRequest[r_Empty]):
+    """Follow a user.
+    
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("PutUserFollower", r_Empty, userId=userId, **params)
+
+class PutUserFollowerDelete(PostRequest[r_Empty]):
+    """Unfollow a user.
+    
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("PutUserFollowerDelete", r_Empty, userId=userId, **params)
 
 # User settings
 class GetUserSettings(PostRequest[r_GetUserSettings]):
