@@ -724,10 +724,12 @@ class GameModerationStats(Datatype):
 class AuditLogEntry(Datatype):
     id: str
     date: int
-    eventType: str  # enum
+    eventType: str  # EventType
     actorId: str
     gameId: str
-    context: Any  # TODO: check
+    context: str
+    """A json dict of extra context based on eventType."""
+    userId: OptField[str]
 
 class Conversation(Datatype):
     id: str

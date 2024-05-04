@@ -1,5 +1,5 @@
 from enum import Enum
-from types import NoneType
+from types import NoneType, UnionType
 from typing import Any, Optional, TypeVar, Union, get_type_hints, get_origin, get_args
 from json import JSONEncoder, dumps
 import typing
@@ -32,10 +32,14 @@ def is_optional_field(field):
 def is_optional(test: type):
     return (get_origin(test) is Union and (NoneType in get_args(test))) or (get_origin(test) is Optional)
 
+def is_union(test: type):
+    return get_origin(test) is Union or get_origin(test) is UnionType
+
 def is_compliant_type(hint: type):
     """Whether the type of the response should be coerced to the hint"""
     hint = degrade_union(hint, _OptFieldMarker, NoneType)
     if get_origin(hint) == list: return False
+    if is_union(hint): return False  # Guard against unions
     return issubclass(hint, Datatype) or issubclass(hint, Enum) or hint == float or hint == bool
 
 def is_type(value, hint: type):
@@ -43,7 +47,7 @@ def is_type(value, hint: type):
         return is_optional(hint)
     else:
         check = degrade_union(hint, _OptFieldMarker, NoneType)
-        check = get_origin(check) if get_origin(check) is not None else check
+        check = get_origin(check) if get_origin(check) is not None and not is_union(check) else check
         return isinstance(value, check)
 
 def degrade_union(union: type, *to_remove: type):
@@ -127,6 +131,7 @@ class Datatype():
     def items(self): return self.__dict__.items()
     def __contains__(self, item: object): return item in self.__dict__
     def __iter__(self): return iter(self.__dict__)
+    def __copy__(self): return type(self)(self.__dict__.copy())
 
     def __or__(self, __value: Any):
         self.__dict__.update(__value)

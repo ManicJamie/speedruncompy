@@ -3,6 +3,8 @@ from .enums import *
 from .responses import *
 from .datatypes import Pagination
 
+import copy
+
 """
 GET requests are all unauthed & do not require PHPSESSID.
 """
@@ -35,13 +37,10 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
                          page=page, **param_construct)
 
     def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
-        runList = []
-        for p in pages.values():
-            runList += p["runList"]
-        extras: r_GetGameLeaderboard2 = pages[1]
-        extras.pop("runList")
-        extras.pagination.page = 0
-        return extras | {"runList": runList}
+        combined = self._combine_keys(pages, ["runList"], [])  # TODO: check other field separation
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[r_GetGameLeaderboard]):
     """A secondary leaderboard view. WARNING: Not used on the site, may be removed at any time!
@@ -197,19 +196,11 @@ class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArt
         super().__init__("GetArticleList", r_GetArticleList, **params)
 
     def _combine_results(self, pages: dict[int, r_GetArticleList]) -> r_GetArticleList:
-        articleList: list[Article] = []
-        gameDict: dict[str, Game] = {}
-        userDict: dict[str, User] = {}
-        for p in pages.values():
-            articleList += p["articleList"]
-            gameDict |= {x["id"]: x for x in p["gameList"]}
-            userDict |= {x["id"]: x for x in p["userList"]}
-        extras: r_GetArticleList = pages[1]
-        extras.pop("articleList")
-        extras.pop("gameList")
-        extras.pop("userList")
-        extras.pagination.page = 0
-        return extras | {"articleList": articleList, "gameList": list(gameDict.values()), "userList": list(userDict.values())}
+        combined = self._combine_keys(pages, ["articleList"],
+                                      ["gameList", "userList"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetArticle(GetRequest[r_GetArticle]):
     """Gets a specific article from the site.
@@ -231,13 +222,10 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
         super().__init__("GetGameList", r_GetGameList, **params)
     
     def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
-        gameList = []
-        for p in pages.values():
-            gameList += p["gameList"]
-        extras: r_GetGameList = pages[1]
-        extras.pop("gameList")
-        extras.pagination.page = 0
-        return extras | {"gameList": gameList}
+        combined = self._combine_keys(pages, ["gameList"], [])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetHomeSummary(GetRequest[r_GetHomeSummary]):
     """Gets information for the home page. Often empty.
@@ -255,13 +243,10 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
         super().__init__("GetSeriesList", r_GetSeriesList, **params)
 
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
-        seriesList = []
-        for p in pages.values():
-            seriesList += p["seriesList"]
-        extras: r_GetSeriesList = pages[1]
-        extras.pop("seriesList")
-        extras["pagination"]["page"] = 0
-        return extras | {"seriesList": seriesList}
+        combined = self._combine_keys(pages, ["seriesList"], [])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
     """Gets most information pertinent to a series.
@@ -414,12 +399,10 @@ class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCom
     
     def _combine_results(self, pages: dict[int, r_GetCommentList]) -> r_GetCommentList:
         # TODO: check likeList, userList for page separation
-        commentList = []
-        for p in pages.values():
-            commentList += p["commentList"]
-        extras = pages[1]
-        extras.pop("commentList")
-        return extras | {"commentList": commentList}
+        combined = self._combine_keys(pages, ["commentList"], [])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     """Get a specific thread.
@@ -431,13 +414,10 @@ class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
         super().__init__("GetThread", r_GetThread, id=id, **params)
 
     def _combine_results(self, pages: dict[int, r_GetThread]) -> r_GetThread:
-        commentList = []
-        for p in pages.values():
-            commentList += p["commentList"]
-        extras = pages[1]
-        extras.pop("commentList")
-        extras["pagination"]["page"] = 0
-        return extras | {"commentList": commentList}
+        combined = self._combine_keys(pages, ["commentList"], ["userList", "likeList"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetForumList(GetRequest[r_GetForumList]):
     """Get a list of site-wide forums. When logged in, may include forums of followed games.
@@ -495,7 +475,6 @@ class PutSessionPing(PostRequest[r_Empty]):
 # Supermod actions
 class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_GetAuditLogList]):
     """Gets a game, series or user's audit log.
-    WARN: not currently depaginated due to lack of testing availability.
     
     ### Mandatory:
     - @eventType: Type to filter by (default "")
@@ -511,9 +490,13 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
         super().__init__("GetAuditLogList", r_GetAuditLogList, gameId=gameId, seriesId=seriesId,
                          userId=userId, actorId=actorId, eventType=eventType, page=page, **params)
     
-    def _combine_results(self, pages: dict):
-        # TODO: Method stub
-        return super()._combine_results(pages)
+    def _combine_results(self, pages: dict[int, r_GetAuditLogList]) -> r_GetAuditLogList:
+        combined = self._combine_keys(pages, ["auditLogList"],
+                                      ["userList", "gameList", "categoryList", "levelList",
+                                       "variableList", "valueList", "runList"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 # Mod actions
 class GetGameSettings(PostRequest[r_GetGameSettings]):
@@ -591,25 +574,13 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
         super().__init__("GetModerationRuns", r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
-        # TODO: is this all really necessary?
-        games = [pages[1]["games"][0]]
-        categories, levels, platforms, players, regions, runs, users, values, variables = ([] for i in range(9))
-        for page in pages.values():
-            for c in (c for c in page["categories"] if c not in categories): categories.append(c)
-            for l in (l for l in page["levels"] if l not in levels): levels.append(l)
-            for p in (p for p in page["platforms"] if p not in platforms): platforms.append(p)
-            for p in (p for p in page["players"] if p not in players): players.append(p)
-            for r in (r for r in page["regions"] if r not in regions): regions.append(r)
-            for u in (u for u in page["users"] if u not in users): users.append(u)
-            for v in (v for v in page["values"] if v not in values): values.append(v)
-            for v in (v for v in page["variables"] if v not in variables): variables.append(v)
-            runs += page["runs"]
-
-        extras: r_GetModerationRuns = pages[1]
-        extras.pagination.page = 0
-        return extras | r_GetModerationRuns({"categories": categories, "games": games, "levels": levels, "platforms": platforms, "players": players,
-                                             "regions": regions, "runs": runs, "users": users, "values": values, "variables": variables},
-                                            skipChecking=True)
+        # TODO: check merging requirement
+        combined = self._combine_keys(pages, ["runs"],
+                                      ["categories", "levels", "platforms", "players",
+                                       "regions", "users", "values", "variables"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class PutRunAssignee(PostRequest[r_Empty]):
     """Assigns a verifier to a run."""
@@ -714,13 +685,10 @@ class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_G
         super().__init__("GetNotifications", r_GetNotifications, **params)
 
     def _combine_results(self, pages: dict[int, r_GetNotifications]) -> r_GetNotifications:
-        notifications = []
-        for p in pages.values():
-            notifications += p["notifications"]
-        extras = pages[1]
-        extras.pop("notifications")
-        extras.pop("pagination")
-        return extras | {"notifications": notifications}
+        combined = self._combine_keys(pages, ["notifications"], [])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 # User settings
 class GetUserSettings(PostRequest[r_GetUserSettings]):
@@ -879,8 +847,11 @@ class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
         super().__init__("GetTickets", r_GetTickets, **params)  # TODO: needs param testing
     
     def _combine_results(self, pages: dict):
-        """TODO: method stub"""
-        return super()._combine_results(pages)
+        combined = self._combine_keys(pages, ["ticketList"],
+                                      ["userList", "gameList", "userModCountList", "userRunCountList"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0
+        return combined
 
 class GetSeriesSettings(PostRequest[r_GetSeriesSettings]):
     """Gets settings of a series.
@@ -937,10 +908,9 @@ class PutGameModeratorDelete(PostRequest[r_Empty]):  # TODO: test `level` necess
     ### Mandatory:
     - @gameId
     - @userId
-    - @level: TODO check necessity
     """
-    def __init__(self, gameId: str, userId: str, level: GamePowerLevel, **params) -> None:
-        super().__init__("PutGameModeratorDelete", r_Empty, gameId=gameId, userId=userId, level=level, **params)
+    def __init__(self, gameId: str, userId: str, **params) -> None:
+        super().__init__("PutGameModeratorDelete", r_Empty, gameId=gameId, userId=userId, **params)
 
 class PutSeriesGame(PostRequest[r_Empty]):
     """Add an existing game to a series.

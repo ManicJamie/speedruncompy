@@ -264,6 +264,15 @@ class r_GetTitle(Datatype):
 
 class r_GetAuditLogList(Datatype):
     auditLogList: list[AuditLogEntry]
+    userList: list[User]
+    gameList: list[Game]
+    categoryList: list[Category]
+    levelList: Optional[list[Level]]
+    """WARN: is None when empty rather than []."""
+    variableList: list[Variable]
+    valueList: list[Value]
+    runList: list[Run]
+    pagination: Pagination
 
 class r_GetCommentable(Datatype):
     commentable: Commentable

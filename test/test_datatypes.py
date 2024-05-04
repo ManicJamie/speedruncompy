@@ -13,6 +13,11 @@ import pytest, pytest_asyncio, logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+if "SKIP_HEAVY_TESTS" in os.environ:
+    SKIP_HEAVY_TESTS = bool(os.environ["SKIP_HEAVY_TESTS"])
+else:
+    SKIP_HEAVY_TESTS = True
+
 game_id = "76rqmld8"  # Hollow Knight
 category_id = "02q8o4p2"  # Any%
 challenge_id = "42ymr396"  # Ghostrunner 2
@@ -92,7 +97,7 @@ class TestDatatypes():
         
         assert isinstance(settings.values[0], VarValue)
 
-@pytest.mark.skipif("SKIP_HEAVY_TESTS" in os.environ, reason="Skip on automated runs")
+@pytest.mark.skipif(SKIP_HEAVY_TESTS, reason="SKIP_HEAVY_TESTS == True")
 class TestDatatypes_Integration_Heavy():
     """
     Heavy testing meant to be semi-exhaustive, that will most likely hit rate limits on repeat runs.

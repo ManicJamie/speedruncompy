@@ -36,7 +36,10 @@ else:
     # from secret import LOW_USERNAME, LOW_PASSWORD
     ...
 
-IS_SUPERMOD = False  # Set to True to activate full test suite including supermod endpoints
+if "IS_SUPERMOD" in os.environ:
+    IS_SUPERMOD = bool(os.environ["IS_SUPERMOD"])
+else:
+    IS_SUPERMOD = False  # Set to True to activate full test suite including supermod endpoints
 
 game_id = "76rqmld8"  # Hollow Knight
 game_url = "hollowknight"
@@ -60,6 +63,7 @@ hornet_uid = "x76p3d6j"
 hornet_url = "Hornet_Bot"
 conversation_id = "4xEDO"  # ManicJamie <-> Hornet_Bot
 series_id = "8nw2ygxn"  # Shrek Fangames
+super_gameId = "pd0nlx21"  # ThirdParty_Testing
 
 logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
@@ -87,8 +91,10 @@ def check_api_conformance():
     assert len(_default.cookie_jar._cookies) == 0
     yield
 
-def log_result(result: dict):
+def log_result(result: Datatype):
     logging.debug(result)
+    if isinstance(result, Datatype):
+        logging.debug(result.to_json())
 
 class TestGeneric():
     api = SpeedrunComPy("Test")
@@ -103,14 +109,14 @@ class TestGeneric():
         assert result == standard_result
     
     def test_PaginatedAsync(self):
-        result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_async_raw())
-        standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
+        result = asyncio.run(GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_async_raw(max_pages=2))
+        standard_result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw(max_pages=2)
         assert result == standard_result
 
     def test_AsyncSyncWarning(self):
         """Calls to the synchronous interface from an asynchronous context should raise an error and tell you to use async interface"""
         with pytest.raises(AIOException):
-            async def main(): return GetGameLeaderboard2("76rqmld8", "02q8o4p2").perform_all()
+            async def main(): return GetGameLeaderboard2("76rqmld8", "02q8o4p2").perform_all(max_pages=5)
             asyncio.run(main())
     
     def test_DefaultAPI_separation(self):
@@ -141,7 +147,7 @@ class TestGetRequests():
         check_datatype_coverage(result)
     
     def test_GetGameLeaderboard_paginated(self):
-        result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform_all()
+        result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
 
@@ -151,7 +157,7 @@ class TestGetRequests():
         check_datatype_coverage(result)
     
     def test_GetGameLeaderboard2_paginated(self):
-        result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all()
+        result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
 
@@ -231,7 +237,7 @@ class TestGetRequests():
             check_datatype_coverage(page)
 
     def test_GetCommentList_paginated(self):
-        result = GetCommentList(comment_list_source, comment_list_type).perform_all()
+        result = GetCommentList(comment_list_source, comment_list_type).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
 
@@ -246,7 +252,7 @@ class TestGetRequests():
         check_pages(result)
 
     def test_GetThread_paginated(self):
-        result = GetThread(thread_id).perform_all()
+        result = GetThread(thread_id).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
     
@@ -291,7 +297,7 @@ class TestGetRequests():
         check_datatype_coverage(result)
 
     def test_GetArticleList(self):
-        result = GetArticleList(limit=50).perform_all()
+        result = GetArticleList(limit=50).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
     
@@ -392,25 +398,22 @@ class TestPostRequests():
         assert not result["session"]["signedIn"]
 
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
-    @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList(self):
-        result = GetAuditLogList(_api=self.api, gameId=game_id).perform()
+        result = GetAuditLogList(_api=self.api, gameId=super_gameId).perform()
         log_result(result)
         check_datatype_coverage(result)
     
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
-    @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList_paginated_raw(self):
-        result = GetAuditLogList(_api=self.api, gameId=game_id)._perform_all_raw()
+        result = GetAuditLogList(_api=self.api, gameId=super_gameId)._perform_all_raw()
         log_result(result)
-        ...  # TODO: Finish test
+        check_pages(result)
     
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
-    @pytest.mark.skip(reason="Test stub")
     def test_GetAuditLogList_paginated(self):
-        result = GetAuditLogList(_api=self.api, gameId=game_id).perform_all()
+        result = GetAuditLogList(_api=self.api, gameId=super_gameId).perform_all(max_pages=5)
         log_result(result)
-        ...  # TODO: Finish test
+        check_datatype_coverage(result)
     
     def test_GetAuditLogList_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -482,7 +485,7 @@ class TestPostRequests():
         check_datatype_coverage(result)
     
     def test_GetModerationRuns_paginated(self):
-        result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING).perform_all()
+        result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
     
@@ -501,7 +504,7 @@ class TestPostRequests():
         check_datatype_coverage(result)
 
     def test_GetNotifications_paginated(self):
-        result = GetNotifications(_api=self.api).perform_all()
+        result = GetNotifications(_api=self.api).perform_all(max_pages=5)
         log_result(result)
         check_datatype_coverage(result)
     
@@ -523,12 +526,14 @@ class TestPostRequests():
         with pytest.raises(Unauthorized):
             GetRunSettings(runId=run_id).perform()
     
-    @pytest.mark.skip(reason="Insufficient auth to test")
-    @pytest.mark.skip(reason="Test stub")
     def test_GetSeriesSettings(self):
-        result = GetSeriesSettings()
+        result = GetSeriesSettings(series_id, _api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
+    
+    def test_GetSeriesSettings_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetSeriesSettings(series_id).perform()
 
     def test_GetThemeSettings_user(self):
         result = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()

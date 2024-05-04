@@ -5,6 +5,7 @@ import random
 from typing import Awaitable, Callable, Any, Generic, TypeVar
 
 from yarl import URL
+from copy import copy
 
 from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype, Pagination
 from .exceptions import *
@@ -100,7 +101,7 @@ class BaseRequest(Generic[R]):
     
     async def perform_async(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
         """Asynchronously perform the request. Remember to `await` me!"""
-        if autovary is True: kwargs | {"vary": random.randint(1, 1000000000)}
+        if autovary is True: kwargs |= {"vary": random.randint(1, 1000000000)}
         self.response = await self.method(self.endpoint, self.params | kwargs)
         content = self.response[0]
         status = self.response[1]
@@ -146,9 +147,29 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         """Locates the pagination object on a response. Overriden on certain subclasses."""
         return p["pagination"]
     
+    @staticmethod
+    def _combine_keys(pages: dict[int, R], main_keys: list[str], merge_keys: list[str]) -> R:
+        """Merge multiple pages. `main_keys` are appended, `merge_keys` are deduplicated by id."""
+        accumulator: R = copy(pages[1])
+        accuDicts: dict[str, dict[str, Datatype]] = {key: dict() for key in merge_keys}
+        
+        iterator = iter(pages.items())
+        next(iterator)  # skip first page (already in accumulator)
+        for i, p in iterator:
+            for main_key in main_keys:
+                accumulator[main_key] += p[main_key]
+            for key in merge_keys:
+                if p[key] is None: continue  # Guard against None fields
+                accuDicts[key].update({item["id"]: item for item in p[key]})
+        
+        for key in merge_keys:
+            accumulator[key] = list(accuDicts[key].values())
+        
+        return accumulator
+    
     def perform_all(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = self._perform_all_raw(retries, delay, max_pages, autovary, **kwargs)
+        pages = self._perform_all_raw(retries, delay, autovary, max_pages, **kwargs)
         return self._combine_results(pages)
     
     def _perform_all_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
@@ -160,18 +181,19 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
     
     async def perform_all_async(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await self._perform_all_async_raw(retries, delay, max_pages, autovary, **kwargs)
+        pages = await self._perform_all_async_raw(retries, delay, autovary, max_pages, **kwargs)
         return self._combine_results(pages)
     
     async def _perform_all_async_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages: dict[int, R] = {}
-        self.pages[1] = await self.perform_async(retries, delay, autovary, page=1, **kwargs)
+        vary = 0 if not autovary else random.randint(1, 1000000000)
+        self.pages[1] = await self.perform_async(retries, delay, page=1, vary=vary, **kwargs)
         numpages = self._get_pagination(self.pages[1])["pages"]
         if max_pages >= 1:
             numpages = min(numpages, max_pages)
         if numpages > 1:
-            results = await asyncio.gather(*[self.perform_async(retries, delay, autovary, page=p, **kwargs) for p in range(2, numpages + 1)])
+            results = await asyncio.gather(*[self.perform_async(retries, delay, vary=vary, page=p, **kwargs) for p in range(2, numpages + 1)])
             self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
 
