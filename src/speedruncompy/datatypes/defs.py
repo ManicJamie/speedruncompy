@@ -351,6 +351,18 @@ class Player(Datatype):
     _is_registered = property(fget=_is_user)
     """Checks if a player has an account or is a text label"""
 
+class AvatarDecoration(Datatype):
+    """Supporter feature for rings around names.
+    
+    @separateColors: If true, see this object's color Ids. If either is absent, inherit from username.
+    """
+    enabled: bool
+    separateColors: OptField[bool]
+    color1Id: OptField[str]
+    """Defaults to username's color1Id"""
+    color2Id: OptField[str]
+    """Defaults to username's color2Id"""
+
 class User(Datatype):
     id: str
     name: str
@@ -364,7 +376,7 @@ class User(Datatype):
     colorAnimate: OptField[int]
     areaId: str
     isSupporter: OptField[bool]
-    avatarDecoration: OptField[dict[str, bool]]  # {enabled: bool}, TODO add type for this later
+    avatarDecoration: OptField[AvatarDecoration]
     iconType: IconType
     onlineDate: int
     signupDate: int
@@ -454,7 +466,7 @@ class UserReducedProfile(Datatype):
     signupDate: int
     defaultView: DefaultViewType
     showMiscByDefault: bool
-    gameOrdering: GameOrdering
+    gameOrdering: OptField[GameOrdering]
 
 class SeriesModerator(Datatype):
     seriesId: str
@@ -889,7 +901,7 @@ class UserSettings(Datatype):
     color1Id: str
     color2Id: OptField[str]
     colorAnimate: int  # enum
-    avatarDecoration: dict  # TODO: enabled: bool
+    avatarDecoration: AvatarDecoration  # TODO: check
     defaultView: DefaultViewType
     timeReference: TimeReference
     timeUnits: TimeDisplayUnits
