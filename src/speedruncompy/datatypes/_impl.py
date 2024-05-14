@@ -153,7 +153,7 @@ class Datatype():
 
     # Quick conversion to basic dict for requests
     def get_dict(self): return self.__dict__
-    def to_json(self): return dumps(self, cls=srcpyJSONEncoder)
+    def to_json(self, **params): return dumps(self, cls=srcpyJSONEncoder, **params)
 
     # Default display is as a raw dict, subclasses should override appropriately
     def __str__(self) -> str: return str(self.__dict__)
