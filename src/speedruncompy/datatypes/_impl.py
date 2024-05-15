@@ -1,7 +1,7 @@
 from enum import Enum
 from types import NoneType, UnionType
 from typing import Any, Optional, TypeVar, Union, get_type_hints, get_origin, get_args
-from json import JSONEncoder, dumps
+from json import dumps
 import typing
 
 from ..exceptions import IncompleteDatatype
@@ -17,14 +17,7 @@ OptField = Union[T, _OptFieldMarker]
 
 _log = logging.getLogger("speedruncompy.datatypes")
 
-
-class srcpyJSONEncoder(JSONEncoder):
-    """Converts Datatypes to dicts when encountered"""
-    def default(self, o: Any) -> Any:
-        if isinstance(o, Datatype):
-            return o.get_dict()
-        return super().default(o)
-
+ALLOWED_SHADOWS = ["__module__", "__doc__"]
 
 def is_optional_field(field):
     return get_origin(field) is Union and _OptFieldMarker in get_args(field)
@@ -62,19 +55,20 @@ def degrade_union(union: type, *to_remove: type):
 def in_enum(enum: type[Enum], value):
     return value in (v for v in enum.__members__.values())
 
-class Datatype():
+class Datatype(dict):
     """A dictlike object with field accessors, type checking & initialisation helpers.
     
     Downstream datatypes may add helper properties & better initialisation helpers."""
     def __init__(self, template: Union[dict, tuple, "Datatype", None] = None, skipChecking: bool = False) -> None:
+        self.__dict__ = self
+        
         if isinstance(template, dict):
-            self.__dict__ |= template
+            self |= template
         elif isinstance(template, tuple):
             hints = get_type_hints(self.__class__)
             for pos, name in enumerate(hints):
-                self.__dict__[name] = template[pos]
-        elif isinstance(template, Datatype):
-            self.__dict__ |= template.get_dict()
+                self[name] = template[pos]
+        
         if not skipChecking and config.COERCION != config.CoercionLevel.DISABLED:
             self.enforce_types()
     
@@ -120,44 +114,26 @@ class Datatype():
             msg = f"Datatype {type(self).__name__} constructed missing mandatory fields {missing_fields}"
             if config.COERCION == 1: raise IncompleteDatatype(msg)
             else: _log.warning(msg)
-    
-    # Allow interacting with these types as if they were dicts (in all reasonable ways)
-    def __setitem__(self, key, value): self.__dict__[key] = value
-    def get(self, key: str, _default: Any) -> Any: return self.__dict__.get(key, _default)
-    def pop(self, key: str): return self.__dict__.pop(key)
-    def __eq__(self, __value: object) -> bool: return self.__dict__ == __value
-    def keys(self): return self.__dict__.keys()
-    def values(self): return self.__dict__.values()
-    def items(self): return self.__dict__.items()
-    def __contains__(self, item: object): return item in self.__dict__
-    def __iter__(self): return iter(self.__dict__)
-    def __copy__(self): return type(self)(self.__dict__.copy())
-
-    def __or__(self, __value: Any):
-        self.__dict__.update(__value)
-        return self
 
     # Catch cases where an optional field is called but is missing
     def __getitem__(self, key):
         try:
-            return self.__dict__[key]
+            return super().__getitem__(key)
         except KeyError as e:
             if key in get_type_hints(self.__class__).keys(): return None  # TODO: warn here?
             else: raise e
     
-    # __getattr__ only called for missing attributes
-    def __getattr__(self, __name: str) -> Any:
-        if __name.startswith("__"): return None  # Special handling for python reserved calls
-        if __name in get_type_hints(self.__class__).keys(): return None  # TODO: warn here?
-        else: raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{__name}'", name=__name, obj=self)
-
-    # Quick conversion to basic dict for requests
-    def get_dict(self): return self.__dict__
-    def to_json(self, **params): return dumps(self, cls=srcpyJSONEncoder, **params)
-
-    # Default display is as a raw dict, subclasses should override appropriately
-    def __str__(self) -> str: return str(self.__dict__)
-    def __repr__(self) -> str: return self.__str__()
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return super().__getattribute__(name)
+        except AttributeError as e:
+            if name in get_type_hints(self.__class__).keys(): return None  # TODO: warn here?
+            else: raise e
+    
+    # Appended method in case a subclass shadows
+    def values_(self): return super().values()
+    
+    def to_json(self, **params): return dumps(self, **params)
 
 class LenientDatatype(Datatype):
     """A default Datatype that skips typechecking and enforcement."""

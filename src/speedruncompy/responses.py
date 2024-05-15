@@ -76,7 +76,7 @@ class r_GetGameData(Datatype):
     runCounts: list[RunCount]
     theme: OptField[Theme]
     users: list[User]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
 
 class r_GetGameLeaderboard(Datatype):
@@ -141,7 +141,7 @@ class r_GetLatestLeaderboard(Datatype):
     players: list[Player]
     regions: list[Region]
     runs: list[Run]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
     platforms: list[Platform]
 
@@ -166,7 +166,7 @@ class r_GetRun(Datatype):
     region: OptField[Region]
     run: Run
     users: list[User]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
 
 class r_GetSearch(Datatype):
@@ -223,7 +223,7 @@ class r_GetUserLeaderboard(Datatype):
     users: list[User]
     """Always empty"""
     players: list[Player]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
     followedGameIds: Optional[Any]
     """Unused null key"""
@@ -315,7 +315,7 @@ class r_GetModerationRuns(Datatype):
     players: list[Player]
     regions: list[Region]
     runs: list[Run]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
     users: list[User]
 

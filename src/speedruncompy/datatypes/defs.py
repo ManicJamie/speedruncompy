@@ -138,7 +138,7 @@ class RunSettings(Datatype):
     video: str
     comment: str
     date: int
-    values: list[VarValue]
+    values: list[VarValue]  # type:ignore
     
     # TODO: this only guarantees RTA if both time and timeWithLoads is present in the run,
     # but if a LRT run is missing RTA then it will incorrectly return `time` rather than `None`
@@ -652,7 +652,7 @@ class Leaderboard(Datatype):
     players: list[Player]
     regions: list[Region]
     runs: list[Run]
-    values: list[Value]
+    values: list[Value]  # type:ignore
     variables: list[Variable]
 
 class Guide(Datatype):

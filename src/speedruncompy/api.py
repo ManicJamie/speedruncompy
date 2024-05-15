@@ -7,7 +7,7 @@ from typing import Awaitable, Callable, Any, Generic, TypeVar
 from yarl import URL
 from copy import copy
 
-from .datatypes import Datatype, srcpyJSONEncoder, LenientDatatype, Pagination
+from .datatypes import Datatype, LenientDatatype, Pagination
 from .exceptions import *
 
 API_URI = "https://www.speedrun.com/api/v2/"
@@ -41,7 +41,7 @@ class SpeedrunComPy():
     @staticmethod
     def _encode_r(params: dict):
         """Encodes a parameter dict into url-base64 encoded min-json, ready for use as `_r` in a GET URL."""
-        paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=srcpyJSONEncoder).strip(), "utf-8")
+        paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
         return base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
@@ -59,7 +59,7 @@ class SpeedrunComPy():
             liveJar = aiohttp.CookieJar()
             liveJar.update_cookies(self.cookie_jar._cookies)
         self._log.debug(f"POST {endpoint} w/ params {params}")
-        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=srcpyJSONEncoder),
+        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":")),
                                          headers=self._header, cookie_jar=liveJar) as session:
             async with session.post(url=f"{API_URI}{endpoint}", json=params) as response:
                 return (await response.read(), response.status)
