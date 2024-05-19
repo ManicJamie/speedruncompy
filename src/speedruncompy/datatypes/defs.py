@@ -7,10 +7,6 @@ while I endeavour to keep these up to date, updates to the v2 API are unannounce
 Missing attributes should remain available through both objectlike and dictlike interfaces,
 so you can treat them as normal (albeit without type hinting).
 """
-
-from numbers import Real
-from typing import Any, Optional
-
 from ._impl import Datatype, OptField
 from ..enums import *
 
@@ -46,12 +42,12 @@ class RuntimeTuple(Datatype):
     second: int
     millisecond: int
 
-    def __init__(self, template: dict | tuple | Real | None = None) -> None:
-        if isinstance(template, Real):
-            self.hour = template // 3600
-            self.minute = (template // 60) % 60
-            self.second = template % 60
-            self.millisecond = template % 1
+    def __init__(self, template: dict | tuple | float | int | None = None) -> None:
+        if isinstance(template, (float, int)):
+            self.hour = int(template // 3600)
+            self.minute = int((template // 60) % 60)
+            self.second = int(template % 60)
+            self.millisecond = int((template * 1000) % 1)
             return self.enforce_types()
         super().__init__(template)
     
@@ -533,7 +529,7 @@ class Run(Datatype):
     orphaned: OptField[bool]
     estimated: OptField[bool]
     """Only shown in GetModerationRuns"""
-    issues: OptField[Optional[list[str]]]
+    issues: OptField[list[str] | None]
 
 class ChallengeStanding(Datatype):
     challengeId: str
@@ -612,7 +608,7 @@ class ChallengeRun(Datatype):
     dateSubmitted: int
     dateVerified: OptField[int]
     dateScreened: OptField[int]
-    issues: OptField[Any]  # TODO: Unknown type (Any)
+    issues: OptField[None]  # TODO: Find if this is ever Not None
     playerIds: list[str]
     commentsCount: int
     place: OptField[int]
@@ -819,7 +815,7 @@ class Session(Datatype):
     homepageStream: HomepageStreamType
     disableThemes: bool
     csrfToken: str
-    networkToken: OptField[str]  # TODO: check
+    networkToken: OptField[str]
     gameList: list[Game]
     gameFollowerList: list[GameFollower]
     gameModeratorList: list[GameModerator]
@@ -831,7 +827,7 @@ class Session(Datatype):
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
     enabledExperimentIds: list[str]  # TODO: check
-    challengeModeratorList: Any  # undocumented list
+    challengeModeratorList: list[ChallengeModerator]  # TODO: check
 
 class ThemeSettings(Datatype):
     primaryColor: str

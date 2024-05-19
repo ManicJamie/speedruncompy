@@ -91,10 +91,11 @@ def check_api_conformance():
     assert len(_default.cookie_jar._cookies) == 0
     yield
 
-def log_result(result: Datatype):
-    logging.debug(result)
+def log_result(result: Datatype | dict):
     if isinstance(result, Datatype):
         logging.debug(result.to_json())
+    else:
+        logging.debug(result)
 
 class TestGeneric():
     api = SpeedrunComPy("Test")
@@ -122,12 +123,12 @@ class TestGeneric():
     def test_DefaultAPI_separation(self):
         """Ensure separation between default api instance and the declared api instance"""
         session = GetSession().perform()
-        assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] is False, "Default API incorrectly signed in"
+        assert "signedIn" in session.session
+        assert session.session.signedIn is False, "Default API incorrectly signed in"
 
         session = GetSession(_api=self.api).perform()
-        assert "signedIn" in session["session"]
-        assert session["session"]["signedIn"] is True, "High-auth api not signed in"
+        assert "signedIn" in session.session
+        assert session.session.signedIn is True, "High-auth api not signed in"
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
@@ -389,13 +390,13 @@ class TestPostRequests():
         result = GetSession(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
-        assert result["session"]["signedIn"]
+        assert result.session.signedIn
     
     def test_GetSession_unauthed(self):
         result = GetSession().perform()
         log_result(result)
         check_datatype_coverage(result)
-        assert not result["session"]["signedIn"]
+        assert not result.session.signedIn
 
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     def test_GetAuditLogList(self):

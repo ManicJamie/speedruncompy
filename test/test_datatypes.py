@@ -53,7 +53,7 @@ class TestDatatypes():
         assert dt != different
         
         assert dt.some == "data"  # Attribute get
-        dt.some = "different data"  # Attribute set
+        dt.some = "different data"  # Attribute set # type: ignore
         assert dt.some == "different data"
         assert dt["some"] == "different data"
         dt["some"] = "data"  # Dictlike set
@@ -96,6 +96,12 @@ class TestDatatypes():
             settings.aaaa  # Nonexistant attribute still raises AttributeError
         
         assert isinstance(settings.values[0], VarValue)
+    
+    def test_OptFields(self):
+        class TestDT(Datatype):
+            test: int | None
+        
+        TestDT({"test": None})  # Test construction does not error
 
 @pytest.mark.skipif(SKIP_HEAVY_TESTS, reason="SKIP_HEAVY_TESTS == True")
 class TestDatatypes_Integration_Heavy():
@@ -115,12 +121,12 @@ class TestDatatypes_Integration_Heavy():
     @pytest_asyncio.fixture(scope="session")
     async def small_game_subset(self) -> list[str]:
         """List of 250 random game IDs"""
-        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 200)
+        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 200)  # type: ignore
 
     @pytest_asyncio.fixture(scope="session")
     async def small_game_subset_data(self, small_game_subset) -> list[r_GetGameData]:
         """GetGameData for 200 random games"""
-        return await asyncio.gather(*[GetGameData(gameId=g).perform_async() for g in small_game_subset])
+        return await asyncio.gather(*[GetGameData(gameId=g).perform_async() for g in small_game_subset], return_exceptions=False)
     
     @pytest.fixture(scope="session")
     async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameData]) -> list[tuple[r_GetGameData, str]]:

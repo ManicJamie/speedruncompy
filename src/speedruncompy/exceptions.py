@@ -5,9 +5,6 @@ if TYPE_CHECKING:
 
 class IncompleteDatatype(Exception):
     """A speedruncompy datatype is missing non-optional fields"""
-    def __init__(self, missing_fields: list[str], *args: object) -> None:
-        self.missing_fields = missing_fields
-        super().__init__(self.missing_fields, *args)
 
 class SrcpyException(Exception):
     """speedruncompy found an issue with your request during initialisation (eg. bad arguments)"""

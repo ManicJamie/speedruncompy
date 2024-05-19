@@ -1,8 +1,7 @@
 from enum import Enum
 from types import NoneType, UnionType
-from typing import Any, Optional, TypeVar, Union, get_type_hints, get_origin, get_args
+from typing import Annotated, Any, TypeGuard, TypeVar, Union, get_type_hints, get_origin, get_args
 from json import dumps
-import typing
 
 from ..exceptions import IncompleteDatatype
 from .. import config
@@ -13,43 +12,41 @@ class _OptFieldMarker(): pass
 
 
 T = TypeVar("T")
-OptField = Union[T, _OptFieldMarker]
-
+OptField = Annotated[T, _OptFieldMarker]
 _log = logging.getLogger("speedruncompy.datatypes")
 
 ALLOWED_SHADOWS = ["__module__", "__doc__"]
 
-def is_optional_field(field):
-    return get_origin(field) is Union and _OptFieldMarker in get_args(field)
+def de_annotate(test: type) -> tuple[type, bool]:
+    """Removes annotation from a type, and returns if the annotation was OptField"""
+    if get_origin(test) is not Annotated: return (test, False)
+    subtype = get_args(test)[0]
+    return (subtype, get_args(test)[1] == _OptFieldMarker)
 
-def is_optional(test: type):
-    return (get_origin(test) is Union and (NoneType in get_args(test))) or (get_origin(test) is Optional)
-
-def is_union(test: type):
+def is_union(test: type) -> TypeGuard[UnionType]:
     return get_origin(test) is Union or get_origin(test) is UnionType
 
 def is_compliant_type(hint: type):
     """Whether the type of the response should be coerced to the hint"""
-    hint = degrade_union(hint, _OptFieldMarker, NoneType)
     if get_origin(hint) == list: return False
-    if is_union(hint): return False  # Guard against unions
-    return issubclass(hint, Datatype) or issubclass(hint, Enum) or hint == float or hint == bool
+    if is_union(hint): return False  # Can't get a union here! TODO: Maybe utilise annotations?
+    return issubclass(hint, Datatype) or issubclass(hint, Enum) or hint is float or hint is bool
+
+def de_parameterize(hint: type) -> type:
+    return hint if (orig := get_origin(hint)) is None else orig
+
+def get_type_tuple(hint: type) -> tuple[type, ...]:
+    return tuple(de_parameterize(subhint) for subhint in get_args(hint)) if is_union(hint) else (de_parameterize(hint),)
 
 def is_type(value, hint: type):
-    if value is None:
-        return is_optional(hint)
-    else:
-        check = degrade_union(hint, _OptFieldMarker, NoneType)
-        check = get_origin(check) if get_origin(check) is not None and not is_union(check) else check
-        return isinstance(value, check)
+    if hint is Any: return True
+    return isinstance(value, get_type_tuple(hint))
 
-def degrade_union(union: type, *to_remove: type):
+def degrade_union(union: type, *to_remove: type) -> type:
     """Removes types from a union type."""
-    if get_origin(union) is typing.Optional:
-        union = get_args(union)[0]  # In case Optional does not become Union (hates me)
     if get_origin(union) is Union:
         newargs: set = set(get_args(union)) - set(to_remove)
-        return Union[tuple(newargs)]
+        return Union[tuple(newargs)]  # type: ignore
     return union
 
 def in_enum(enum: type[Enum], value):
@@ -73,28 +70,28 @@ class Datatype(dict):
             self.enforce_types()
     
     @classmethod
-    def get_type_hints(cls) -> dict[str, Any]:
-        """Returns a dict of attributes and their specified type"""
-        return get_type_hints(cls)
+    def get_type_hints(cls, de_annotate=True) -> dict[str, Any]:
+        """Returns a dict of attributes and their specified type."""
+        return get_type_hints(cls, include_extras=not de_annotate)
 
     def enforce_types(self):
         """Enforces this datatype's fields to conform to specified types."""
-        hints = self.get_type_hints()
+        hints = getattr(self, "__annotations__", {})  # TODO: abuse get_type_hints stripping Annotations for us :)
         missing_fields = []  # fields that are specified as non-optional that are missing from
         for fieldname, hint in hints.items():
-            nullable_type = degrade_union(hint, _OptFieldMarker)  # type that may be nullable but not optional
+            nullable_type, optField = de_annotate(hint)  # type that may be nullable but not optional
             true_type = degrade_union(nullable_type, NoneType)  # base type (no union)
             raw = self[fieldname]
 
             if fieldname not in self.__dict__:
-                if is_optional_field(hint): continue
+                if optField: continue
                 else: missing_fields.append(fieldname)  # Non-optional fields must be present, report if not
             elif is_compliant_type(true_type):
                 if not isinstance(raw, true_type):
                     if true_type is bool and (raw != 1 or raw != 0):
                         _log.warning(f"{type(self)}.{fieldname} documented as bool but had value {raw}!")
                     elif issubclass(true_type, Enum) and not in_enum(true_type, raw):
-                        _log.warning(f"{type(self)}.{fieldname} enum {true_type} does not contain value {raw}!")
+                        _log.warning(f"{type(self)}.{fieldname} enum {true_type} does not contain value {raw}! Not coercing...")
                     else:
                         self[fieldname] = true_type(raw)
             elif get_origin(true_type) is list and type(raw) is list:
@@ -105,7 +102,7 @@ class Datatype(dict):
             if fieldname in self.__dict__:
                 attr = self[fieldname]
                 if true_type == Any: _log.debug(f"Undocumented attr {fieldname} has value {raw} of type {type(raw)}")
-                elif not is_type(attr, hint):
+                elif not is_type(attr, nullable_type):
                     msg = f"Datatype {type(self).__name__}'s attribute {fieldname} expects {nullable_type} but received {type(attr).__name__} = {attr}"
                     if config.COERCION == config.CoercionLevel.STRICT: raise AttributeError(msg)
                     else: _log.warning(msg)

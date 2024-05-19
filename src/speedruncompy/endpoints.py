@@ -39,7 +39,7 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
     def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
         combined = self._combine_keys(pages, ["runList"], [])  # TODO: check other field separation
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[r_GetGameLeaderboard]):
@@ -67,7 +67,7 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
         super().__init__("GetGameLeaderboard", r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
     
     def _get_pagination(self, p: r_GetGameLeaderboard) -> Pagination:
-        return p["leaderboard"]["pagination"]
+        return p["leaderboard"]["pagination"]  # type: ignore
 
     def _combine_results(self, pages: dict):
         runList = []
@@ -75,7 +75,7 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
             runList += p["leaderboard"]["runs"]
         extras: Leaderboard = pages[1]["leaderboard"]
         extras.pop("runs")
-        extras["pagination"]["page"] = 0
+        extras["pagination"]["page"] = 0  # type: ignore
         return r_GetGameLeaderboard({"leaderboard": Leaderboard(extras | {"runs": runList})})
 
 class GetGameData(GetRequest[r_GetGameData]):
@@ -199,7 +199,7 @@ class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArt
         combined = self._combine_keys(pages, ["articleList"],
                                       ["gameList", "userList"])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetArticle(GetRequest[r_GetArticle]):
@@ -224,7 +224,7 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
     def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
         combined = self._combine_keys(pages, ["gameList"], [])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetHomeSummary(GetRequest[r_GetHomeSummary]):
@@ -245,7 +245,7 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
         combined = self._combine_keys(pages, ["seriesList"], [])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
@@ -401,7 +401,7 @@ class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCom
         # TODO: check likeList, userList for page separation
         combined = self._combine_keys(pages, ["commentList"], [])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
@@ -416,7 +416,7 @@ class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     def _combine_results(self, pages: dict[int, r_GetThread]) -> r_GetThread:
         combined = self._combine_keys(pages, ["commentList"], ["userList", "likeList"])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetForumList(GetRequest[r_GetForumList]):
@@ -495,7 +495,7 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
                                       ["userList", "gameList", "categoryList", "levelList",
                                        "variableList", "valueList", "runList"])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 #region GameSettings
@@ -850,7 +850,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
                                       ["categories", "levels", "platforms", "players",
                                        "regions", "users", "values", "variables"])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class PutRunAssignee(PostRequest[r_Empty]):
@@ -958,7 +958,7 @@ class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_G
     def _combine_results(self, pages: dict[int, r_GetNotifications]) -> r_GetNotifications:
         combined = self._combine_keys(pages, ["notifications"], [])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class PutGameFollower(PostRequest[r_Empty]):
@@ -1159,7 +1159,7 @@ class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
         combined = self._combine_keys(pages, ["ticketList"],
                                       ["userList", "gameList", "userModCountList", "userRunCountList"])
         combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0
+        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
         return combined
 
 class GetSeriesSettings(PostRequest[r_GetSeriesSettings]):

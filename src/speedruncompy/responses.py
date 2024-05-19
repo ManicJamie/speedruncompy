@@ -1,3 +1,4 @@
+from types import NoneType
 from .datatypes import *
 from typing import Any
 
@@ -225,7 +226,7 @@ class r_GetUserLeaderboard(Datatype):
     players: list[Player]
     values: list[Value]  # type:ignore
     variables: list[Variable]
-    followedGameIds: Optional[Any]
+    followedGameIds: NoneType
     """Unused null key"""
     challengeList: list[Challenge]
     challengeRunList: list[ChallengeRun]
@@ -267,7 +268,7 @@ class r_GetAuditLogList(Datatype):
     userList: list[User]
     gameList: list[Game]
     categoryList: list[Category]
-    levelList: Optional[list[Level]]
+    levelList: list[Level] | None
     """WARN: is None when empty rather than []."""
     variableList: list[Variable]
     valueList: list[Value]
@@ -301,9 +302,9 @@ class r_GetGameSettings(Datatype):
     userList: list[User]
 
 class r_GetModerationGames(Datatype):
-    games: Optional[list[Game]]
+    games: list[Game] | None
     """Is null when not logged in."""
-    gameModerationStats: Optional[list[GameModerationStats]]
+    gameModerationStats: list[GameModerationStats] | None
     """Is null when not logged in."""
 
 class r_GetModerationRuns(Datatype):

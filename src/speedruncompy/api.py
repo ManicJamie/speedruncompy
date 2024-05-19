@@ -145,7 +145,7 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
 
     def _get_pagination(self, p: R) -> Pagination:
         """Locates the pagination object on a response. Overriden on certain subclasses."""
-        return p["pagination"]
+        return p["pagination"]  # type:ignore
     
     @staticmethod
     def _combine_keys(pages: dict[int, R], main_keys: list[str], merge_keys: list[str]) -> R:
@@ -157,10 +157,10 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         next(iterator)  # skip first page (already in accumulator)
         for i, p in iterator:
             for main_key in main_keys:
-                accumulator[main_key] += p[main_key]
+                accumulator[main_key] += p[main_key]  # type: ignore
             for key in merge_keys:
-                if p[key] is None: continue  # Guard against None fields
-                accuDicts[key].update({item["id"]: item for item in p[key]})
+                if p[key] is not None:  # Guard against None fields
+                    accuDicts[key].update({item["id"]: item for item in p[key]})  # type: ignore
         
         for key in merge_keys:
             accumulator[key] = list(accuDicts[key].values())
@@ -189,7 +189,7 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         self.pages: dict[int, R] = {}
         vary = 0 if not autovary else random.randint(1, 1000000000)
         self.pages[1] = await self.perform_async(retries, delay, page=1, vary=vary, **kwargs)
-        numpages = self._get_pagination(self.pages[1])["pages"]
+        numpages: int = self._get_pagination(self.pages[1])["pages"]  # type: ignore
         if max_pages >= 1:
             numpages = min(numpages, max_pages)
         if numpages > 1:
