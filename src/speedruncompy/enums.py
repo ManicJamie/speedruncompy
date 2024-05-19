@@ -30,18 +30,18 @@ class Verified(IntEnum):
     REJECTED = 2
 
 class ObsoleteFilter(IntEnum):
-    HIDDEN = 0,
-    SHOWN = 1,
+    HIDDEN = 0
+    SHOWN = 1
     EXCLUSIVE = 2
 
 class VerifiedFilter(IntEnum):
-    OPTIONAL = 0,
-    VERIFIED = 1,
+    OPTIONAL = 0
+    VERIFIED = 1
     UNVERIFIED = 2  # TODO: confirm semantics (rejected or not verified?)
 
 class VideoFilter(IntEnum):
-    OPTIONAL = 0,
-    REQUIRED = 1,
+    OPTIONAL = 0
+    REQUIRED = 1
     MISSING = 2
 
 class EmulatorFilter(IntEnum):
@@ -152,28 +152,28 @@ class TicketQueueType(IntEnum):
     SUPPORTER = 13
 
 class TicketType(IntEnum):
-    GAME_REQUEST = 1,
-    SERIES_REQUEST = 2,
-    MOD_REQUEST = 3,
-    MARATHON_REQUEST = 4,
-    CONTENT_REPORT = 5,
-    USER_REPORT = 6,
-    BUG_REPORT = 7,
-    FRONT_PAGE_REQUEST = 8,
-    FEEDBACK = 9,
-    STAFF_APPLICATION = 10,
-    OTHER_SUPPORT = 11,
-    GAME_TYPE_UPDATE = 12,
-    ADD_TO_SERIES_REQUEST = 13,
-    ADD_PLATFORM_REQUEST = 14,
-    OTHER_GAME_REQUEST = 15,
+    GAME_REQUEST = 1
+    SERIES_REQUEST = 2
+    MOD_REQUEST = 3
+    MARATHON_REQUEST = 4
+    CONTENT_REPORT = 5
+    USER_REPORT = 6
+    BUG_REPORT = 7
+    FRONT_PAGE_REQUEST = 8
+    FEEDBACK = 9
+    STAFF_APPLICATION = 10
+    OTHER_SUPPORT = 11
+    GAME_TYPE_UPDATE = 12
+    ADD_TO_SERIES_REQUEST = 13
+    ADD_PLATFORM_REQUEST = 14
+    OTHER_GAME_REQUEST = 15
     SUPPORTER_HELP = 16
 
 class TicketStatus(IntEnum):
-    PENDING = 0,
-    APPROVED = 1,
-    DENIED = 2,
-    REVIEWING = 3,
+    PENDING = 0
+    APPROVED = 1
+    DENIED = 2
+    REVIEWING = 3
     WITHDRAWN = 4
 
 class DefaultViewType(IntEnum):
