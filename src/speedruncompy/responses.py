@@ -74,7 +74,6 @@ class r_GetGameData(Datatype):
     moderators: list[GameModerator]
     platforms: list[Platform]
     regions: list[Region]
-    runCounts: list[RunCount]
     theme: OptField[Theme]
     users: list[User]
     values: list[Value]  # type:ignore
