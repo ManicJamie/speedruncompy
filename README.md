@@ -32,16 +32,16 @@ When working with auth, it is recommended to construct your own `SpeedrunComPy` 
 
 ```python
 from speedruncompy.endpoints import GetGameLeaderboard2
-from speedruncompy.api import SpeedrunComPy
+from speedruncompy.api import SpeedrunClient
 import speedruncompy.api as srcapi
 
-my_api = SpeedrunComPy("my_app_name")
-my_api.PHPSESSID = "secret PHPSESSID"  # You should store this separately!
+client = SpeedrunClient("my_app_name")
+client.PHPSESSID = "secret PHPSESSID"  # You should store this separately!
 
 # srcapi._default.PHPSESSID = "secret PHPSESSID"  # Would affect all calls 
                                                   # that don't pass _api
 
-session = GetSession(_api=my_api).perform()  # Custom client given to endpoints by _api.
+session = GetSession(_api=client).perform()  # Custom client given to endpoints by _api.
 if session.session.signedIn == True:
     print("I'm signed in!")
 ```
@@ -59,6 +59,8 @@ v1 is not actively maintained, and both misses a large number of modern features
 - some endpoints are in a degraded state (/leaderboards position)
 
 However, V2 is poor for some specific tasks; since it can only fetch one category at a time, indexing all runs in a game (or site-wide) is slow. Rate limits are also less simple, undocumented & vary between endpoints.
+
+Additionally, V2 has no promise of stability; it is use-at-your-own-risk, as it is directly tied to the data the site uses.
 
 ## Omissions
 

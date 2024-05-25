@@ -1,4 +1,4 @@
-from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunComPy
+from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunClient
 from .enums import *
 from .responses import *
 from .datatypes import Pagination
@@ -29,7 +29,7 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
     - @dateTo: datestr
     - @page
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
@@ -60,7 +60,7 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
     - @dateTo: datestr
     - @page
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
@@ -112,7 +112,7 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
     - @emulator: EmulatorFilter
     - @obsolete: ObsoleteFilter
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
         param_construct["params"].update(params)
@@ -275,7 +275,7 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
     - @dateFrom: datestr
     - @dateTo: datestr
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {"gameId": gameId, "categoryId": categoryId} | params}
         super().__init__("GetGameLevelSummary", r_GetGameLevelSummary, _api=_api, page=page, **param_construct)

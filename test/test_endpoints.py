@@ -1,5 +1,5 @@
 from speedruncompy.endpoints import *
-from speedruncompy.api import SpeedrunComPy, _default
+from speedruncompy.api import SpeedrunClient, _default
 from speedruncompy.exceptions import *
 from speedruncompy import config as srccfg
 from utils import check_datatype_coverage, check_pages
@@ -98,10 +98,10 @@ def log_result(result: Datatype | dict):
         logging.debug(result)
 
 class TestGeneric():
-    api = SpeedrunComPy("Test")
+    api = SpeedrunClient("Test")
     api.PHPSESSID = SESSID
 
-    low_api = SpeedrunComPy("Test_LOWAUTH")
+    low_api = SpeedrunClient("Test_LOWAUTH")
     low_api.PHPSESSID = LOW_SESSID
 
     def test_GetAsync(self):
@@ -139,7 +139,7 @@ class TestGeneric():
         """Check auth endpoints (using lowauth account)"""
 
 class TestGetRequests():
-    api = SpeedrunComPy("Test")
+    api = SpeedrunClient("Test")
     api.PHPSESSID = SESSID
 
     def test_GetGameLeaderboard(self):
@@ -380,10 +380,10 @@ class TestGetRequests():
         check_datatype_coverage(result)
 
 class TestPostRequests():
-    api = SpeedrunComPy("Test")
+    api = SpeedrunClient("Test")
     api.PHPSESSID = SESSID
 
-    low_api = SpeedrunComPy("Test_LOWAUTH")
+    low_api = SpeedrunClient("Test_LOWAUTH")
     low_api.PHPSESSID = LOW_SESSID
 
     def test_GetSession(self):
@@ -595,10 +595,10 @@ class TestPostRequests():
 
 class TestPutRequests():
     """Requests that modify site data"""
-    api = SpeedrunComPy("Test")
+    api = SpeedrunClient("Test")
     api._set_PHPSESSID(SESSID)
 
-    low_api = SpeedrunComPy("Test_LOWAUTH")
+    low_api = SpeedrunClient("Test_LOWAUTH")
     low_api._set_PHPSESSID(LOW_SESSID)
 
     @pytest.fixture(scope="class")

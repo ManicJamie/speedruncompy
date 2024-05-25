@@ -18,7 +18,7 @@ DEFAULT_USER_AGENT = "speedruncompy/"
 _log = logging.getLogger("speedruncompy")
 
 
-class SpeedrunComPy():
+class SpeedrunClient():
     """Api class. Holds a unique PHPSESSID and user_agent, as well as its own logger."""
     def __init__(self, user_agent: str | None = None) -> None:
         self.cookie_jar = aiohttp.CookieJar()
@@ -65,7 +65,7 @@ class SpeedrunComPy():
                 return (await response.read(), response.status)
 
 
-_default = SpeedrunComPy()
+_default = SpeedrunClient()
 
 
 def set_default_PHPSESSID(phpsessionid):
@@ -199,12 +199,12 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
 
 
 class GetRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunClient | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_get, endpoint=endpoint, returns=returns, **params)
 
 
 class PostRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunComPy | None = None, **params) -> None:
+    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunClient | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_post, endpoint=endpoint, returns=returns, **params)
