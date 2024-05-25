@@ -1,6 +1,7 @@
 import base64, json
 import logging
 import asyncio, aiohttp
+import sys
 import random
 from typing import Awaitable, Callable, Any, Generic, TypeVar
 
@@ -10,7 +11,7 @@ from copy import copy
 from .datatypes import Datatype, LenientDatatype, Pagination
 from .exceptions import *
 
-API_URI = "https://www.speedrun.com/api/v2/"
+API_ROOT = "/api/v2/"
 LANG = "en"
 ACCEPT = "application/json"
 DEFAULT_USER_AGENT = "speedruncompy/"
@@ -20,20 +21,51 @@ _log = logging.getLogger("speedruncompy")
 
 class SpeedrunClient():
     """Api class. Holds a unique PHPSESSID and user_agent, as well as its own logger."""
-    def __init__(self, user_agent: str | None = None) -> None:
-        self.cookie_jar = aiohttp.CookieJar()
-        self._header = {"Accept-Language": LANG, "Accept": ACCEPT, "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
+    
+    _session: aiohttp.ClientSession | None
+    cookie_jar: aiohttp.CookieJar | None
+    loose_cookies: dict[str, str]
+    _header: dict[str, str]
+    
+    def __init__(self, user_agent: str | None = None, PHPSESSID: str | None = None) -> None:
+        self.cookie_jar = None
+        self._session = None
+        self.loose_cookies = {}
+        if PHPSESSID is not None:
+            self.loose_cookies["PHPSESSID"] = PHPSESSID
+        self._header = {"Accept-Language": LANG, "Accept": ACCEPT,
+                        "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
         if user_agent is None:
             self._log = _log
         else:
             self._log = _log.getChild(user_agent)
+    
+    async def __aenter__(self):
+        self._session = await (await self._construct_session()).__aenter__()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._session is None: return
+        await self._session.__aexit__(exc_type, exc_val, exc_tb)
+        self._session = None
+    
+    async def _construct_session(self):
+        if self.cookie_jar is None:
+            self.cookie_jar = aiohttp.CookieJar()
+            self.cookie_jar.update_cookies(self.loose_cookies)
+        return aiohttp.ClientSession(base_url="https://www.speedrun.com", cookie_jar=self.cookie_jar, headers=self._header,
+                                     json_serialize=lambda o: json.dumps(o, separators=(",", ":")))
 
     def _get_PHPSESSID(self) -> str | None:
+        if self.cookie_jar is None: return self.loose_cookies.get("PHPSESSID", None)
         cookie = self.cookie_jar.filter_cookies(URL("/")).get("PHPSESSID")
         return None if cookie is None else cookie.value
 
     def _set_PHPSESSID(self, phpsessid):
-        self.cookie_jar.update_cookies({"PHPSESSID": phpsessid})
+        if self.cookie_jar is not None:
+            self.cookie_jar.update_cookies({"PHPSESSID": phpsessid})
+        else:
+            self.loose_cookies.update({"PHPSESSID": phpsessid})
     
     PHPSESSID = property(_get_PHPSESSID, _set_PHPSESSID)
     """Login token. Set by `PutAuthLogin`, or you may set it manually to a logged in session."""
@@ -45,24 +77,41 @@ class SpeedrunClient():
         return base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
-        # Params passed to the API by the site are json-base64 encoded, even though std params are supported.
-        # We will do the same in case param support is retracted.
         self._log.debug(f"GET {endpoint} w/ params {params}")
-        async with aiohttp.ClientSession(headers=self._header, cookie_jar=self.cookie_jar) as session:
-            async with session.get(url=f"{API_URI}{endpoint}", params={"_r": self._encode_r(params)}) as response:
-                return (await response.read(), response.status)
+        session = self._session
+        if session is None:
+            session = await (await self._construct_session()).__aenter__()
         
-    async def do_post(self, endpoint: str, params: dict = {}, _setCookie=True) -> tuple[bytes, int]:
-        # Construct a dummy jar if we wish to ignore Set_Cookie responses (only on PutAuthLogin and PutAuthSignup)
-        if _setCookie: liveJar = self.cookie_jar
+        try:
+            async with session.get(url=f"{API_ROOT}{endpoint}", params={"_r": self._encode_r(params)}) as response:
+                out = (await response.read(), response.status)
+        except Exception as e:
+            if self._session is not None:
+                await self._session.__aexit__(*sys.exc_info())
+            raise e
         else:
-            liveJar = aiohttp.CookieJar()
-            liveJar.update_cookies(self.cookie_jar._cookies)
+            if self._session is None:
+                await session.__aexit__(None, None, None)
+            return out
+    
+    async def do_post(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"POST {endpoint} w/ params {params}")
-        async with aiohttp.ClientSession(json_serialize=lambda o: json.dumps(o, separators=(",", ":")),
-                                         headers=self._header, cookie_jar=liveJar) as session:
-            async with session.post(url=f"{API_URI}{endpoint}", json=params) as response:
-                return (await response.read(), response.status)
+        
+        session = self._session
+        if session is None:
+            session = await (await self._construct_session()).__aenter__()
+        
+        try:
+            async with session.post(url=f"{API_ROOT}{endpoint}", json=params) as response:
+                out = (await response.read(), response.status)
+        except Exception as e:
+            if self._session is not None:
+                await self._session.__aexit__(*sys.exc_info())
+            raise e
+        else:
+            if self._session is None:
+                await session.__aexit__(None, None, None)
+            return out
 
 
 _default = SpeedrunClient()

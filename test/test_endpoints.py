@@ -88,7 +88,10 @@ def disable_type_checking():
 @pytest.fixture(autouse=True)
 def check_api_conformance():
     """The default API must never have a PHPSESSID."""
-    assert len(_default.cookie_jar._cookies) == 0
+    if _default.cookie_jar is None:
+        assert len(_default.loose_cookies) == 0
+    else:
+        assert len(_default.cookie_jar._cookies) == 0
     yield
 
 def log_result(result: Datatype | dict):
@@ -129,6 +132,24 @@ class TestGeneric():
         session = GetSession(_api=self.api).perform()
         assert "signedIn" in session.session
         assert session.session.signedIn is True, "High-auth api not signed in"
+    
+    def test_API_Context_Manager(self):
+        """Ensure expected behaviour from the context manager interface."""
+        async def test():
+            async with SpeedrunClient("Test", SESSID) as client:
+                assert client._session is not None
+                result = await GetSession(_api=client).perform_async(autovary=True)
+                result2 = await GetSession(_api=client).perform_async(autovary=True)
+            
+            log_result(result)
+            check_datatype_coverage(result)
+            
+            log_result(result2)
+            check_datatype_coverage(result2)
+            
+            assert client._session is None
+        
+        asyncio.run(test())
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
