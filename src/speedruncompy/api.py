@@ -24,7 +24,9 @@ class SpeedrunClient():
     
     _session: aiohttp.ClientSession | None
     cookie_jar: aiohttp.CookieJar | None
+    """An asyncio CookieJar. Constructed on first entry to an async context."""
     loose_cookies: dict[str, str]
+    """Cookies before jar construction."""
     _header: dict[str, str]
     
     def __init__(self, user_agent: str | None = None, PHPSESSID: str | None = None) -> None:
@@ -35,10 +37,7 @@ class SpeedrunClient():
             self.loose_cookies["PHPSESSID"] = PHPSESSID
         self._header = {"Accept-Language": LANG, "Accept": ACCEPT,
                         "User-Agent": f"{DEFAULT_USER_AGENT}{user_agent}"}
-        if user_agent is None:
-            self._log = _log
-        else:
-            self._log = _log.getChild(user_agent)
+        self._log = _log if user_agent is None else _log.getChild(user_agent)
     
     async def __aenter__(self):
         self._session = await (await self._construct_session()).__aenter__()
@@ -86,8 +85,8 @@ class SpeedrunClient():
             async with session.get(url=f"{API_ROOT}{endpoint}", params={"_r": self._encode_r(params)}) as response:
                 out = (await response.read(), response.status)
         except Exception as e:
-            if self._session is not None:
-                await self._session.__aexit__(*sys.exc_info())
+            if self._session is None:
+                await session.__aexit__(*sys.exc_info())
             raise e
         else:
             if self._session is None:
@@ -105,8 +104,8 @@ class SpeedrunClient():
             async with session.post(url=f"{API_ROOT}{endpoint}", json=params) as response:
                 out = (await response.read(), response.status)
         except Exception as e:
-            if self._session is not None:
-                await self._session.__aexit__(*sys.exc_info())
+            if self._session is None:
+                await session.__aexit__(*sys.exc_info())
             raise e
         else:
             if self._session is None:
