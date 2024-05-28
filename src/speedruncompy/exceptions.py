@@ -19,7 +19,7 @@ class APIException(Exception):
     def __init__(self, caller: 'BaseRequest', *args) -> None:
         self.caller = caller
         status = self.caller.response[1]
-        super().__init__(status, self.caller.response[0], self.caller, *args)
+        super().__init__(status, self.caller.response[0].decode("utf-8"), self.caller, *args)
 
 class ClientException(APIException):
     """There was an issue with your request that the client must handle."""

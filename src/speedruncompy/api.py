@@ -77,6 +77,7 @@ class SpeedrunClient():
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"GET {endpoint} w/ params {params}")
+        
         session = self._session
         if session is None:
             session = await (await self._construct_session()).__aenter__()
@@ -85,13 +86,12 @@ class SpeedrunClient():
             async with session.get(url=f"{API_ROOT}{endpoint}", params={"_r": self._encode_r(params)}) as response:
                 out = (await response.read(), response.status)
         except Exception as e:
-            if self._session is None:
-                await session.__aexit__(*sys.exc_info())
             raise e
         else:
-            if self._session is None:
-                await session.__aexit__(None, None, None)
             return out
+        finally:
+            if self._session is None:
+                await session.__aexit__(*sys.exc_info())
     
     async def do_post(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"POST {endpoint} w/ params {params}")
@@ -104,13 +104,12 @@ class SpeedrunClient():
             async with session.post(url=f"{API_ROOT}{endpoint}", json=params) as response:
                 out = (await response.read(), response.status)
         except Exception as e:
-            if self._session is None:
-                await session.__aexit__(*sys.exc_info())
             raise e
         else:
-            if self._session is None:
-                await session.__aexit__(None, None, None)
             return out
+        finally:
+            if self._session is None:
+                await session.__aexit__(*sys.exc_info())
 
 
 _default = SpeedrunClient()

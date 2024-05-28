@@ -133,33 +133,47 @@ class TestGeneric():
         assert "signedIn" in session.session
         assert session.session.signedIn is True, "High-auth api not signed in"
     
-    def test_API_Context_Manager(self):
+    async def test_API_Context_Manager(self):
         """Ensure expected behaviour from the context manager interface."""
-        async def test():
-            async with SpeedrunClient("Test", SESSID) as client:  # __aenter__ return type
-                assert client._session is not None
-                session = client._session  # Check same session over async lifetime
-                
-                await GetSession(_api=client).perform_async(autovary=True)
-                assert session is client._session
-                await GetSession(_api=client).perform_async(autovary=True)
-                assert session is client._session
+        async with self.api as client:  # __aenter__ return type
+            assert client._session is not None
+            session = client._session  # Check same session over async lifetime
             
-            assert client._session is None  # Session dies outside of async context
+            await GetSession(_api=client).perform_async(autovary=True)
+            assert session is client._session
+            await GetSession(_api=client).perform_async(autovary=True)
+            assert session is client._session
         
-            async with client:  # Check client re-entry
-                assert client._session is not None
-                session2 = client._session
-                assert session is not session2  # Not same session as last time, but still lives within lifetime
-                
-                await GetSession(_api=client).perform_async(autovary=True)
-                assert session2 is client._session
-                await GetSession(_api=client).perform_async(autovary=True)
-                assert session2 is client._session
+        assert client._session is None  # Session dies outside of async context
+    
+        async with client:  # Check client re-entry
+            assert client._session is not None
+            session2 = client._session
+            assert session is not session2  # Not same session as last time, but still lives within lifetime
             
-            assert client._session is None
+            await GetSession(_api=client).perform_async(autovary=True)
+            assert session2 is client._session
+            await GetSession(_api=client).perform_async(autovary=True)
+            assert session2 is client._session
+        
+        assert client._session is None
+    
+    async def test_API_Context_Manager_Errors(self):
+        async with self.api as client:
+            session = client._session
+            try:
+                await GetGameData(_api=client).perform_async()  # raises e
+            except Exception as e:
+                logging.debug(f"Error {e} raised")
+            else:
+                raise Exception("Error not raised!")
             
-        asyncio.run(test())
+            assert session is not None  # still alive
+            await GetSession(_api=client).perform_async()
+            assert client._session is session  # still same session
+        
+        assert client._session is None  # session closed
+        
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
