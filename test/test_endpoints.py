@@ -136,19 +136,29 @@ class TestGeneric():
     def test_API_Context_Manager(self):
         """Ensure expected behaviour from the context manager interface."""
         async def test():
-            async with SpeedrunClient("Test", SESSID) as client:
+            async with SpeedrunClient("Test", SESSID) as client:  # __aenter__ return type
                 assert client._session is not None
-                result = await GetSession(_api=client).perform_async(autovary=True)
-                result2 = await GetSession(_api=client).perform_async(autovary=True)
+                session = client._session  # Check same session over async lifetime
+                
+                await GetSession(_api=client).perform_async(autovary=True)
+                assert session is client._session
+                await GetSession(_api=client).perform_async(autovary=True)
+                assert session is client._session
             
-            log_result(result)
-            check_datatype_coverage(result)
-            
-            log_result(result2)
-            check_datatype_coverage(result2)
+            assert client._session is None  # Session dies outside of async context
+        
+            async with client:  # Check client re-entry
+                assert client._session is not None
+                session2 = client._session
+                assert session is not session2  # Not same session as last time, but still lives within lifetime
+                
+                await GetSession(_api=client).perform_async(autovary=True)
+                assert session2 is client._session
+                await GetSession(_api=client).perform_async(autovary=True)
+                assert session2 is client._session
             
             assert client._session is None
-        
+            
         asyncio.run(test())
 
     @pytest.mark.skip(reason="Test stub")
