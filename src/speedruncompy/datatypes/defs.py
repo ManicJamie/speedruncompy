@@ -57,11 +57,17 @@ class CommentPermissions(Datatype):
     cannotViewReasons: list[str]
     cannotPostReasons: list[str]
 
+class CommentableProperties(Datatype):
+    disabled: bool
+    locked: bool
+
 class Commentable(Datatype):
     itemType: ItemType
     itemId: str
-    properties: dict  # disabled, locked
+    properties: CommentableProperties
     permissions: CommentPermissions
+    """Permissions of the logged in user.
+    If not logged in, canPost will always be False."""
 
 class Comment(Datatype):
     id: str
