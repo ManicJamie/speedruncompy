@@ -1,6 +1,6 @@
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunClient
-from .enums import *
-from .responses import *
+from .datatypes.enums import *
+from .datatypes.responses import *
 from .datatypes import Pagination
 
 import copy

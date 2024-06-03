@@ -6,5 +6,7 @@ while I endeavour to keep these up to date, updates to the v2 API are unannounce
 Missing attributes remain available through both objectlike and dictlike interfaces,
 so you can treat them as normal (albeit without type hinting)."""
 
+from ._impl import LenientDatatype, Datatype  # noqa
+
 from .defs import *  # noqa
-from ._impl import LenientDatatype, Datatype, LenientDatatype  # noqa
+from . import responses, enums, _impl  # noqa

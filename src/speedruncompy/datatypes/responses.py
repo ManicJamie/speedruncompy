@@ -1,6 +1,9 @@
 from types import NoneType
-from .datatypes import *
 from typing import Any
+
+from ._impl import Datatype
+from .defs import *
+
 
 class r_Empty(Datatype):
     """No Content"""
