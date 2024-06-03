@@ -2,7 +2,7 @@ import speedruncompy as src
 from speedruncompy.api import *
 from speedruncompy.endpoints import *
 import logging, json
-from speedruncompy.enums import *
+from speedruncompy.datatypes.enums import *
 
 from secret import USER_NAME, PASSWORD, SESSID, CSRF
 

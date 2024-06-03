@@ -1,5 +1,5 @@
 from speedruncompy.datatypes import *
-from speedruncompy.enums import *
+from speedruncompy.datatypes.enums import *
 from speedruncompy import *
 
 import json
