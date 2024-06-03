@@ -6,6 +6,9 @@ if TYPE_CHECKING:
 class IncompleteDatatype(Exception):
     """A speedruncompy datatype is missing non-optional fields"""
 
+class IncompleteEnum(Exception):
+    """A speedruncompy enum is missing a value"""
+
 class SrcpyException(Exception):
     """speedruncompy found an issue with your request during initialisation (eg. bad arguments)"""
 

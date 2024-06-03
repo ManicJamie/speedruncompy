@@ -1,4 +1,29 @@
-from enum import IntEnum, StrEnum
+import enum
+from aenum import extend_enum
+from ._impl import _log
+from .. import config, exceptions
+
+class StrEnum(enum.StrEnum):
+    """WARN: this is a forgiving enum type, which dynamically adds missing fields at runtime."""
+    @classmethod
+    def _missing_(cls, value):
+        if config.COERCION >= config.CoercionLevel.STRICT:
+            raise exceptions.IncompleteEnum(cls, value)
+        _log.error(f"Enum {cls.__name__} missing value {value}. Adding missing value...")
+        _log.warning("""If you did not construct this enum, Speedrun.com has updated this field. If speedruncompy is up-to-date, please contact the library author.""")
+        extend_enum(cls, str(value), (value, ))
+        return list(cls)[-1]  # type: ignore
+
+class IntEnum(enum.IntEnum):
+    """WARN: this is a forgiving enum type, which dynamically adds missing fields at runtime."""
+    @classmethod
+    def _missing_(cls, value):
+        if config.COERCION >= config.CoercionLevel.STRICT:
+            raise exceptions.IncompleteEnum(cls, value)
+        _log.error(f"Enum {cls.__name__} missing value {value}. Adding missing value...")
+        _log.warning("""If you did not construct this enum, Speedrun.com has updated this field. If speedruncompy is up-to-date, please contact the library author.""")
+        extend_enum(cls, str(value), (value, ))
+        return list(cls)[-1]  # type: ignore
 
 class ItemType(IntEnum):
     """The type of the item this object is referencing (eg. a comment on either a run or a thread)"""

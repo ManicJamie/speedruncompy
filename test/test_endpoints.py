@@ -157,7 +157,6 @@ class TestGeneric():
             assert client._session is session  # still same session
         
         assert client._session is None  # session closed
-        
 
     @pytest.mark.skip(reason="Test stub")
     def test_Authflow(self):
