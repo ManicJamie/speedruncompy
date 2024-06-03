@@ -19,27 +19,11 @@ import pytest, os, logging, asyncio
     Be careful when modifying these endpoints.
 """
 
-if "HORNET_PHPSESSID" in os.environ:  # Github action setup
-    SESSID = os.environ["HORNET_PHPSESSID"]
-else:
-    from secret import SESSID
-
-if "LOW_PHPSESSID" in os.environ:  # Account that is logged in, but does not have permission to perform moderator actions
-    LOW_SESSID = os.environ["LOW_PHPSESSID"]
-else:
-    from secret import LOW_SESSID
-
-if "LOW_USERNAME" in os.environ and "LOW_PASSWORD" in os.environ:
-    LOW_USERNAME = os.environ["LOW_USERNAME"]
-    LOW_PASSWORD = os.environ["LOW_PASSWORD"]
-else:
-    # from secret import LOW_USERNAME, LOW_PASSWORD
-    ...
-
-if "IS_SUPERMOD" in os.environ:
-    IS_SUPERMOD = bool(os.environ["IS_SUPERMOD"])
-else:
-    IS_SUPERMOD = False  # Set to True to activate full test suite including supermod endpoints
+SESSID = os.environ.get("HORNET_PHPSESSID", None)
+LOW_SESSID = os.environ.get("LOW_PHPSESSID", None)
+LOW_USERNAME = os.environ.get("LOW_USERNAME", None)
+LOW_PASSWORD = os.environ.get("LOW_PASSWORD", None)
+IS_SUPERMOD = bool(os.environ.get("IS_SUPERMOD", False))
 
 game_id = "76rqmld8"  # Hollow Knight
 game_url = "hollowknight"
