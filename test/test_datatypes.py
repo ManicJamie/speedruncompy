@@ -5,7 +5,7 @@ from random import randint, sample
 from speedruncompy.datatypes import *
 from speedruncompy import config as srccfg
 from speedruncompy.endpoints import *
-from speedruncompy.exceptions import IncompleteDatatype
+from speedruncompy.exceptions import IncompleteDatatype, IncompleteEnum
 
 from utils import check_datatype_coverage
 
@@ -97,11 +97,33 @@ class TestDatatypes():
         
         assert isinstance(settings.values[0], VarValue)
     
-    def test_OptFields(self):
+    def test_NullableFields(self):
         class TestDT(Datatype):
             test: int | None
         
         TestDT({"test": None})  # Test construction does not error
+    
+    def test_OptFields(self):
+        class TestDT(Datatype):
+            test: OptField[int]
+        
+        TestDT({})  # Test construction does not error
+    
+    def test_EnumMissingValue(self):
+        class TestEnum(enums.StrEnum):
+            ...  # No values
+        
+        with pytest.raises(IncompleteEnum):
+            TestEnum("test")
+    
+    def test_EnumMissingValue_loose(self, caplog: pytest.LogCaptureFixture, loose_type_conformance):
+        class TestEnum(enums.StrEnum):
+            ...  # No values
+        
+        with caplog.at_level(logging.WARNING):
+            TestEnum("test")
+        
+        assert "Enum TestEnum missing value test. Adding missing value..." in caplog.text
 
 @pytest.mark.skipif(SKIP_HEAVY_TESTS, reason="SKIP_HEAVY_TESTS == True")
 class TestDatatypes_Integration_Heavy():
