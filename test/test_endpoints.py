@@ -25,7 +25,14 @@ LOW_USERNAME = os.environ.get("LOW_USERNAME", None)
 LOW_PASSWORD = os.environ.get("LOW_PASSWORD", None)
 IS_SUPERMOD = bool(os.environ.get("IS_SUPERMOD", False))
 
-game_id = "76rqmld8"  # Hollow Knight
+if not os.environ.get("SUPPRESS_LOGS", False):
+    logging.getLogger().setLevel(logging.DEBUG)
+else:
+    logging.getLogger().setLevel(logging.WARNING)
+
+logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
+
+game_id = "76rqmld8" # Hollow Knight
 game_url = "hollowknight"
 category_id = "02q8o4p2"  # Any%
 level_category = "wkpq608d"  # Hollow Knight "Level" category
@@ -48,9 +55,6 @@ hornet_url = "Hornet_Bot"
 conversation_id = "4xEDO"  # ManicJamie <-> Hornet_Bot
 series_id = "8nw2ygxn"  # Shrek Fangames
 super_gameId = "pd0nlx21"  # ThirdParty_Testing
-
-logging.getLogger().setLevel(logging.DEBUG)
-logging.getLogger().addHandler(logging.FileHandler("testing.log", "w"))
 
 # All tests are done with strict type conformance to catch errors early
 # In downstream this is default False, and warnings are given instead of errors.

@@ -43,5 +43,6 @@ jobs:
         LOW_USERNAME: ${{secrets.LOW_USERNAME}}
         LOW_PASSWORD: ${{secrets.LOW_PASSWORD}}
         SKIP_HEAVY_TESTS: true
+        SUPPRESS_LOGS: true
       run: |
         python -m pytest

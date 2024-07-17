@@ -1,9 +1,9 @@
-import enum
+import aenum
 from aenum import extend_enum
 from ._impl import _log
 from .. import config, exceptions
 
-class StrEnum(enum.StrEnum):
+class StrEnum(aenum.StrEnum):
     """WARN: this is a forgiving enum type, which dynamically adds missing fields at runtime."""
     @classmethod
     def _missing_(cls, value):
@@ -14,7 +14,7 @@ class StrEnum(enum.StrEnum):
         extend_enum(cls, str(value), (value, ))
         return list(cls)[-1]  # type: ignore
 
-class IntEnum(enum.IntEnum):
+class IntEnum(aenum.IntEnum):
     """WARN: this is a forgiving enum type, which dynamically adds missing fields at runtime."""
     @classmethod
     def _missing_(cls, value):

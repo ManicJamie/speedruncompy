@@ -13,10 +13,7 @@ import pytest, pytest_asyncio, logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-if "SKIP_HEAVY_TESTS" in os.environ:
-    SKIP_HEAVY_TESTS = bool(os.environ["SKIP_HEAVY_TESTS"])
-else:
-    SKIP_HEAVY_TESTS = True
+SKIP_HEAVY_TESTS = bool(os.environ.get("SKIP_HEAVY_TESTS", True))
 
 game_id = "76rqmld8"  # Hollow Knight
 category_id = "02q8o4p2"  # Any%
