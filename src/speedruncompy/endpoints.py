@@ -1566,7 +1566,7 @@ class PutThreadDelete(PostRequest[r_Empty]):
     def __init__(self, threadId: str, **params) -> None:
         super().__init__("PutThreadDelete", r_Empty, threadId=threadId, **params)
 
-class PutGameFollowerOrderResult(PostRequest[r_Empty]):
+class PutGameFollowerOrder(PostRequest[r_Empty]):
     """Reorder a user's followed games.
 
     ### Mandatory:
@@ -1574,7 +1574,7 @@ class PutGameFollowerOrderResult(PostRequest[r_Empty]):
     - @userId
     """
     def __init__(self, gameIds: list[str], userId: str, **params) -> None:
-        super().__init__("PutGameFollowerOrderResult", r_Empty, gameIds=gameIds, userId=userId, **params)
+        super().__init__("PutGameFollowerOrder", r_Empty, gameIds=gameIds, userId=userId, **params)
 
 class PutThemeSettings(PostRequest[r_Empty]):
     """Sets a user, game or series' theme.
