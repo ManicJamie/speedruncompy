@@ -1189,6 +1189,49 @@ class PutUserUpdateFeaturedRun(PostRequest[r_Empty]):
     def __init__(self, userUrl: str, fullRunId: str | None = None, levelRunId: str | None = None, **params) -> None:
         super().__init__("PutUserUpdateFeaturedRun", r_Empty, userUrl=userUrl, fullRunId=fullRunId, levelRunId=levelRunId, **params)
 
+
+class GetUserApiKey(PostRequest[r_GetUserApiKey]):
+    """Get a user's API key.
+
+    ### Mandatory:
+    - @userId
+
+    ### Optional:
+    - @regenerate: bool = False # Returns a new API key if True
+    """
+    def __init__(self, userId: str, regenerate: bool | None = None, **params) -> None:
+        super().__init__("GetUserApiKey", r_GetUserApiKey, userId=userId, regenerate=regenerate, **params)
+
+class GetUserGameBoostData(PostRequest[r_GetUserGameBoostData]):
+    """Get a list of games that a user has boosted.
+
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserGameBoostData", r_GetUserGameBoostData, userId=userId, **params)
+
+class GetUserDataExport(PostRequest[r_GetUserDataExport]):
+    """Get a user's exported data.
+
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserDataExport", r_GetUserDataExport, userId=userId, **params)
+
+class PutGameFollowerOrder(PostRequest[r_Empty]):
+    """Reorder a user's followed games.
+
+    ### Mandatory:
+    - @gameIds: list of game Ids in the order they should be in
+    - @userId
+    """
+    def __init__(self, gameIds: list[str], userId: str, **params) -> None:
+        super().__init__("PutGameFollowerOrder", r_Empty, gameIds=gameIds, userId=userId, **params)
+
+# PUT IT HERE
+
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
     """Checks the comment permissions on an item.
@@ -1271,6 +1314,19 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
         ) -> None:
         super().__init__("GetThemeSettings", r_GetThemeSettings, userId=userId, gameId=gameId,
                          seriesId=seriesId, **params)
+
+class PutThemeSettings(PostRequest[r_Empty]):
+    """Sets a user, game or series' theme.
+
+    ### Mandatory:
+    #### One of:
+    - @userId
+    - @gameId
+    - @seriesId
+    - @settings: ThemeSettings
+    """
+    def __init__(self, settings: ThemeSettings, userId: str | None = None, gameId: str | None = None, seriesId: str | None = None, **params) -> None:
+        super().__init__("PutThemeSettings", r_Empty, userId=userId, gameId=gameId, seriesId=seriesId, settings=settings, **params)
 
 # Supporter
 class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
@@ -1565,56 +1621,3 @@ class PutThreadDelete(PostRequest[r_Empty]):
     """
     def __init__(self, threadId: str, **params) -> None:
         super().__init__("PutThreadDelete", r_Empty, threadId=threadId, **params)
-
-class PutGameFollowerOrder(PostRequest[r_Empty]):
-    """Reorder a user's followed games.
-
-    ### Mandatory:
-    - @gameIds: list of game Ids in the order they should be in
-    - @userId
-    """
-    def __init__(self, gameIds: list[str], userId: str, **params) -> None:
-        super().__init__("PutGameFollowerOrder", r_Empty, gameIds=gameIds, userId=userId, **params)
-
-class PutThemeSettings(PostRequest[r_Empty]):
-    """Sets a user, game or series' theme.
-
-    ### Mandatory:
-    #### One of:
-    - @userId
-    - @gameId
-    - @seriesId
-    - @settings: ThemeSettings
-    """
-    def __init__(self, settings: ThemeSettings, userId: str | None = None, gameId: str | None = None, seriesId: str | None = None, **params) -> None:
-        super().__init__("PutThemeSettings", r_Empty, userId=userId, gameId=gameId, seriesId=seriesId, settings=settings, **params)
-
-class GetUserApiKey(PostRequest[r_GetUserApiKey]):
-    """Get a user's API key.
-
-    ### Mandatory:
-    - @userId
-
-    ### Optional:
-    - @regenerate: bool = False # Returns a new API key if True
-    """
-    def __init__(self, userId: str, regenerate: bool | None = None, **params) -> None:
-        super().__init__("GetUserApiKey", r_GetUserApiKey, userId=userId, regenerate=regenerate, **params)
-
-class GetUserGameBoostData(PostRequest[r_GetUserGameBoostData]):
-    """Get a list of games that a user has boosted.
-
-    ### Mandatory:
-    - @userId
-    """
-    def __init__(self, userId: str, **params) -> None:
-        super().__init__("GetUserGameBoostData", r_GetUserGameBoostData, userId=userId, **params)
-
-class GetUserDataExport(PostRequest[r_GetUserDataExport]):
-    """Get a user's exported data.
-
-    ### Mandatory:
-    - @userId
-    """
-    def __init__(self, userId: str, **params) -> None:
-        super().__init__("GetUserDataExport", r_GetUserDataExport, userId=userId, **params)
