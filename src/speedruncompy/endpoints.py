@@ -19,19 +19,53 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
     - @categoryId
 
     ### Optional:
-    - @levelId: If `categoryId` refers to a level category. # TODO: check if mandatory
-    - @video: `VideoFilter` = 1 (=Required (!))
-    - @timer: TimerName to sort by
-    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
+    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @emulator: `EmulatorFilter`
+    - @levelId: If `categoryId` refers to a level category.
+    - @obsolete: `ObsoleteFilter` = 0
     - @platformIds
     - @regionIds
-    - @dateFrom: datestr
-    - @dateTo: datestr
+    - @timer: TimerName to sort by
+    - @verified: `VerifiedFilter` = 1 # If runs other than verified should be included
+    - @values: A list of `VarValues`
+    - @video: `VideoFilter` = 1 (=Required (!))
     - @page
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
+    def __init__(
+            self,
+            gameId: str,
+            categoryId: str,
+            dateFrom: str | None = None,
+            dateTo: str | None = None,
+            emulator: EmulatorFilter | None = None,
+            levelId: str | None = None,
+            obsolete: ObsoleteFilter | None = None,
+            platformIds: list[str] | None = None,
+            regionIds: list[str] | None = None,
+            timer: TimerName | None = None,
+            verified: VerifiedFilter | None = None,
+            values: list[VarValues] | None = None,
+            video: VideoFilter | None = None,
+            _api: SpeedrunClient | None = None,
+            **params
+        ) -> None:
         page = params.pop("page", None)
-        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
+        param_construct = {"params": {
+            "gameId": gameId,
+            "categoryId": categoryId,
+            "dateFrom": dateFrom,
+            "dateTo": dateTo,
+            "emulator": emulator,
+            "levelId": levelId,
+            "obsolete": obsolete,
+            "platformIds": platformIds,
+            "regionIds": regionIds,
+            "timer": timer,
+            "verified": verified,
+            "values": values,
+            "video": video
+        }}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard2", r_GetGameLeaderboard2, _api=_api,
                          page=page, **param_construct)
@@ -49,20 +83,51 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
     - @gameId
     - @categoryId
 
-    ### Optional: # TODO: These are copied from GetGameLeaderboard2, check if correct
-    - @levelId: If `categoryId` refers to a level category. # TODO: check if mandatory
-    - @video: `VideoFilter` = 1 (=Required) (!)
-    - @timer: TimerName to sort by
-    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    ### Optional: # These are copied from GetGameLeaderboard2 - impart from verified
+    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
+    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @emulator: `EmulatorFilter`
+    - @levelId: If `categoryId` refers to a level category.
+    - @obsolete: `ObsoleteFilter` = 0
     - @platformIds
     - @regionIds
-    - @dateFrom: datestr
-    - @dateTo: datestr
+    - @timer: TimerName to sort by
+    - @values: A list of `VarValues`
+    - @video: `VideoFilter` = 1 (=Required (!))
     - @page
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
+    def __init__(
+            self,
+            gameId: str,
+            categoryId: str,
+            dateFrom: str | None = None,
+            dateTo: str | None = None,
+            emulator: EmulatorFilter | None = None,
+            levelId: str | None = None,
+            obsolete: ObsoleteFilter | None = None,
+            platformIds: list[str] | None = None,
+            regionIds: list[str] | None = None,
+            timer: TimerName | None = None,
+            values: list[VarValues] | None = None,
+            video: VideoFilter | None = None,
+            _api: SpeedrunClient | None = None,
+            **params
+        ) -> None:
         page = params.pop("page", None)
-        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
+        param_construct = {"params": {
+            "gameId": gameId,
+            "categoryId": categoryId,
+            "dateFrom": dateFrom,
+            "dateTo": dateTo,
+            "emulator": emulator,
+            "levelId": levelId,
+            "obsolete": obsolete,
+            "platformIds": platformIds,
+            "regionIds": regionIds,
+            "timer": timer,
+            "values": values,
+            "video": video
+        }}
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard", r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
     
@@ -91,7 +156,6 @@ class GetGameData(GetRequest[r_GetGameData]):
 
 class GetGameSummary(GetRequest[r_GetGameSummary]):
     """Gets game metadata used for discovering forums, news, stats, threads etc.
-    
     ### Mandatory:
     #### One of:
     - @gameId
@@ -107,6 +171,7 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
     - @gameId
     - @categoryId
 
+    
     ### Other:
     - @values: A list of VariableValues
     - @emulator: EmulatorFilter
@@ -122,16 +187,32 @@ class GetSearch(GetRequest[r_GetSearch]):
     """Search for an object based on its name. May include multiple types to search for at once.
 
     ### Optional:
+    - @query: str
+    - @favorExactMatches: bool = False
+    - @includeGames: bool = False
+    - @includeNews: bool = False
+    - @includePages: bool = False
+    - @includeSeries: bool = False
+    - @includeUsers: bool = False
+    - @includeChallenges: bool = False
     - @limit: <= 500 = 500
-    - @includeGames
-    - @includeNews
-    - @includePages
-    - @includeSeries
-    - @includeUsers
-    - @includeChallenges
     """
-    def __init__(self, query: str, **params) -> None:
-        super().__init__("GetSearch", r_GetSearch, query=query, **params)
+    def __init__(
+            self,
+            query: str,
+            favorExactMatches: bool | None = None,
+            includeGames: bool | None = None,
+            includeNews: bool | None = None,
+            includePages: bool | None = None,
+            includeSeries: bool | None = None,
+            includeUsers: bool | None = None,
+            includeChallenges: bool | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetSearch", r_GetSearch, query=query, favorExactMatches=favorExactMatches,
+                         includeGames=includeGames, includeNews=includeNews, includePages=includePages,
+                         includeSeries=includeSeries, includeUsers=includeUsers,
+                         includeChallenges=includeChallenges,**params)
 
 class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     """Gets most recent runs.
@@ -141,8 +222,8 @@ class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     - @seriesId
     - @limit: <= 999 = 10
     """
-    def __init__(self, **params) -> None:
-        super().__init__("GetLatestLeaderboard", r_GetLatestLeaderboard, **params)
+    def __init__(self, gameId: str | None = None, seriesId: str | None = None, **params) -> None:
+        super().__init__("GetLatestLeaderboard", r_GetLatestLeaderboard, gameId=gameId, seriesId=seriesId, **params)
 
 class GetRun(GetRequest[r_GetRun]):
     """Gets all parameters pertinent to displaying a single run.
@@ -190,10 +271,25 @@ class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArt
     """Gets a list of articles on the site.
     
     ### Optional:
+    - @published: bool = True # If published articles should be included
+    - @rejected: bool = True # If rejected articles should be included
+    - @search: str
+    - @tags: [] # List of a tag's text to filter by
+    - @target: str # Filters by where the article's meant to be published
     - @limit: <= 500 = 500. Number of elements per page.
     """
-    def __init__(self, **params) -> None:
-        super().__init__("GetArticleList", r_GetArticleList, **params)
+    def __init__(
+            self,
+            published: bool | None = None,
+            rejected: bool | None = None,
+            search: str | None = None,
+            tags: list[str] | None = None,
+            target: str | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetArticleList", r_GetArticleList,
+                         published=published, rejected=rejected, search=search,
+                         tags=tags, target=target, **params)
 
     def _combine_results(self, pages: dict[int, r_GetArticleList]) -> r_GetArticleList:
         combined = self._combine_keys(pages, ["articleList"],
@@ -217,9 +313,21 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
     """Gets a list of all games on the site.
     
     ### Optional:
+    - @seriesId: filter by series
+    - @platformId: filter by platform
+    - @search: str
+    - @orderType: `GameOrderType` = 1
     - @limit: <= 200 = 500 (!)"""
-    def __init__(self, **params) -> None:
-        super().__init__("GetGameList", r_GetGameList, **params)
+    def __init__(
+            self,
+            seriesId: str | None = None,
+            platformId: str | None = None,
+            search: str | None = None,
+            orderType: GameOrderType | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetGameList", r_GetGameList, seriesId=seriesId, platformId=platformId,
+                         search=search, orderType=orderType, **params)
     
     def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
         combined = self._combine_keys(pages, ["gameList"], [])
@@ -237,10 +345,17 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
     """Gets a list of series on the site.
 
     ### Optional:
+    - @search: str
+    - @orderType: `GameOrderType` = 1
     - @limit: <= 500 = 500
     """
-    def __init__(self, **params) -> None:
-        super().__init__("GetSeriesList", r_GetSeriesList, **params)
+    def __init__(
+            self,
+            search: str | None = None,
+            orderType: GameOrderType | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetSeriesList", r_GetSeriesList, search=search, orderType=orderType **params)
 
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
         combined = self._combine_keys(pages, ["seriesList"], [])
@@ -265,19 +380,55 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
     ### Mandatory:
     - @gameId
     - @categoryId
-    
+
     ### Optional:
-    - @video: `VideoFilter` = 1 (required) (!)
-    - @timer: TimerName to sort by
-    - @obsolete: `ObsoleteFilter` = 0 # TODO: check
+    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
+    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @emulator: `EmulatorFilter`
+    - @levelId: If `categoryId` refers to a level category.
+    - @obsolete: `ObsoleteFilter` = 0
     - @platformIds
     - @regionIds
-    - @dateFrom: datestr
-    - @dateTo: datestr
+    - @timer: TimerName to sort by
+    - @verified: `VerifiedFilter` = 1 # If runs other than verified should be included
+    - @values: A list of `VarValues`
+    - @video: `VideoFilter` = 1 (=Required (!))
+    - @page
     """
-    def __init__(self, gameId: str, categoryId: str, _api: SpeedrunClient | None = None, **params) -> None:
+    def __init__(
+            self,
+            gameId: str,
+            categoryId: str,
+            dateFrom: str | None = None,
+            dateTo: str | None = None,
+            emulator: EmulatorFilter | None = None,
+            levelId: str | None = None,
+            obsolete: ObsoleteFilter | None = None,
+            platformIds: list[str] | None = None,
+            regionIds: list[str] | None = None,
+            timer: TimerName | None = None,
+            verified: VerifiedFilter | None = None,
+            values: list[VarValues] | None = None,
+            video: VideoFilter | None = None,
+            _api: SpeedrunClient | None = None,
+            **params
+        ) -> None:
         page = params.pop("page", None)
-        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId} | params}
+        param_construct = {"params": {
+            "gameId": gameId,
+            "categoryId": categoryId,
+            "dateFrom": dateFrom,
+            "dateTo": dateTo,
+            "emulator": emulator,
+            "levelId": levelId,
+            "obsolete": obsolete,
+            "platformIds": platformIds,
+            "regionIds": regionIds,
+            "timer": timer,
+            "verified": verified,
+            "values": values,
+            "video": video
+        }}
         super().__init__("GetGameLevelSummary", r_GetGameLevelSummary, _api=_api, page=page, **param_construct)
 
 class GetGuideList(GetRequest[r_GetGuideList]):
@@ -425,6 +576,11 @@ class GetForumList(GetRequest[r_GetForumList]):
     def __init__(self, **params) -> None:
         super().__init__("GetForumList", r_GetForumList, **params)
 
+class GetStaticData(GetRequest[r_GetStaticData]):
+    """Get static data for the site. Including all areas, colors, gameTypes, platforms, etc.
+    """
+    def __init__(self, **params) -> None:
+        super().__init__("GetStaticData", r_GetStaticData, **params)
 
 """
 POST requests may require auth
@@ -833,7 +989,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
 
     ### Mandatory:
     - @gameId
-    - @limit:  # TODO: range
+    - @limit: int <= 200
     - @page
 
     ### Optional:
@@ -841,7 +997,9 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
     - @verified: `Verified`
     - @verifiedById
     """
-    def __init__(self, gameId: str, limit: int, page: int = 1, **params) -> None:
+
+    # Default for `limit` is 20 which is what the site uses
+    def __init__(self, gameId: str, limit: int = 20, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
     
     def _combine_results(self, pages: dict):
@@ -881,10 +1039,11 @@ class PutRunSettings(PostRequest[r_PutRunSettings]):
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
     - @settings: Existing run settings if `runId is not None`, otherwise new run's settings.
+    - @autoverify: If the run should be automatically verified after editing or not. - only works for game moderators.
     """
-    def __init__(self, csrfToken: str, settings: RunSettings, **params) -> None:
+    def __init__(self, csrfToken: str, settings: RunSettings, autoverify=OptField[bool], **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
-        super().__init__("PutRunSettings", r_PutRunSettings, csrfToken=csrfToken, settings=settings, **params)
+        super().__init__("PutRunSettings", r_PutRunSettings, csrfToken=csrfToken, settings=settings, autoverify=autoverify, **params)
 
 # User inbox actions
 class GetConversations(PostRequest[r_GetConversations]):
@@ -1023,11 +1182,12 @@ class PutUserUpdateFeaturedRun(PostRequest[r_Empty]):
     """Sets the run featured on a user's profile.
     
     ### Mandatory:
-    - @userUrl: must be your own unless you are a site moderator.
-    - @fullRunId: If omitted, clears the featured run.
+    - @userUrl: must be your own unless you are an admin.
+    - @fullRunId: If omitted, clears the full game featured run.
+    - @levelRunId: If omitted, clears the level featured run
     """
-    def __init__(self, userUrl: str, fullRunId: str | None = None, **params) -> None:  # TODO: check if levelId is different
-        super().__init__("PutUserUpdateFeaturedRun", r_Empty, userUrl=userUrl, fullRunId=fullRunId, **params)
+    def __init__(self, userUrl: str, fullRunId: str | None = None, levelRunId: str | None = None, **params) -> None:
+        super().__init__("PutUserUpdateFeaturedRun", r_Empty, userUrl=userUrl, fullRunId=fullRunId, levelRunId=levelRunId, **params)
 
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
@@ -1102,8 +1262,15 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
     - @gameId
     - @seriesId
     """
-    def __init__(self, **params) -> None:
-        super().__init__("GetThemeSettings", r_GetThemeSettings, **params)
+    def __init__(
+            self,
+            userId: str | None = None,
+            gameId: str | None = None,
+            seriesId: str | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetThemeSettings", r_GetThemeSettings, userId=userId, gameId=gameId,
+                         seriesId=seriesId, **params)
 
 # Supporter
 class GetUserSupporterData(PostRequest[r_GetUserSupporterData]):
@@ -1151,9 +1318,28 @@ class PutAdvertiseContact(PostRequest[r_Empty]):
 
 class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
     """Gets tickets submitted by the user.
+
+    ### Optional:
+    - @ticketIds: list of ticket IDs to fetch
+    - @queues: list of `TicketQueueType` to filter by
+    - @types: list of `TicketType`
+    - @statuses: list of `TicketStatus`
+    - @requestorIds: list of userIds who requested the ticket. - this is meant for use by site admins
+    - @search: str
     """
-    def __init__(self, **params) -> None:
-        super().__init__("GetTickets", r_GetTickets, **params)  # TODO: needs param testing
+    def __init__(
+            self,
+            ticketIds: list[str] | None = None,
+            queues: list[TicketQueueType] | None = None,
+            types: list[TicketType] | None = None,
+            statuses: list[TicketStatus] | None = None,
+            requestorIds: list[str] | None = None,
+            search: str | None = None,
+            **params
+        ) -> None:
+        super().__init__("GetTickets", r_GetTickets, ticketIds=ticketIds, queues=queues,
+                         types=types, statuses=statuses, requestorIds=requestorIds,
+                         search=search, **params)
     
     def _combine_results(self, pages: dict):
         combined = self._combine_keys(pages, ["ticketList"],
@@ -1193,11 +1379,12 @@ class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     ### Mandatory:
     - @name
     - @releaseDate
-    - @gameTypeIds
+    - @gameTypeIds: list of `GameType`
+
     #### Optional:
     - @seriesId
     """
-    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str, **params) -> None:
+    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str | None = None, **params) -> None:
         super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
 
 class PutGameModerator(PostRequest[r_Empty]):
@@ -1246,7 +1433,7 @@ class PutTicket(PostRequest[r_PutTicket]):
 
     ### Mandatory:
     - @metadata: a JSON string of ticket data
-    - @type: TicketType # TODO: check TicketType vs TicketQueue Type
+    - @type: `TicketType` # TODO: check TicketType vs TicketQueue Type
     """
     def __init__(self, metadata: str, type: TicketType, **params) -> None:
         super().__init__("PutTicket", r_PutTicket, metadata=metadata, type=type, **params)
@@ -1283,7 +1470,7 @@ class PutUserSocialConnectionDelete(PostRequest[r_Empty]):
     def __init__(self, userId: str, networkId: NetworkId, **params) -> None:
         super().__init__("PutUserSocialConnectionDelete", r_Empty, userId=userId, networkId=networkId, **params)
 
-class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
+class PutUserUpdatePassword(PostRequest[r_Ok]):
     """Update a user's password.
     
     ### Mandatory:
@@ -1292,7 +1479,34 @@ class PutUserUpdatePassword(PostRequest[r_PutUserUpdatePassword]):
     - @newPassword
     """
     def __init__(self, userUrl: str, oldPassword: str, newPassword: str, **params) -> None:
-        super().__init__("PutUserUpdatePassword", r_PutUserUpdatePassword, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
+        super().__init__("PutUserUpdatePassword", r_Ok, userUrl=userUrl, oldPassword=oldPassword, newPassword=newPassword, **params)
+
+class PutUserUpdateEmail(PostRequest[r_PutUserUpdateEmail]):
+    """Update a user's email.
+    First, you send userUrl, email and password. SRC will respond with `tokenChallengeSent: true`
+    Afterwards, you send the above data again but this time with `token` set.
+    
+    ### Mandatory:
+    - @userUrl: str
+    - @email: str
+
+    ### Optional:
+    - @token: str 
+    - @password: str # Only optional if the user is authed as an admin
+    """
+    def __init__(self, userUrl: str, email: str, password: str | None = None, token: str | None = None, **params) -> None:
+        super().__init__("PutUserUpdateEmail", r_Ok, userUrl=userUrl, email=email, password=password, token=token, **params)
+
+class PutUserUpdateName(PostRequest[r_Ok]): # TODO: check what the response is
+    """Update a user's name.
+    
+    ### Mandatory:
+    - @userUrl: str # URL of the user to update
+    - @newName: str
+    - @acceptTerms: bool
+    """ # TODO: check if these are mandatory
+    def __init__(self, userUrl: str, newName: str, acceptTerms: bool, **params) -> None:
+        super().__init__("PutUserUpdateName", r_Empty, userUrl=userUrl, newName=newName, acceptTerms=acceptTerms, **params)
 
 class PutCommentDelete(PostRequest[r_Empty]):
     """Delete a comment.
@@ -1304,7 +1518,7 @@ class PutCommentDelete(PostRequest[r_Empty]):
         super().__init__("PutCommentDelete", r_Empty, commentId=commentId, **params)
 
 class PutCommentRestore(PostRequest[r_Empty]):
-    """Restore a deleted comment (?). #TODO check
+    """Restores a deleted comment
 
     ### Mandatory:
     - @commentId
@@ -1351,3 +1565,56 @@ class PutThreadDelete(PostRequest[r_Empty]):
     """
     def __init__(self, threadId: str, **params) -> None:
         super().__init__("PutThreadDelete", r_Empty, threadId=threadId, **params)
+
+class PutGameFollowerOrderResult(PostRequest[r_Empty]):
+    """Reorder a user's followed games.
+
+    ### Mandatory:
+    - @gameIds: list of game Ids in the order they should be in
+    - @userId
+    """
+    def __init__(self, gameIds: list[str], userId: str, **params) -> None:
+        super().__init__("PutGameFollowerOrderResult", r_Empty, gameIds=gameIds, userId=userId, **params)
+
+class PutThemeSettings(PostRequest[r_Empty]):
+    """Sets a user, game or series' theme.
+
+    ### Mandatory:
+    #### One of:
+    - @userId
+    - @gameId
+    - @seriesId
+    - @settings: ThemeSettings
+    """
+    def __init__(self, settings: ThemeSettings, userId: str | None = None, gameId: str | None = None, seriesId: str | None = None, **params) -> None:
+        super().__init__("PutThemeSettings", r_Empty, userId=userId, gameId=gameId, seriesId=seriesId, settings=settings, **params)
+
+class GetUserApiKey(PostRequest[r_GetUserApiKey]):
+    """Get a user's API key.
+
+    ### Mandatory:
+    - @userId
+
+    ### Optional:
+    - @regenerate: bool = False # Returns a new API key if True
+    """
+    def __init__(self, userId: str, regenerate: bool | None = None, **params) -> None:
+        super().__init__("GetUserApiKey", r_GetUserApiKey, userId=userId, regenerate=regenerate, **params)
+
+class GetUserGameBoostData(PostRequest[r_GetUserGameBoostData]):
+    """Get a list of games that a user has boosted.
+
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserGameBoostData", r_GetUserGameBoostData, userId=userId, **params)
+
+class GetUserDataExport(PostRequest[r_GetUserDataExport]):
+    """Get a user's exported data.
+
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserDataExport", r_GetUserDataExport, userId=userId, **params)

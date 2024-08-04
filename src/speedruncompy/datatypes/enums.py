@@ -60,9 +60,9 @@ class ObsoleteFilter(IntEnum):
     EXCLUSIVE = 2
 
 class VerifiedFilter(IntEnum):
-    OPTIONAL = 0
+    AWAITING = 0 # Speedrun.com calls it "Awaiting" in its code on this enum
     VERIFIED = 1
-    UNVERIFIED = 2  # TODO: confirm semantics (rejected or not verified?)
+    REJECTED = 2
 
 class VideoFilter(IntEnum):
     OPTIONAL = 0

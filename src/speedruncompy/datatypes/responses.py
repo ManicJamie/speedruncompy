@@ -70,6 +70,16 @@ class r_GetForumList(Datatype):
     gameList: list[Game]
     userList: list[User]
 
+class r_GetStaticData(Datatype):
+    areas: list[Area]
+    colors: list[Color]
+    gameTypeList: list[GameTypeObj]
+    notificationSettings: list[NotificationSetting]
+    platformList: list[Platform]
+    regionList: list[Region]
+    socialNetworkList: list[SocialNetwork]
+    supporterPlanList: OptField[list[object]] # Unknown type
+
 class r_GetGameData(Datatype):
     game: Game
     categories: list[Category]
@@ -175,7 +185,7 @@ class r_GetRun(Datatype):
 class r_GetSearch(Datatype):
     gameList: list[Game]
     newsList: list[News]
-    pageList: list[Article]  # TODO: check
+    pageList: list[Article]
     seriesList: list[Series]
     userList: list[User]
     challengeList: list[Challenge]
@@ -418,5 +428,43 @@ class r_PutTicket(Datatype):
 class r_PutUserSettings(Datatype):
     settings: UserSettings
 
-class r_PutUserUpdatePassword(Datatype):
-    ...  # TODO: document
+class r_GetUserApiKey(Datatype):
+    apiKey: str
+
+class r_GetUserGameBoostData(Datatype): # TODO: check which ones are optional
+    boostAvailableTokens: int
+    boostDistinctGamesCount: int
+    boostDistinctUsersCount: int
+    boostEndDate: int
+    boostGiftedCount: int
+    boostLastTokenDate: int
+    boostNextTokenAmount: int
+    boostNextTokenDate: int
+    boostReceivedCount: int
+    boostGameList: list[GameBoost]
+    gameList: list[Game]
+    isBoosted: bool
+    userList: list[User]
+
+class r_GetUserDataExport(Datatype):
+    articleList: list[Article]
+    commentList: list[Comment]
+    conversationList: list[Conversation]
+    gameFollowerList: list[GameFollower]
+    guideList: list[Guide]
+    likeList: list[Like]
+    messageList: list[ConversationMessage]
+    newsList: list[News]
+    resourceList: list[Resource]
+    runList: list[Run]
+    threadList: list[Thread]
+    ticketList: list[Ticket]
+    ticketNoteList: list[TicketNote]
+    user: User
+    userFollowerList: list[UserFollower]
+    userSettings: UserSettings
+    UserSocialConnectionList: list[UserSocialConnection]
+
+class r_PutUserUpdateEmail(Datatype):
+    emailChanged: bool
+    tokenChallengeSent: bool
