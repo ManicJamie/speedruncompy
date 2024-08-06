@@ -60,7 +60,7 @@ class ObsoleteFilter(IntEnum):
     EXCLUSIVE = 2
 
 class VerifiedFilter(IntEnum):
-    AWAITING = 0 # Speedrun.com calls it "Awaiting" in its code on this enum
+    AWAITING = 0  # Speedrun.com calls it "Awaiting" in its code on this enum
     VERIFIED = 1
     REJECTED = 2
 

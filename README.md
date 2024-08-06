@@ -33,7 +33,7 @@ from speedruncompy import SpeedrunClient, GetSession, set_default_PHPSESSID
 
 client = SpeedrunClient("my_app_name", PHPSESSID=os.getenv("PHPSESSID")) # You should store this separately!
 
-# set_default_PHPSESSID(os.getenv("PHPSESSID"))  # Would affect all calls 
+# set_default_PHPSESSID(os.getenv("PHPSESSID"))  # Would affect all calls
                                                  # that don't pass _api
 
 session = GetSession(_api=client).perform()  # Custom client given to endpoints by _api.

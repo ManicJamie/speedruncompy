@@ -171,7 +171,6 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory]):
     - @gameId
     - @categoryId
 
-    
     ### Other:
     - @values: A list of VariableValues
     - @emulator: EmulatorFilter
@@ -207,12 +206,11 @@ class GetSearch(GetRequest[r_GetSearch]):
             includeSeries: bool | None = None,
             includeUsers: bool | None = None,
             includeChallenges: bool | None = None,
-            **params
-        ) -> None:
+            **params) -> None:
         super().__init__("GetSearch", r_GetSearch, query=query, favorExactMatches=favorExactMatches,
                          includeGames=includeGames, includeNews=includeNews, includePages=includePages,
                          includeSeries=includeSeries, includeUsers=includeUsers,
-                         includeChallenges=includeChallenges,**params)
+                         includeChallenges=includeChallenges, **params)
 
 class GetLatestLeaderboard(GetRequest[r_GetLatestLeaderboard]):
     """Gets most recent runs.
@@ -353,8 +351,7 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
             self,
             search: str | None = None,
             orderType: GameOrderType | None = None,
-            **params
-        ) -> None:
+            **params) -> None:
         super().__init__("GetSeriesList", r_GetSeriesList, search=search, orderType=orderType **params)
 
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
@@ -411,8 +408,7 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary]):
             values: list[VarValues] | None = None,
             video: VideoFilter | None = None,
             _api: SpeedrunClient | None = None,
-            **params
-        ) -> None:
+            **params) -> None:
         page = params.pop("page", None)
         param_construct = {"params": {
             "gameId": gameId,
@@ -581,6 +577,7 @@ class GetStaticData(GetRequest[r_GetStaticData]):
     """
     def __init__(self, **params) -> None:
         super().__init__("GetStaticData", r_GetStaticData, **params)
+
 
 """
 POST requests may require auth
@@ -1310,8 +1307,7 @@ class GetThemeSettings(PostRequest[r_GetThemeSettings]):
             userId: str | None = None,
             gameId: str | None = None,
             seriesId: str | None = None,
-            **params
-        ) -> None:
+            **params) -> None:
         super().__init__("GetThemeSettings", r_GetThemeSettings, userId=userId, gameId=gameId,
                          seriesId=seriesId, **params)
 
@@ -1547,20 +1543,20 @@ class PutUserUpdateEmail(PostRequest[r_PutUserUpdateEmail]):
     - @email: str
 
     ### Optional:
-    - @token: str 
+    - @token: str
     - @password: str # Only optional if the user is authed as an admin
     """
     def __init__(self, userUrl: str, email: str, password: str | None = None, token: str | None = None, **params) -> None:
         super().__init__("PutUserUpdateEmail", r_Ok, userUrl=userUrl, email=email, password=password, token=token, **params)
 
-class PutUserUpdateName(PostRequest[r_Ok]): # TODO: check what the response is
+class PutUserUpdateName(PostRequest[r_Ok]):  # TODO: check what the response is
     """Update a user's name.
     
     ### Mandatory:
     - @userUrl: str # URL of the user to update
     - @newName: str
     - @acceptTerms: bool
-    """ # TODO: check if these are mandatory
+    """  # TODO: check if these are mandatory
     def __init__(self, userUrl: str, newName: str, acceptTerms: bool, **params) -> None:
         super().__init__("PutUserUpdateName", r_Empty, userUrl=userUrl, newName=newName, acceptTerms=acceptTerms, **params)
 
