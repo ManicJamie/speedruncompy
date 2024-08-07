@@ -31,7 +31,12 @@ When working with auth, it is recommended to construct your own `SpeedrunComPy` 
 import os
 from speedruncompy import SpeedrunClient, GetSession, set_default_PHPSESSID
 
-client = SpeedrunClient("my_app_name", PHPSESSID=os.getenv("PHPSESSID")) # You should store this separately!
+secret = os.getenv("PHPSESSID")
+# You shouldn't store PHPSESSID in the script directly, instead load it externally.
+# `os.getenv()` assumes you have already set env variable PHPSESSID in your terminal;
+# you can load it from a file instead using `open()` or library `load_dotenv`.
+
+client = SpeedrunClient("my_app_name", PHPSESSID=secret)
 
 # set_default_PHPSESSID(os.getenv("PHPSESSID"))  # Would affect all calls
                                                  # that don't pass _api
