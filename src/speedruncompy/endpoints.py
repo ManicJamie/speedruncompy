@@ -27,7 +27,7 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
     - @platformIds
     - @regionIds
     - @timer: TimerName to sort by
-    - @verified: `VerifiedFilter` = 1 # If runs other than verified should be included
+    - @verified: `VerifiedFilter` = 1 # Runs will be filtered by status
     - @values: A list of `VarValues`
     - @video: `VideoFilter` = 1 (=Required (!))
     - @page
