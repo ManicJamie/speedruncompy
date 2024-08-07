@@ -1,6 +1,6 @@
-# Speedrun.com v2 API wrapper
+# Speedrun.com API V2 wrapper
 
-A WIP python wrapper for speedrun.com's new backend API.
+A WIP Python wrapper for Speedrun.com's new backend API.
 
 WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://github.com/ManicJamie/speedruncom-apiv2-docs)
 
@@ -8,13 +8,10 @@ WIP documentation for the API can be found in [speedruncom-apiv2-docs](https://g
 
 `pip install speedruncompy`, then `import speedruncompy`.
 
-`speedruncompy.endpoints` contains all endpoints, and currently includes `datatypes`, `enums` & `responses`. Login flow in `speedruncompy.auth`. Other notable fields include `enums` and `exceptions`.
-
 Example:
 
 ```python
-from speedruncompy.endpoints import GetGameLeaderboard2
-from speedruncompy.enums import Verified
+from speedruncompy import GetGameLeaderboard2, Verified
 
 leaderboard = GetGameLeaderboard2(gameId="", categoryId="").perform() # Perform a single request (defaulting to page 1 where paginated)
 leaderboard_full = GetGameLeaderboard2(gameId="", categoryId="").perform_all() # Perform a request for all pages available.
@@ -31,18 +28,21 @@ Note that this uses the API in the same way as [https://speedrun.com]. The v2 AP
 When working with auth, it is recommended to construct your own `SpeedrunComPy` object rather than use the default:
 
 ```python
-from speedruncompy.endpoints import GetGameLeaderboard2
-from speedruncompy.api import SpeedrunClient
-import speedruncompy.api as srcapi
+import os
+from speedruncompy import SpeedrunClient, GetSession, set_default_PHPSESSID
 
-client = SpeedrunClient("my_app_name")
-client.PHPSESSID = "secret PHPSESSID"  # You should store this separately!
+secret = os.getenv("PHPSESSID")
+# You shouldn't store PHPSESSID in the script directly, instead load it externally.
+# `os.getenv()` assumes you have already set env variable PHPSESSID in your terminal;
+# you can load it from a file instead using `open()` or library `load_dotenv`.
 
-# srcapi._default.PHPSESSID = "secret PHPSESSID"  # Would affect all calls 
-                                                  # that don't pass _api
+client = SpeedrunClient("my_app_name", PHPSESSID=secret)
+
+# set_default_PHPSESSID(secret)  # Would affect all calls
+                                 # that don't pass _api
 
 session = GetSession(_api=client).perform()  # Custom client given to endpoints by _api.
-if session.session.signedIn == True:
+if session.session.signedIn:
     print("I'm signed in!")
 ```
 
@@ -66,6 +66,8 @@ Additionally, V2 has no promise of stability; it is use-at-your-own-risk, as it 
 
 Admin-only endpoints will not be added due to lack of testability and usability. These include:
 
+- GetUserList
+- GetChallengesList
 - GetAdminStatusSummary
 - GetTicketQueueCounts
 - GetTicketStatusCounts
