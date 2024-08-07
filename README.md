@@ -38,8 +38,8 @@ secret = os.getenv("PHPSESSID")
 
 client = SpeedrunClient("my_app_name", PHPSESSID=secret)
 
-# set_default_PHPSESSID(os.getenv("PHPSESSID"))  # Would affect all calls
-                                                 # that don't pass _api
+# set_default_PHPSESSID(secret)  # Would affect all calls
+                                 # that don't pass _api
 
 session = GetSession(_api=client).perform()  # Custom client given to endpoints by _api.
 if session.session.signedIn:
