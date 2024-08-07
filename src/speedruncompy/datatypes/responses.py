@@ -256,6 +256,17 @@ class r_GetUserSummary(Datatype):
     theme: Theme
     titleList: list[Title]
 
+class r_GetUserComments(Datatype):
+    articleList: list[Article]
+    commentList: list[Comment]
+    forumList: list[Forum]
+    gameList: list[Game]
+    likeList: list[Like]
+    newsList: list[News]
+    runList: list[Run]
+    threadList: list[Thread]
+    userList: list[User]
+
 class r_GetUserPopoverData(Datatype):
     user: User
     userProfile: UserReducedProfile

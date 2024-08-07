@@ -241,6 +241,24 @@ class GetUserSummary(GetRequest[r_GetUserSummary]):
     def __init__(self, url: str, **params) -> None:
         super().__init__("GetUserSummary", r_GetUserSummary, url=url, **params)
 
+class GetUserComments(GetRequest[r_GetUserComments], BasePaginatedRequest[r_GetUserComments]):
+    """Get all of a user's comments.
+    
+    ### Mandatory:
+    - @userId
+    """
+    def __init__(self, userId: str, **params) -> None:
+        super().__init__("GetUserComments", r_GetUserComments, userId=userId, **params)
+    
+    def _combine_results(self, pages: dict[int, r_GetUserComments]) -> r_GetUserComments:
+        # TODO: is this correct?
+        combined = self._combine_keys(pages, ["commentList", "likeList"],
+                                      ["articleList", "forumList", "gameList",
+                                       "newsList", "runList", "threadList", "userList"])
+        combined["pagination"] = copy.copy(combined["pagination"])
+        combined["pagination"]["page"] = 0  # type: ignore
+        return combined
+
 class GetUserPopoverData(GetRequest[r_GetUserPopoverData]):
     """Gets data for user popovers. Includes `userSocialConnectionList`, `userStats` & `titleList`.
     
@@ -1431,13 +1449,25 @@ class PutGame(PostRequest[r_PutGame]):  # TODO: needs param testing
     ### Mandatory:
     - @name
     - @releaseDate
+
+    ### Optional:
     - @gameTypeIds: list of `GameType`
+    - @baseGame: str # If one of the GameTypes supports a baseGame, then this can be included with a game id.
 
     #### Optional:
     - @seriesId
     """
-    def __init__(self, name: str, releaseDate: int, gameTypeIds: list[GameType], seriesId: str | None = None, **params) -> None:
-        super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds, seriesId=seriesId, **params)
+    def __init__(
+            self,
+            name: str,
+            releaseDate: int,
+            gameTypeIds: list[GameType] | None = None,
+            baseGame: str | None = None,
+            seriesId: str | None = None,
+            **params
+        ) -> None:
+        super().__init__("PutGame", r_PutGame, name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds,
+                         baseGame=baseGame, seriesId=seriesId, **params)
 
 class PutGameModerator(PostRequest[r_Empty]):
     """Add a moderator to a game.
