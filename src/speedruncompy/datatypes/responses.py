@@ -74,7 +74,7 @@ class r_GetStaticData(Datatype):
     areas: list[Area]
     colors: list[Color]
     gameTypeList: list[GameTypeObj]
-    notificationSettings: list[NotificationSetting]
+    notificationSettings: list[NotificationSettingStaticData]
     platformList: list[Platform]
     regionList: list[Region]
     socialNetworkList: list[SocialNetwork]

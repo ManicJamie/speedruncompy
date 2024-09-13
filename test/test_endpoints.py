@@ -361,7 +361,7 @@ class TestGetRequests():
         log_result(result)
         check_datatype_coverage(result)
     
-    def test_GetHomeSummary_authed(self):
+    def test_GetHomeSummary(self):
         result = GetHomeSummary(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)
@@ -413,11 +413,6 @@ class TestGetRequests():
     
     def test_GetChallengeRun(self):
         result = GetChallengeRun(challenge_run_id).perform()
-        log_result(result)
-        check_datatype_coverage(result)
-    
-    def test_GetUserGameBoostData(self):
-        result = GetUserGameBoostData(userId=hornet_uid).perform()
         log_result(result)
         check_datatype_coverage(result)
     
@@ -648,6 +643,15 @@ class TestPostRequests():
     def test_GetUserDataExport_unauthed(self):
         with pytest.raises(Unauthorized):
             GetUserDataExport(userId=hornet_uid).perform()
+
+    def test_GetUserGameBoostData(self):
+        result = GetUserGameBoostData(userId=hornet_uid, _api=self.api).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserGameBoostData_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetUserGameBoostData(userId=hornet_uid).perform()
 
 class TestPutRequests():
     """Requests that modify site data"""

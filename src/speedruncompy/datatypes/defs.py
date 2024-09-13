@@ -514,8 +514,9 @@ class Color(Datatype):
     id: str
     name: str
     darkColor: str
-    """Deprecated, darkColour is always used on the site"""
+    """Deprecated, darkColor is always used on the site"""
     lightColor: str
+    """Deprecated, colors now seem to be sorted by their name's ascending alphabetical order (A-Z)"""
     pos: int
 
 class GameTypeObj(Datatype):
@@ -911,6 +912,16 @@ class NotificationSetting(Datatype):
     gameId: OptField[str]
     site: bool
     email: bool
+
+"""A different type of notification are returned by `GetStaticData` than in other areas."""
+class NotificationSettingStaticData(Datatype):
+    id: int
+    group: str
+    title: str
+    pos: int
+    gameSpecific: bool
+    siteDefault: int
+    emailDefault: bool
 
 class UserSettings(Datatype):
     id: str
