@@ -709,7 +709,7 @@ class TestPutRequests():
         settings = GetUserSettings(_api=self.api).perform()
         
         shuffled_game_ids = random.shuffle(map(lambda game: game.gameId, settings.gameFollowerList))
-        following_order = PutGameFollowerOrder(gameIds=shuffled_game_ids, userId=user_id, _api=self.api).perform()
+        following_order = PutGameFollowerOrder(gameIds=shuffled_game_ids, userId=hornet_uid, _api=self.api).perform()
 
         new_settings = GetUserSettings(_api=self.api).perform()
 
@@ -719,7 +719,7 @@ class TestPutRequests():
         check_datatype_coverage(following_order)
 
         # Reset it back to what it was before
-        PutGameFollowerOrder(gameIds=settings.gameFollowerList, userId=user_id, _api=self.api).perform()
+        PutGameFollowerOrder(gameIds=settings.gameFollowerList, userId=hornet_uid, _api=self.api).perform()
 
     def test_PutThemeSettings(self):
         # TODO: test with games and series aswell?
