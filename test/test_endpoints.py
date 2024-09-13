@@ -4,7 +4,7 @@ from speedruncompy.exceptions import *
 from speedruncompy import config as srccfg
 from utils import check_datatype_coverage, check_pages
 
-import pytest, os, logging, asyncio
+import pytest, os, logging, asyncio, random
 
 """
     NB: you may not be able to perform some of these tests depending on account permissions.
@@ -304,6 +304,11 @@ class TestGetRequests():
         log_result(result)
         check_datatype_coverage(result)
     
+    def test_GetStaticData(self):
+        result = GetStaticData().perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
     def test_GetGuideList(self):
         result = GetGuideList(gameId=game_id).perform()
         log_result(result)
@@ -408,6 +413,16 @@ class TestGetRequests():
     
     def test_GetChallengeRun(self):
         result = GetChallengeRun(challenge_run_id).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserGameBoostData(self):
+        result = GetUserGameBoostData(userId=hornet_uid).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserComments(self):
+        result = GetUserComments(userId=hornet_uid).perform()
         log_result(result)
         check_datatype_coverage(result)
 
@@ -624,6 +639,15 @@ class TestPostRequests():
     def test_GetUserSupporterData_unauthed(self):
         with pytest.raises(Unauthorized):
             GetUserSupporterData(userUrl=user_url).perform()
+    
+    def test_GetUserDataExport(self):
+        result = GetUserDataExport(userId=hornet_uid, _api=self.api).perform()
+        log_result(result)
+        check_datatype_coverage(result)
+    
+    def test_GetUserDataExport_unauthed(self):
+        with pytest.raises(Unauthorized):
+            GetUserDataExport(userId=hornet_uid).perform()
 
 class TestPutRequests():
     """Requests that modify site data"""
@@ -675,6 +699,64 @@ class TestPutRequests():
         check_datatype_coverage(commentDelCheck)
         with pytest.raises(StopIteration):
             next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
+
+    def test_PutGameFollowerOrder(self):
+        """Reorders the games and compares the result, then resets back to original order"""
+        settings = GetUserSettings(_api=self.api).perform()
+        
+        shuffled_game_ids = random.shuffle(map(lambda game: game.gameId, settings.gameFollowerList))
+        following_order = PutGameFollowerOrder(gameIds=shuffled_game_ids, userId=user_id, _api=self.api).perform()
+
+        new_settings = GetUserSettings(_api=self.api).perform()
+
+        assert map(lambda game: game.gameId, new_settings.gameFollowerList) == shuffled_game_ids
+
+        log_result(following_order)
+        check_datatype_coverage(following_order)
+
+        # Reset it back to what it was before
+        PutGameFollowerOrder(gameIds=settings.gameFollowerList, userId=user_id, _api=self.api).perform()
+
+    def test_PutThemeSettings(self):
+        # TODO: test with games and series aswell?
+        """Changes the theme settings of the user and then reverts it back"""
+        get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
+
+        new_theme_options = ThemeSettings(template={
+            "primaryColor": "#000000",
+            "panelColor": NavbarColorType.PANEL,
+            "panelOpacity": 0.5,
+            "navbarColor": "#000000",
+            "backgroundColor": "#000000",
+            "backgroundFit": FitType.ORIGINAL,
+            "backgroundPosition": PositionType.TL,
+            "backgroundRepeat": RepeatType.NONE,
+            "backgroundScrolling": ScrollType.NONE,
+            "foregroundFit": FitType.ORIGINAL,
+            "foregroundPosition": PositionType.TL,
+            "foregroundRepeat": RepeatType.NONE,
+            "foregroundScrolling": ScrollType.NONE,
+            "staticAssets": get_theme.settings.staticAssets,
+        })
+
+        putTheme = PutThemeSettings(_api=self.api, userId=hornet_uid, settings=new_theme_options).perform()
+        log_result(putTheme)
+        check_datatype_coverage(putTheme)
+
+        new_get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
+
+        assert new_get_theme.settings == new_theme_options
+
+        # Reset it back to what it was before
+        PutThemeSettings(_api=self.api, userId=hornet_uid, settings=get_theme.settings).perform()
+
+    def test_GetUserApiKey(self):
+        result = GetUserApiKey(userId=hornet_uid, _api=self.api).perform()
+        # Don't log this result
+        check_datatype_coverage(result)
+
+        new_result = GetUserApiKey(userId=hornet_uid, regenerate=True, _api=self.api).perform()
+        assert result.apiKey != new_result.apiKey
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversation(self):
@@ -779,6 +861,24 @@ class TestPutRequests():
         log_result(result)
         check_datatype_coverage(result)
     
+    @pytest.mark.skip(reason="Unreasonable test, as password would need to be updated")
+    def test_PutUserUpdatePassword(self):
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
+
+    @pytest.mark.skip(reason="Unreasonable test, as the email would change")
+    def test_PutUserUpdateEmail(self):
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
+
+    @pytest.mark.skip(reason="Unreasonable test, as the name can only change once every 60 days")
+    def test_PutUserUpdateName(self):
+        result = ...
+        log_result(result)
+        check_datatype_coverage(result)
+
     @pytest.mark.skip(reason="Test stub")
     def test_GetSeriesSettings(self):
         result = GetSeriesSettings("").perform()

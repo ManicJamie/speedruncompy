@@ -512,6 +512,7 @@ class Area(Datatype):
 
 class Color(Datatype):
     id: str
+    name: str
     darkColor: str
     """Deprecated, darkColour is always used on the site"""
     lightColor: str

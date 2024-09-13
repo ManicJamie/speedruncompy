@@ -78,7 +78,7 @@ class r_GetStaticData(Datatype):
     platformList: list[Platform]
     regionList: list[Region]
     socialNetworkList: list[SocialNetwork]
-    supporterPlanList: OptField[list[object]] # Unknown type
+    supporterPlanList: OptField[list[Any]] # Unknown type
 
 class r_GetGameData(Datatype):
     game: Game
