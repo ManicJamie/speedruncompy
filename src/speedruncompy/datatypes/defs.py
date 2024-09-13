@@ -861,7 +861,7 @@ class Session(Datatype):
 class ThemeSettings(Datatype):
     primaryColor: str
     panelColor: str
-    panelOpacity: int
+    panelOpacity: int # TODO: should this be a float?
     navbarColor: NavbarColorType
     backgroundColor: str
     backgroundFit: FitType

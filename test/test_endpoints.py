@@ -728,9 +728,9 @@ class TestPutRequests():
 
         new_theme_options = ThemeSettings(template={
             "primaryColor": "#000000",
-            "panelColor": NavbarColorType.PANEL,
+            "panelColor": NavbarColorType.PRIMARY,
             "panelOpacity": 0.5,
-            "navbarColor": "#000000",
+            "navbarColor": NavbarColorType.PRIMARY,
             "backgroundColor": "#000000",
             "backgroundFit": FitType.ORIGINAL,
             "backgroundPosition": PositionType.TL,
@@ -741,6 +741,7 @@ class TestPutRequests():
             "foregroundRepeat": RepeatType.NONE,
             "foregroundScrolling": ScrollType.NONE,
             "staticAssets": get_theme.settings.staticAssets,
+            "staticAssetUpdates": []
         })
 
         putTheme = PutThemeSettings(_api=self.api, userId=hornet_uid, settings=new_theme_options).perform()
