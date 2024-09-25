@@ -370,7 +370,7 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
             search: str | None = None,
             orderType: GameOrderType | None = None,
             **params) -> None:
-        super().__init__("GetSeriesList", r_GetSeriesList, search=search, orderType=orderType **params)
+        super().__init__("GetSeriesList", r_GetSeriesList, search=search, orderType=orderType, **params)
 
     def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
         combined = self._combine_keys(pages, ["seriesList"], [])

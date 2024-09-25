@@ -13,6 +13,12 @@ import pytest, pytest_asyncio, logging
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 SKIP_HEAVY_TESTS = bool(os.environ.get("SKIP_HEAVY_TESTS", True))
 
 game_id = "76rqmld8"  # Hollow Knight

@@ -25,7 +25,7 @@ for run in leaderboard_full.runList:
 
 Note that this uses the API in the same way as [https://speedrun.com]. The v2 API does not currently accept the Bearer token the v1 API can use - but v2 is also not half-broken, and contains most of the new features SRC has added over the years.
 
-When working with auth, it is recommended to construct your own `SpeedrunComPy` object rather than use the default:
+When working with auth, it is recommended to construct your own `SpeedrunClient` object rather than use the default:
 
 ```python
 import os

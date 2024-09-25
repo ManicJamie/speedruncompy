@@ -4,7 +4,7 @@ from speedruncompy.exceptions import *
 from speedruncompy import config as srccfg
 from utils import check_datatype_coverage, check_pages
 
-import pytest, os, logging, asyncio, random
+import pytest, os, logging, asyncio
 
 """
     NB: you may not be able to perform some of these tests depending on account permissions.
@@ -18,6 +18,12 @@ import pytest, os, logging, asyncio, random
     Also note that testing is omitted for POST actions that add data to the site; this is to avoid spamming the site with data.
     Be careful when modifying these endpoints.
 """
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 SESSID = os.environ.get("HORNET_PHPSESSID", None)
 LOW_SESSID = os.environ.get("LOW_PHPSESSID", None)
@@ -706,20 +712,27 @@ class TestPutRequests():
 
     def test_PutGameFollowerOrder(self):
         """Reorders the games and compares the result, then resets back to original order"""
-        settings = GetUserSettings(_api=self.api).perform()
+        settings = GetUserSettings(_api=self.api, userUrl=hornet_url).perform()
         
-        shuffled_game_ids = random.shuffle(map(lambda game: game.gameId, settings.gameFollowerList))
-        following_order = PutGameFollowerOrder(gameIds=shuffled_game_ids, userId=hornet_uid, _api=self.api).perform()
+        gameIds = list(map(lambda game: game.gameId, settings.gameFollowerList))
+        reversed_gameIds = list(reversed(gameIds))
+        following_order = PutGameFollowerOrder(gameIds=reversed_gameIds, userId=hornet_uid, _api=self.api).perform()
 
-        new_settings = GetUserSettings(_api=self.api).perform()
+        new_settings = GetUserSettings(_api=self.api, userUrl=hornet_url).perform()
+        new_gameIds = list(map(lambda game: game.gameId, new_settings.gameFollowerList))
 
-        assert map(lambda game: game.gameId, new_settings.gameFollowerList) == shuffled_game_ids
+        assert new_gameIds == reversed_gameIds
 
         log_result(following_order)
         check_datatype_coverage(following_order)
 
         # Reset it back to what it was before
-        PutGameFollowerOrder(gameIds=settings.gameFollowerList, userId=hornet_uid, _api=self.api).perform()
+        PutGameFollowerOrder(gameIds=gameIds, userId=hornet_uid, _api=self.api).perform()
+        
+        # Check we are back to the old order
+        reset_settings = GetUserSettings(_api=self.api, userUrl=hornet_url).perform()
+        reset_gameIds = list(map(lambda game: game.gameId, reset_settings.gameFollowerList))
+        assert gameIds == reset_gameIds
 
     def test_PutThemeSettings(self):
         # TODO: test with games and series aswell?
@@ -727,11 +740,11 @@ class TestPutRequests():
         get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
 
         new_theme_options = ThemeSettings(template={
-            "primaryColor": "#000000",
-            "panelColor": NavbarColorType.PRIMARY,
-            "panelOpacity": 0.5,
+            "primaryColor": "000000",
+            "panelColor": "000000",
+            "panelOpacity": 100,
             "navbarColor": NavbarColorType.PRIMARY,
-            "backgroundColor": "#000000",
+            "backgroundColor": "000000",
             "backgroundFit": FitType.ORIGINAL,
             "backgroundPosition": PositionType.TL,
             "backgroundRepeat": RepeatType.NONE,
@@ -754,14 +767,20 @@ class TestPutRequests():
 
         # Reset it back to what it was before
         PutThemeSettings(_api=self.api, userId=hornet_uid, settings=get_theme.settings).perform()
+        # Check reset
+        reset_get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
+        assert reset_get_theme.settings == get_theme.settings
 
     def test_GetUserApiKey(self):
         result = GetUserApiKey(userId=hornet_uid, _api=self.api).perform()
         # Don't log this result
         check_datatype_coverage(result)
 
+        # Test excluded so as to not affect applications relying on Hornet's API key
+        """
         new_result = GetUserApiKey(userId=hornet_uid, regenerate=True, _api=self.api).perform()
         assert result.apiKey != new_result.apiKey
+        """
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversation(self):

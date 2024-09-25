@@ -861,7 +861,7 @@ class Session(Datatype):
 class ThemeSettings(Datatype):
     primaryColor: str
     panelColor: str
-    panelOpacity: int # TODO: should this be a float?
+    panelOpacity: int  # TODO: may be an enum of every 5 between 70 and 100
     navbarColor: NavbarColorType
     backgroundColor: str
     backgroundFit: FitType
