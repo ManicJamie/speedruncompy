@@ -784,6 +784,12 @@ class Conversation(Datatype):
     lastMessageDate: int
     readDate: int
 
+class ConversationLightweight(Datatype):
+    id: str
+    participantUserIds: list[str]  # TODO: May always be empty?
+    lastMessageId: str
+    lastMessageDate: int
+
 class ConversationParticipant(Datatype):
     conversationId: str
     userId: str

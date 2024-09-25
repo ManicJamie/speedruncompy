@@ -363,11 +363,6 @@ class TestGetRequests():
         check_datatype_coverage(result)
     
     def test_GetHomeSummary(self):
-        result = GetHomeSummary().perform()
-        log_result(result)
-        check_datatype_coverage(result)
-    
-    def test_GetHomeSummary(self):
         result = GetHomeSummary(_api=self.api).perform()
         log_result(result)
         check_datatype_coverage(result)

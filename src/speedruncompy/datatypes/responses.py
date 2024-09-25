@@ -78,7 +78,7 @@ class r_GetStaticData(Datatype):
     platformList: list[Platform]
     regionList: list[Region]
     socialNetworkList: list[SocialNetwork]
-    supporterPlanList: OptField[list[Any]] # Unknown type
+    supporterPlanList: OptField[list[Any] | None]  # Unknown type
 
 class r_GetGameData(Datatype):
     game: Game
@@ -266,6 +266,7 @@ class r_GetUserComments(Datatype):
     runList: list[Run]
     threadList: list[Thread]
     userList: list[User]
+    pagination: Pagination
 
 class r_GetUserPopoverData(Datatype):
     user: User
@@ -442,7 +443,7 @@ class r_PutUserSettings(Datatype):
 class r_GetUserApiKey(Datatype):
     apiKey: str
 
-class r_GetUserGameBoostData(Datatype): # TODO: check which ones are optional
+class r_GetUserGameBoostData(Datatype):
     boostAvailableTokens: int
     boostDistinctGamesCount: int
     boostDistinctUsersCount: int
@@ -452,7 +453,7 @@ class r_GetUserGameBoostData(Datatype): # TODO: check which ones are optional
     boostNextTokenAmount: int
     boostNextTokenDate: int
     boostReceivedCount: int
-    boostGameList: list[GameBoost]
+    gameBoostList: list[GameBoost]
     gameList: list[Game]
     isBoosted: bool
     userList: list[User]
@@ -460,7 +461,7 @@ class r_GetUserGameBoostData(Datatype): # TODO: check which ones are optional
 class r_GetUserDataExport(Datatype):
     articleList: list[Article]
     commentList: list[Comment]
-    conversationList: list[Conversation]
+    conversationList: list[ConversationLightweight]
     gameFollowerList: list[GameFollower]
     guideList: list[Guide]
     likeList: list[Like]
@@ -474,7 +475,7 @@ class r_GetUserDataExport(Datatype):
     user: User
     userFollowerList: list[UserFollower]
     userSettings: UserSettings
-    UserSocialConnectionList: list[UserSocialConnection]
+    userSocialConnectionList: list[UserSocialConnection]
 
 class r_PutUserUpdateEmail(Datatype):
     emailChanged: bool
