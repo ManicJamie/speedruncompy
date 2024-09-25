@@ -69,6 +69,7 @@ class Commentable(Datatype):
     """Permissions of the logged in user.
     If not logged in, canPost will always be False."""
 
+
 class Comment(Datatype):
     id: str
     itemType: ItemType
@@ -77,7 +78,7 @@ class Comment(Datatype):
     userId: str
     text: OptField[str]
     """May be omitted on deleted comments."""
-    parentId: str
+    parentId: OptField[str]
     deleted: bool
     deletedUserId: OptField[str]
 
@@ -91,7 +92,7 @@ class Forum(Datatype):
     id: str
     name: str
     url: str
-    description: str
+    description: OptField[str]
     type: ForumType
     threadCount: int
     postCount: int
@@ -305,8 +306,8 @@ class Article(Datatype):
     updateDate: int
     publishDate: OptField[int]
     rejectDate: OptField[int]
-    publishTarget: str  # enum?
-    publishTags: list[str]  # enum? probably not
+    publishTarget: str
+    publishTags: list[str]
     coverImagePath: OptField[str]
     commentsCount: int
     community: OptField[bool]
@@ -488,11 +489,42 @@ class GameBoost(Datatype):
     """Appears to always be empty"""
 
 class Region(Datatype):
-
     id: str
     name: str
     url: str
     flag: str
+
+class SocialNetwork(Datatype):
+    id: NetworkId
+    name: str
+    major: bool
+    pos: int
+    pattern: str
+
+class Area(Datatype):
+    id: str
+    name: str
+    fullName: str
+    label: str
+    flagIcon: str
+    lbFlagIcon: str
+    lbName: str
+
+class Color(Datatype):
+    id: str
+    name: str
+    darkColor: str
+    """Deprecated, darkColor is always used on the site"""
+    lightColor: str
+    """Deprecated, colors now seem to be sorted by their name's ascending alphabetical order (A-Z)"""
+    pos: int
+
+class GameTypeObj(Datatype):
+    id: GameType
+    name: str
+    url: str
+    description: str
+    allowBaseGame: bool
 
 class Run(Datatype):
 
@@ -829,7 +861,7 @@ class Session(Datatype):
 class ThemeSettings(Datatype):
     primaryColor: str
     panelColor: str
-    panelOpacity: int
+    panelOpacity: int # TODO: should this be a float?
     navbarColor: NavbarColorType
     backgroundColor: str
     backgroundFit: FitType
@@ -880,6 +912,16 @@ class NotificationSetting(Datatype):
     gameId: OptField[str]
     site: bool
     email: bool
+
+"""A different type of notification are returned by `GetStaticData` than in other areas."""
+class NotificationSettingStaticData(Datatype):
+    id: int
+    group: str
+    title: str
+    pos: int
+    gameSpecific: bool
+    siteDefault: int
+    emailDefault: bool
 
 class UserSettings(Datatype):
     id: str
