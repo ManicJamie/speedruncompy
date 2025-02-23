@@ -434,6 +434,10 @@ class r_PutRunSettings(Datatype):
 class r_PutThread(Datatype):
     thread: Thread
 
+class r_PutLike(Datatype):
+    likeList: list[Like]
+    userList: list[User]
+
 class r_PutTicket(Datatype):
     ticketId: str
 

@@ -1204,6 +1204,17 @@ class PutUserUpdateFeaturedRun(PostRequest[r_Empty]):
     def __init__(self, userUrl: str, fullRunId: str | None = None, levelRunId: str | None = None, **params) -> None:
         super().__init__("PutUserUpdateFeaturedRun", r_Empty, userUrl=userUrl, fullRunId=fullRunId, levelRunId=levelRunId, **params)
 
+class PutUserUpdateGameOrdering(PostRequest[r_Empty]):
+    """Updates the order of games displayed on your profile.
+    
+    Note that having multiple GameOrderGroups is a Supporter-only feature. The default group has fixed id "default".
+    
+    ### Mandatory:
+    - @userUrl: must be your own unless you are an admin.
+    - @groups: Groups to display on the profile.
+    """
+    def __init__(self, userUrl: str, groups: list[GameOrderGroup], **params) -> None:
+        super().__init__("PutUserUpdateGameOrdering", r_Empty, userUrl=userUrl, groups=groups, **params)
 
 class GetUserApiKey(PostRequest[r_GetUserApiKey]):
     """Get a user's API key.
@@ -1268,6 +1279,17 @@ class PutComment(PostRequest[r_Empty]):
     """
     def __init__(self, itemId: str, itemType: ItemType, text: str, **params) -> None:
         super().__init__("PutComment", r_Empty, itemId=itemId, itemType=itemType, text=text, **params)
+
+class PutLike(PostRequest[r_PutLike]):
+    """Adds or removes a like to a comment.
+    
+    ### Mandatory:
+    - @itemId
+    - @itemType
+    - @like
+    """
+    def __init__(self, itemId: str, itemType: ItemType, like: bool, **params) -> None:
+        super().__init__("PutLike", r_PutLike, itemId=itemId, itemType=itemType, like=like, **params)
 
 class PutCommentableSettings(PostRequest[r_Empty]):
     """Updates commentable settings on an item.

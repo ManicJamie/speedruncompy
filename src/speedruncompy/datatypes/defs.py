@@ -435,6 +435,8 @@ class GameOrderGroup(Datatype):
     name: str
     sortType: GameSortType
     gameIds: list[str]
+    open: OptField[bool]
+    editing: OptField[bool]
 
 class GameOrdering(Datatype):
     defaultGroups: list[GameOrderGroup]
