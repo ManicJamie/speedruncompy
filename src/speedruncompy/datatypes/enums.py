@@ -279,6 +279,8 @@ class NetworkId(IntEnum):
     TWITTER = 30
     WEBSITE = 31
     YOUTUBE = 32
+    BLUESKY = 34
+    THREADS = 35
     # Deprecated values
     _ASK_FM = 1
     _BATTLE_NET = 2
