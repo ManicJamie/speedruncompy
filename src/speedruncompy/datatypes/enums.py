@@ -44,6 +44,13 @@ class VideoFilter(IntEnum):
     REQUIRED = 1
     MISSING = 2
 
+class VideoState(IntEnum):
+    """Video at-risk status for Twitch Highlights and the like."""
+    UNKNOWN = 0
+    AT_RISK = 1
+    SAFE = 2
+    ABANDONED = 3
+
 class EmulatorFilter(IntEnum):
     HIDDEN = 0
     SHOWN = 1

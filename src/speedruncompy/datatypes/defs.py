@@ -401,6 +401,7 @@ class UserStats(Datatype):
     followingUsers: int
     challengeRuns: int
     challengeRunsPending: int
+    runVideosAtRisk: int
 
 class UserSocialConnection(Datatype):
     userId: str
@@ -561,6 +562,7 @@ class Run(Datatype):
     estimated: OptField[bool]
     """Only shown in GetModerationRuns"""
     issues: OptField[list[str] | None]
+    videoState: VideoState
 
 class ChallengeStanding(Datatype):
     challengeId: str
@@ -644,6 +646,7 @@ class ChallengeRun(Datatype):
     commentsCount: int
     place: OptField[int]
     obsolete: OptField[bool]
+    videoState: VideoState
 
 class Theme(Datatype):
     id: str

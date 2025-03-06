@@ -38,7 +38,8 @@ packages = [
 test = [
     "pytest",
     "pytest-asyncio",
-    "pytest-cov"
+    "pytest-cov",
+    "python-dotenv",
 ]
 
 [project.urls]

@@ -1011,6 +1011,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
     - @search
     - @verified: `Verified`
     - @verifiedById
+    - @videoState: `VideoState`
     """
 
     # Default for `limit` is 20 which is what the site uses
@@ -1040,6 +1041,16 @@ class PutRunVerification(PostRequest[r_Ok]):
     """
     def __init__(self, runId: str, verified: Verified, **params) -> None:
         super().__init__("PutRunVerification", r_Ok, runId=runId, verified=verified, **params)
+
+class PutRunVideoState(PostRequest[r_Ok]):
+    """Assigns a video-at-risk state to a run.
+    
+    ### Mandatory:
+    - @runId
+    - @videoState
+    """
+    def __init__(self, runId: str, videoState: VideoState, **params) -> None:
+        super().__init__("PutRunVideoState", r_Ok, runId=runId, videoState=videoState, **params)
 
 # Run management
 class GetRunSettings(PostRequest[r_GetRunSettings]):
