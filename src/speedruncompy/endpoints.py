@@ -1269,6 +1269,22 @@ class PutGameFollowerOrder(PostRequest[r_Empty]):
 
 # PUT IT HERE
 
+# Article Actions
+class PutArticleSubmission(PostRequest[r_PutArticleSubmission]):
+    """Submits a site article.
+    
+    ### Mandatory:
+    - @title
+    - @summary
+    - @body
+
+    ### Optional:
+    - @game
+    - @publishTags: list of tags
+    """
+    def __init__(self, title: str, summary: str, body: str, game: str, publishTags: list[str], **params) -> None:
+        super().__init__("PutArticleSubmission", r_PutArticleSubmission, title=title, summary=summary, body=body, game=game, publishTags=publishTags, **params)
+
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
     """Checks the comment permissions on an item.
