@@ -1270,7 +1270,7 @@ class PutGameFollowerOrder(PostRequest[r_Empty]):
 # PUT IT HERE
 
 # Article Actions
-class PutArticleSubmission(PostRequest[r_PutArticleSubmission]):
+class PutArticleSubmission(PostRequest[r_Empty]):
     """Submits a site article.
     
     ### Mandatory:
@@ -1281,9 +1281,10 @@ class PutArticleSubmission(PostRequest[r_PutArticleSubmission]):
     ### Optional:
     - @game
     - @publishTags: list of tags
+    - @coverImagePath
     """
-    def __init__(self, title: str, summary: str, body: str, game: str, publishTags: list[str], **params) -> None:
-        super().__init__("PutArticleSubmission", r_PutArticleSubmission, title=title, summary=summary, body=body, game=game, publishTags=publishTags, **params)
+    def __init__(self, title: str, summary: str, body: str, game: str, publishTags: list[str], coverImagePath: str, **params) -> None:
+        super().__init__("PutArticleSubmission", r_Empty, title=title, summary=summary, body=body, game=game, publishTags=publishTags, coverImagePath=coverImagePath, **params)
 
 # Comment Actions
 class GetCommentable(PostRequest[r_GetCommentable]):
