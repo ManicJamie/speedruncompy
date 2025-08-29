@@ -40,11 +40,13 @@ class r_GetChallenge(Datatype):
     challengeRunCount: int
     gameFollowerCount: int
     titleList: list[Title]
+    platformList: list[Platform]
 
 class r_GetChallengeLeaderboard(Datatype):
     challengeRunList: list[ChallengeRun]
     playerList: list[Player]
     userList: list[User]
+    platformList: list[Platform]
     pagination: Pagination
 
 class r_GetChallengeRun(Datatype):
@@ -53,6 +55,7 @@ class r_GetChallengeRun(Datatype):
     game: Game
     playerList: list[Player]
     userList: list[User]
+    platformList: list[Platform]
 
 class r_GetChallengeGlobalRankingList(Datatype):
     rankingList: list[GlobalChallengeRanking]
@@ -75,7 +78,6 @@ class r_GetStaticData(Datatype):
     colors: list[Color]
     gameTypeList: list[GameTypeObj]
     notificationSettings: list[NotificationSettingStaticData]
-    platformList: list[Platform]
     regionList: list[Region]
     socialNetworkList: list[SocialNetwork]
     supporterPlanList: OptField[list[Any] | None]  # Unknown type
@@ -98,6 +100,7 @@ class r_GetGameLeaderboard(Datatype):
 class r_GetGameLeaderboard2(Datatype):
     runList: list[Run]
     playerList: list[Player]
+    platformList: list[Platform]
     pagination: Pagination
 
 class r_GetGameLevelSummary(Datatype):
@@ -107,6 +110,7 @@ class r_GetGameLevelSummary(Datatype):
 
 class r_GetGameList(Datatype):
     gameList: list[Game]
+    platformList: list[Platform]
     pagination: Pagination
 
 class r_GetGameRecordHistory(Datatype):
@@ -123,6 +127,7 @@ class r_GetGameSummary(Datatype):
     stats: GameStats
     relatedGames: list[Game]
     seriesList: list[Series]
+    platformList: list[Platform]
     theme: Theme
     threadList: list[Thread]
     users: list[User]
@@ -189,6 +194,7 @@ class r_GetSearch(Datatype):
     seriesList: list[Series]
     userList: list[User]
     challengeList: list[Challenge]
+    platformList: list[Platform]
 
 class r_GetSeriesList(Datatype):
     seriesList: list[Series]

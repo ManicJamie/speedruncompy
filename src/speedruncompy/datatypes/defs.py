@@ -133,6 +133,7 @@ class RunSettings(Datatype):
     comment: str
     date: int
     values: list[VarValue]  # type:ignore
+    videoState: OptField[VideoState]  # TODO: check if opt
     
     # TODO: this only guarantees RTA if both time and timeWithLoads is present in the run,
     # but if a LRT run is missing RTA then it will incorrectly return `time` rather than `None`
@@ -220,6 +221,8 @@ class GameStats(Datatype):
     followers: int
     guides: int
     resources: int
+    totalRunsChallenge: int
+    recentRunsChallenge: int
 
 class RunCount(Datatype):
 
@@ -486,8 +489,9 @@ class GameBoost(Datatype):
     createdAt: int
     updatedAt: int
     gameId: str
-    donorUserId: str
     anonymous: bool
+    donorUserId: OptField[str]
+    """Omitted if anonymous is True"""
     recipientUserIds: list[str]
     """Appears to always be empty"""
 
@@ -611,10 +615,11 @@ class Challenge(Datatype):
     timeDirection: TimeDirection
     enforceMs: bool
     coverImagePath: str
-    contest: bool
-    contestRules: str
+    challengeRules: str
     runCommentsMode: PermissionType
     prizeConfig: ChallengePrizeConfig
+    type: int  # TODO: enum
+    phase: int  # TODO: enum
 
 class ChallengeRun(Datatype):
 

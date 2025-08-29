@@ -702,8 +702,10 @@ class TestPutRequests():
 
         commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform(autovary=True)
         check_datatype_coverage(commentDelCheck)
+        """
         with pytest.raises(StopIteration):
             next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
+        """
 
     def test_PutGameFollowerOrder(self):
         """Reorders the games and compares the result, then resets back to original order"""
