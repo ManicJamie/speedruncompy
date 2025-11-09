@@ -8,19 +8,19 @@ log = logging.getLogger("speedruncompy.auth")
 def login(username: str, pwd: str, _api: SpeedrunClient = _default, tokenEntry: bool = False):
     """Quick workflow to set sessid using username & pwd. Will prompt for 2FA if tokenEntry is True, otherwise will return False."""
     try:
-        result = PutAuthLogin(username, pwd, _api=_api).perform()
+        result = PutAuthLogin(username, pwd, _api=_api).perform_sync()
     except NotFound:
         print("Password is incorrect!")
         return False
-    if result.get("loggedIn", False):
+    if result.loggedIn:
         log.info("Logged in using username & password")
         return True
-    if result.get("tokenChallengeSent", False):
+    if result.tokenChallengeSent:
         if tokenEntry:
             log.warning("2FA is enabled - Not logged in!")
             key = input("Enter 2FA token: ")
-            result = PutAuthLogin(username, pwd, key, _api=_api).perform()
-            if result.get("loggedIn", False):
+            result = PutAuthLogin(username, pwd, key, _api=_api).perform_sync()
+            if result.loggedIn:
                 log.info("Logged in using 2fa")
                 return True
             else:
@@ -32,22 +32,22 @@ def login(username: str, pwd: str, _api: SpeedrunClient = _default, tokenEntry: 
 def login_PHPSESSID(sessID: str, _api: SpeedrunClient = _default):
     """Login using PHPSESSID. Uses GetSession to check if session is logged in."""
     _api.PHPSESSID = sessID
-    result = GetSession(_api=_api).perform()
-    session = result["session"]
-    if session is None or not session["signedIn"]:
+    result = GetSession(_api=_api).perform_sync()
+    session = result.session
+    if not session.signedIn or session.user is None:
         log.error("Provided PHPSESSID is not logged in - use speedruncompy.auth.login() instead")
         return False
-    log.info(f"Logged in as {session['user']['name']} using PHPSESSID")
+    log.info(f"Logged in as {session.user.name} using PHPSESSID")
     return True
 
 def logout(_api: SpeedrunClient = _default):
-    PutAuthLogout(_api=_api).perform()
+    PutAuthLogout(_api=_api).perform_sync()
     return True
 
 def get_CSRF(_api: SpeedrunClient = _default):
     """Get the csrfToken of the currently logged in user, required for some endpoints."""
-    result = GetSession(_api=_api).perform()
-    session = result["session"]
-    if session is None or not session.get("signedIn", False):
+    result = GetSession(_api=_api).perform_sync()
+    session = result.session
+    if session is None or not session.signedIn:
         raise AuthException("Not logged in, cannot retrieve csrfToken")
-    return session.get("csrfToken")
+    return session.csrfToken

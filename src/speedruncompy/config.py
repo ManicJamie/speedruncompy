@@ -1,15 +1,11 @@
-import enum, typing
+"""Speedruncompy config
 
-class CoercionLevel(enum.IntEnum):
-    DISABLED = -1
-    ENABLED = 0
-    STRICT = 1
+strict_mode: Enables pydantic strict mode; errors instead of coercing compatible types. Default False.
 
-
-COERCION: typing.Union[CoercionLevel, int] = CoercionLevel.ENABLED
-"""How aggressively to enforce type coercion.
-
--1: Disabled; types will not be coerced. WARN: field accessors will break!
-0: Enabled; types will be coerced. Sends log warnings on incomplete types.
-1: Strict; types will be coerced. Raises errors on incomplete types.
+check_extras: NOT_IMPLEMENTED: Logs at runtime whether additional fields not known to speedruncompy are present. Intended to alert downstream users to update speedruncompy.
 """
+
+strict_mode: bool = False
+
+check_extras: bool = False
+"""TODO: not implemented"""
