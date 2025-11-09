@@ -1,9 +1,10 @@
 import base64, json
 import logging
 import asyncio, aiohttp
+from warnings import deprecated
 import sys
 import random
-from typing import Awaitable, Callable, Any, Generic, Iterable, TypeVar
+from typing import Awaitable, Callable, Any, ClassVar, Generic, Iterable, TypeVar
 
 from yarl import URL
 
@@ -77,7 +78,7 @@ class SpeedrunClient():
         paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=ModelEncoder).strip(), "utf-8")
         return base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
 
-    async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
+    async def GET(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"GET {endpoint} w/ params {params}")
         
         session = self._session
@@ -95,7 +96,7 @@ class SpeedrunClient():
             if self._session is None:
                 await session.__aexit__(*sys.exc_info())
     
-    async def do_post(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
+    async def POST(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"POST {endpoint} w/ params {params}")
         
         session = self._session
@@ -125,33 +126,27 @@ R = TypeVar('R', bound=SpeedrunModel)
 
 
 class BaseRequest(Generic[R]):
-    def __init__(self,
-                 method: Callable[[str, dict[str, Any]], Awaitable[tuple[bytes, int]]],
-                 endpoint: str,
-                 returns: type[R],
-                 **params):
-        self.method = method
-        self.endpoint = endpoint
+    method_name: ClassVar[str]
+    endpoint: ClassVar[str]
+    return_type: type[R]
+    
+    client: SpeedrunClient
+    params: dict[str, Any]
+    
+    def __init__(self, _client: SpeedrunClient, **params):
+        self.client = _client
         self.params = params
-        self.return_type = returns
     
     def update_params(self, **kwargs):
         """Updates parameters using values set in kwargs"""
         self.params.update(kwargs)
 
-    def perform(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
-        """Synchronously perform the request.
-        
-        NB: This uses its own event loop, so if using `asyncio` use `perform_async()` instead."""
-        try:
-            return asyncio.run(self.perform_async(retries, delay, autovary, **kwargs))
-        except RuntimeError:
-            raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
-    
-    async def perform_async(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
+    async def perform(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
         """Asynchronously perform the request. Remember to `await` me!"""
         if autovary is True: kwargs |= {"vary": random.randint(1, 1000000000)}
-        self.response = await self.method(self.endpoint, self.params | kwargs)
+        method = getattr(self.client, self.method_name)
+        
+        self.response = await method(self.endpoint, self.params | kwargs)
         content = self.response[0]
         status = self.response[1]
 
@@ -159,7 +154,7 @@ class BaseRequest(Generic[R]):
             if retries > 0:
                 _log.error(f"SRC returned error {status} {content!r}. Retrying with delay {delay}:")
                 for attempt in range(0, retries + 1):
-                    self.response = await self.method(self.endpoint, self.params)
+                    self.response = await method(self.endpoint, self.params)
                     content = self.response[0]
                     status = self.response[1]
                     if not (status >= 500 and status <= 599) or status == 408:
@@ -186,6 +181,17 @@ class BaseRequest(Generic[R]):
             raise APIException(self)
         
         return self.return_type.model_validate_json(content.decode(), strict=config.strict_mode)
+    
+    #@deprecated("Speedruncompy is async-first - use `perform()` instead.")
+    def perform_sync(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
+        """Synchronously perform the request.
+        
+        NB: This uses its own event loop, so if using `asyncio` use `perform_async()` instead."""
+        try:
+            return asyncio.run(self.perform(retries, delay, autovary, **kwargs))
+        except RuntimeError:
+            raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
+    
 
 
 class BasePaginatedRequest(BaseRequest[R], Generic[R]):
@@ -193,33 +199,33 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
         """Locates the pagination object on a response. Overriden on certain subclasses."""
         return getattr(p, "pagination")
     
-    def perform_all(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
+    def perform_all_sync(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = self._perform_all_raw(retries, delay, autovary, max_pages, **kwargs)
+        pages = self._perform_all_raw_sync(retries, delay, autovary, max_pages, **kwargs)
         return self._combine_pages(pages.values())
     
-    def _perform_all_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
+    def _perform_all_raw_sync(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         try:
-            return asyncio.run(self._perform_all_async_raw(retries, delay, autovary, max_pages, **kwargs))
+            return asyncio.run(self._perform_all_raw(retries, delay, autovary, max_pages, **kwargs))
         except RuntimeError:
             raise AIOException("Synchronous interface called from asynchronous context - use `await perform_async` instead.") from None
     
-    async def perform_all_async(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
+    async def perform_all(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
-        pages = await self._perform_all_async_raw(retries, delay, autovary, max_pages, **kwargs)
+        pages = await self._perform_all_raw(retries, delay, autovary, max_pages, **kwargs)
         return self._combine_pages(pages.values())
     
-    async def _perform_all_async_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
+    async def _perform_all_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages: dict[int, R] = {}
         vary = 0 if not autovary else random.randint(1, 1000000000)
-        self.pages[1] = await self.perform_async(retries, delay, page=1, vary=vary, **kwargs)
+        self.pages[1] = await self.perform(retries, delay, page=1, vary=vary, **kwargs)
         numpages: int = self._get_pagination(self.pages[1]).pages
         if max_pages >= 1:
             numpages = min(numpages, max_pages)
         if numpages > 1:
-            results = await asyncio.gather(*[self.perform_async(retries, delay, vary=vary, page=p, **kwargs) for p in range(2, numpages + 1)])
+            results = await asyncio.gather(*[self.perform(retries, delay, vary=vary, page=p, **kwargs) for p in range(2, numpages + 1)])
             self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
     
@@ -245,12 +251,26 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
 
 
 class GetRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type[R] = SpeedrunModel, _api: SpeedrunClient | None = None, **params) -> None:
-        if _api is None: _api = _default
-        super().__init__(method=_api.do_get, endpoint=endpoint, returns=returns, **params)
+    method_name: ClassVar[str] = "GET"
+    
+    def __init__(self, _client: SpeedrunClient | None = None, **params) -> None:
+        if _client is None: _client = _default
+        super().__init__(_client = _client, **params)
+    
+    def __init_subclass__(cls, endpoint: str, response: type[R]) -> None:
+        setattr(cls, "endpoint", endpoint)
+        setattr(cls, "return_type", response)
+        return super().__init_subclass__()
 
 
 class PostRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type[R] = SpeedrunModel, _api: SpeedrunClient | None = None, **params) -> None:
-        if _api is None: _api = _default
-        super().__init__(method=_api.do_post, endpoint=endpoint, returns=returns, **params)
+    method_name: ClassVar[str] = "POST"
+    
+    def __init__(self, _client: SpeedrunClient | None = None, **params) -> None:
+        if _client is None: _client = _default
+        super().__init__(_client = _client, **params)
+    
+    def __init_subclass__(cls, endpoint: str, response: type[R]) -> None:
+        setattr(cls, "endpoint", endpoint)
+        setattr(cls, "return_type", response)
+        return super().__init_subclass__()

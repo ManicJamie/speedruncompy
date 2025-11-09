@@ -955,7 +955,7 @@ class NotificationSettingStaticData(SpeedrunModel):
     title: str
     pos: int
     gameSpecific: bool
-    siteDefault: int
+    siteDefault: bool
     emailDefault: bool
 
 class UserSettings(SpeedrunModel):

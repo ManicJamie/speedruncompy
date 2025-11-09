@@ -11,7 +11,7 @@ class SpeedrunModel(BaseModel, ser_json_timedelta='float', extra='allow'):
     __condenser_map__: ClassVar[BidirectionalMapping[str, str]] = frozenbidict()
     """Internal mapping of list fields into dict fields, used for constructing dicts at runtime.
     
-    Also used by paginated responses to condense lists into a single"""
+    Also used by paginated responses to condense lists into a single page."""
     
     __condenser_overrides__: ClassVar[dict[str, str]] = {}
     """Internal mapping of list fields' id names. Used for some types that have a PKEY not named 'id'."""

@@ -27,22 +27,17 @@ game_id = "76rqmld8"  # Hollow Knight
 category_id = "02q8o4p2"  # Any%
 challenge_id = "42ymr396"  # Ghostrunner 2
 
-# All tests are done with strict type conformance to catch errors early
-# In downstream this is default False, and warnings are given instead of errors.
-# See `TestDatatypes.test_Missing_Fields_Loose` for behaviour without STRICT.
-srccfg.COERCION = 1
+srccfg.strict_mode = True
+
+class DemoModel(SpeedrunModel):
+    name: str
 
 @pytest.fixture()
-def loose_type_conformance():
-    srccfg.COERCION = 0
+def non_strict():
+    srccfg.strict_mode = False
     yield
-    srccfg.COERCION = 1
+    srccfg.strict_mode = True
 
-@pytest.fixture()
-def disable_type_checking():
-    srccfg.COERCION = -1
-    yield
-    srccfg.COERCION = 1
 
 class TestModels():
     async def test_convenience_dicts(self):

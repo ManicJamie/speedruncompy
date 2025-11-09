@@ -26,7 +26,7 @@ class r_GetArticle(SpeedrunModel):
     relatedArticleList: list[Article]
     gameList: list[Game]
     userList: list[User]
-
+    
 class r_GetArticleList(SpeedrunModel):
     articleList: list[Article]
     pagination: Pagination
