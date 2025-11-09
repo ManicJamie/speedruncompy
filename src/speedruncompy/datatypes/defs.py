@@ -1,19 +1,22 @@
-from ._impl import Datatype, OptField
-from .enums import *
+from typing import Optional
+from bidict import frozenbidict
 
-class StaticAsset(Datatype):
+from .enums import *
+from ._impl import SpeedrunModel
+
+class StaticAsset(SpeedrunModel):
 
     assetType: str
     path: str
 
-class StaticAssetUpdate(Datatype):
+class StaticAssetUpdate(SpeedrunModel):
     
     assetType: str
     updateContent: str
     """Example: data:image/png;base64,examplebase64data``"""
-    deleteContent: OptField[bool]
+    deleteContent: Optional[bool] = None
 
-class VarValue(Datatype):
+class VarValue(SpeedrunModel):
 
     variableId: str
     valueId: str
@@ -21,26 +24,26 @@ class VarValue(Datatype):
     def __str__(self):
         return f"Var {self.variableId} = {self.valueId}"
 
-class VarValues(Datatype):
+class VarValues(SpeedrunModel):
 
     variableId: str
     valueIds: list[str]
 
-class RuntimeTuple(Datatype):
+class RuntimeTuple(SpeedrunModel):
 
     hour: int
     minute: int
     second: int
     millisecond: int
-
-    def __init__(self, template: dict | tuple | float | int | None = None) -> None:
-        if isinstance(template, (float, int)):
-            self.hour = int(template // 3600)
-            self.minute = int((template // 60) % 60)
-            self.second = int(template % 60)
-            self.millisecond = int((template * 1000) % 1)
-            return self.enforce_types()
-        super().__init__(template)
+    
+    @classmethod
+    def from_combined_time(cls, time: float | int):
+        return cls.model_construct(values={
+            "hour": int(time // 3600),
+            "minute": int((time // 60) % 60),
+            "second": int(time % 60),
+            "millisecond": int((time * 1000) % 1)
+        })
     
     def __str__(self):
         return f"{f'{self.hour}:' if self.hour != 0 else ''}{self.minute:02}:{self.second:02}{f'.{self.millisecond:03}' if self.millisecond != 0 else ''}"
@@ -48,7 +51,7 @@ class RuntimeTuple(Datatype):
     def __repr__(self) -> str:
         return f"{self.hour}:{self.minute:02}:{self.second:02}.{self.millisecond:03}"
 
-class CommentPermissions(Datatype):
+class CommentPermissions(SpeedrunModel):
     canManage: bool
     canViewComments: bool
     canPostComments: bool
@@ -57,11 +60,11 @@ class CommentPermissions(Datatype):
     cannotViewReasons: list[str]
     cannotPostReasons: list[str]
 
-class CommentableProperties(Datatype):
+class CommentableProperties(SpeedrunModel):
     disabled: bool
     locked: bool
 
-class Commentable(Datatype):
+class Commentable(SpeedrunModel):
     itemType: ItemType
     itemId: str
     properties: CommentableProperties
@@ -70,29 +73,29 @@ class Commentable(Datatype):
     If not logged in, canPost will always be False."""
 
 
-class Comment(Datatype):
+class Comment(SpeedrunModel):
     id: str
     itemType: ItemType
     itemId: str
     date: int
     userId: str
-    text: OptField[str]
+    text: Optional[str] = None
     """May be omitted on deleted comments."""
-    parentId: OptField[str]
+    parentId: Optional[str] = None
     deleted: bool
-    deletedUserId: OptField[str]
+    deletedUserId: Optional[str] = None
 
-class Like(Datatype):
+class Like(SpeedrunModel):
     itemType: ItemType
     itemId: str
     userId: str
     date: int
 
-class Forum(Datatype):
+class Forum(SpeedrunModel):
     id: str
     name: str
     url: str
-    description: OptField[str]
+    description: Optional[str] = None
     type: ForumType
     threadCount: int
     postCount: int
@@ -101,7 +104,7 @@ class Forum(Datatype):
     lastPostDate: int
     touchDate: int
 
-class Thread(Datatype):
+class Thread(SpeedrunModel):
     id: str
     name: str
     gameId: str
@@ -115,32 +118,32 @@ class Thread(Datatype):
     sticky: bool
     locked: bool
 
-class RunSettings(Datatype):
+class RunSettings(SpeedrunModel):
 
-    runId: OptField[str]
+    runId: Optional[str] = None
     """Omitted when submitting a new run."""
     gameId: str
     categoryId: str
     playerNames: list[str]
-    time: OptField[RuntimeTuple]  # Note: whichever timing method is primary to the game is required
+    time: Optional[RuntimeTuple] = None  # Note: whichever timing method is primary to the game is required
     """LRT if it is enabled, otherwise RTA."""
-    timeWithLoads: OptField[RuntimeTuple]
+    timeWithLoads: Optional[RuntimeTuple] = None
     """RTA if LRT is enabled."""
-    igt: OptField[RuntimeTuple]
+    igt: Optional[RuntimeTuple] = None
     platformId: str
     emulator: bool
     video: str
     comment: str
     date: int
     values: list[VarValue]  # type:ignore
-    videoState: OptField[VideoState]  # TODO: check if opt
+    videoState: Optional[VideoState] = None  # TODO: check if opt
     
     # TODO: this only guarantees RTA if both time and timeWithLoads is present in the run,
     # but if a LRT run is missing RTA then it will incorrectly return `time` rather than `None`
     # Correctly doing this would require knowledge of the Game data, so with cacheing or autoreqs.
-    def _get_rta(self): return self.timeWithLoads if "timeWithLoads" in self else self.time
+    def _get_rta(self): return self.timeWithLoads if "timeWithLoads" in self.__dict__ else self.time
     def _set_rta(self, _val):
-        if "timeWithLoads" in self:
+        if "timeWithLoads" in self.__dict__:
             self.timeWithLoads = _val
         else:
             self.time = _val
@@ -149,21 +152,21 @@ class RunSettings(Datatype):
     
     WARN: only guaranteed RTA if RTA is not None, otherwise may falsely return LRT."""
 
-class Series(Datatype):
+class Series(SpeedrunModel):
     id: str
     name: str
     url: str
     addedDate: int
     touchDate: int
-    websiteUrl: OptField[str]
-    discordUrl: OptField[str]
+    websiteUrl: Optional[str] = None
+    discordUrl: Optional[str] = None
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
     officialGameCount: int
     staticAssets: list[StaticAsset]
 
-class Game(Datatype):
+class Game(SpeedrunModel):
 
     id: str
     name: str
@@ -173,41 +176,41 @@ class Game(Datatype):
     milliseconds: bool
     igt: bool
     verification: bool
-    autoVerify: OptField[bool]  # Why is this OptField????? I hate SRC
+    autoVerify: Optional[bool] = None  # Why is this OptField????? I hate SRC
     requireVideo: bool
     emulator: EmulatorType
     defaultTimer: TimerName
     validTimers: list[TimerName]
-    releaseDate: OptField[int]
+    releaseDate: Optional[int] = None
     addedDate: int
     touchDate: int
-    baseGameId: OptField[str]
+    baseGameId: Optional[str] = None
     coverPath: str
-    trophy1stPath: OptField[str]
-    trophy2ndPath: OptField[str]
-    trophy3rdPath: OptField[str]
-    trophy4thPath: OptField[str]
+    trophy1stPath: Optional[str] = None
+    trophy2ndPath: Optional[str] = None
+    trophy3rdPath: Optional[str] = None
+    trophy4thPath: Optional[str] = None
     runCommentsMode: PermissionType
     runCount: int
     activePlayerCount: int
     totalPlayerCount: int
     boostReceivedCount: int
     boostDistinctDonorsCount: int
-    rules: OptField[str]
+    rules: Optional[str] = None
     viewPowerLevel: SitePowerLevel
     platformIds: list[str]
     regionIds: list[str]
     gameTypeIds: list[GameType]
-    websiteUrl: OptField[str]
-    discordUrl: OptField[str]
+    websiteUrl: Optional[str] = None
+    discordUrl: Optional[str] = None
     defaultView: DefaultViewType
     guidePermissionType: PermissionType
     resourcePermissionType: PermissionType
     staticAssets: list[StaticAsset]
-    embargoDate: OptField[int]
-    embargoText: OptField[str]
+    embargoDate: Optional[int] = None
+    embargoText: Optional[str] = None
 
-class GameStats(Datatype):
+class GameStats(SpeedrunModel):
     gameId: str
     totalRuns: int
     totalRunsFG: int
@@ -224,16 +227,16 @@ class GameStats(Datatype):
     totalRunsChallenge: int
     recentRunsChallenge: int
 
-class RunCount(Datatype):
+class RunCount(SpeedrunModel):
 
     gameId: str
     categoryId: str
-    levelId: OptField[str]
-    variableId: OptField[str]
-    valueId: OptField[str]
+    levelId: Optional[str] = None
+    variableId: Optional[str] = None
+    valueId: Optional[str] = None
     count: int
 
-class Category(Datatype):
+class Category(SpeedrunModel):
 
     id: str
     name: str
@@ -247,58 +250,58 @@ class Category(Datatype):
     playerMatchMode: PlayerMatchMode
     timeDirection: TimeDirection
     enforceMs: bool
-    rules: OptField[str]
-    archived: OptField[bool]
+    rules: Optional[str] = None
+    archived: Optional[bool] = None
 
-class Variable(Datatype):
+class Variable(SpeedrunModel):
 
     id: str
     name: str
     url: str
     pos: int
     gameId: str
-    description: OptField[str]
+    description: Optional[str] = None
     categoryScope: VarCategoryScope
-    categoryId: OptField[str]
+    categoryId: Optional[str] = None
     levelScope: VarLevelScope
-    levelId: OptField[str]
+    levelId: Optional[str] = None
     isMandatory: bool
     isSubcategory: bool
     isUserDefined: bool
     isObsoleting: bool
-    defaultValue: OptField[str]
+    defaultValue: Optional[str] = None
     archived: bool
-    displayMode: OptField[VarDisplayMode]
+    displayMode: Optional[VarDisplayMode] = None
 
-class Value(Datatype):
+class Value(SpeedrunModel):
     """Value of a variable. `VariableValue` is a selector on this type (and the underlying variable)"""
     id: str
     name: str
     url: str
     pos: int
     variableId: str
-    isMisc: OptField[bool]
-    rules: OptField[str]
+    isMisc: Optional[bool] = None
+    rules: Optional[str] = None
     archived: bool
 
-class Level(Datatype):
+class Level(SpeedrunModel):
 
     id: str
     gameId: str
     name: str
     url: str
     pos: int
-    rules: OptField[str]
+    rules: Optional[str] = None
     archived: bool
 
-class Platform(Datatype):
+class Platform(SpeedrunModel):
 
     id: str
     name: str
     url: str
     year: int
 
-class Article(Datatype):
+class Article(SpeedrunModel):
 
     id: str
     slug: str
@@ -307,40 +310,40 @@ class Article(Datatype):
     body: str
     createDate: int
     updateDate: int
-    publishDate: OptField[int]
-    rejectDate: OptField[int]
+    publishDate: Optional[int] = None
+    rejectDate: Optional[int] = None
     publishTarget: str
     publishTags: list[str]
-    coverImagePath: OptField[str]
+    coverImagePath: Optional[str] = None
     commentsCount: int
-    community: OptField[bool]
-    gameId: OptField[str]
-    userId: OptField[str]
-    editorId: OptField[str]
-    stickyDate: OptField[int]
+    community: Optional[bool] = None
+    gameId: Optional[str] = None
+    userId: Optional[str] = None
+    editorId: Optional[str] = None
+    stickyDate: Optional[int] = None
 
-class News(Datatype):
+class News(SpeedrunModel):
 
     id: str
     gameId: str
     userId: str
     title: str
-    body: OptField[str]
+    body: Optional[str] = None
     """Omitted for all but the first item in `r_GetGameSummary.newsList[]`"""
     dateSubmitted: int
 
-class Player(Datatype):
+class Player(SpeedrunModel):
     """Fields from `User` present in `playerLists`. May also be an unregistered player, use property `_is_registered`"""
     id: str
     name: str
-    url: OptField[str]
-    powerLevel: OptField[SitePowerLevel]
-    color1Id: OptField[str]
-    color2Id: OptField[str]
+    url: Optional[str] = None
+    powerLevel: Optional[SitePowerLevel] = None
+    color1Id: Optional[str] = None
+    color2Id: Optional[str] = None
     """OptField even on full `player`"""
-    colorAnimate: OptField[int]
-    areaId: OptField[str]
-    isSupporter: OptField[bool]
+    colorAnimate: Optional[int] = None
+    areaId: Optional[str] = None
+    isSupporter: Optional[bool] = None
     """OptField even on full `player`"""
 
     def _is_user(self): return not self.id.startswith("u-")
@@ -348,43 +351,43 @@ class Player(Datatype):
     _is_registered = property(fget=_is_user)
     """Checks if a player has an account or is a text label"""
 
-class AvatarDecoration(Datatype):
+class AvatarDecoration(SpeedrunModel):
     """Supporter feature for rings around names.
     
     @separateColors: If true, see this object's color Ids. If either is absent, inherit from username.
     """
     enabled: bool
-    separateColors: OptField[bool]
-    color1Id: OptField[str]
+    separateColors: Optional[bool] = None
+    color1Id: Optional[str] = None
     """Defaults to username's color1Id"""
-    color2Id: OptField[str]
+    color2Id: Optional[str] = None
     """Defaults to username's color2Id"""
 
-class User(Datatype):
+class User(SpeedrunModel):
     id: str
     name: str
-    altname: OptField[str]
+    altname: Optional[str] = None
     url: str
     pronouns: list[str]
     powerLevel: SitePowerLevel
     """Site-level, 1 is default, Meta is 4"""
     color1Id: str
-    color2Id: OptField[str]
-    colorAnimate: OptField[int]
+    color2Id: Optional[str] = None
+    colorAnimate: Optional[int] = None
     areaId: str
-    isSupporter: OptField[bool]
-    avatarDecoration: OptField[AvatarDecoration]
+    isSupporter: Optional[bool] = None
+    avatarDecoration: Optional[AvatarDecoration] = None
     iconType: IconType
     onlineDate: int
     signupDate: int
     touchDate: int
     staticAssets: list[StaticAsset]
-    supporterIconType: OptField[IconType]
-    supporterIconPosition: OptField[IconPosition]
-    titleId: OptField[str]
+    supporterIconType: Optional[IconType] = None
+    supporterIconPosition: Optional[IconPosition] = None
+    titleId: Optional[str] = None
     """ID for a title given for completing a Challenge"""
 
-class UserStats(Datatype):
+class UserStats(SpeedrunModel):
     userId: str
     followers: int
     runs: int
@@ -406,13 +409,13 @@ class UserStats(Datatype):
     challengeRunsPending: int
     runVideosAtRisk: int
 
-class UserSocialConnection(Datatype):
+class UserSocialConnection(SpeedrunModel):
     userId: str
     networkId: NetworkId
     value: str
     verified: bool
 
-class UserModerationStats(Datatype):
+class UserModerationStats(SpeedrunModel):
     gameId: str
     level: GamePowerLevel
     totalRuns: int
@@ -420,12 +423,12 @@ class UserModerationStats(Datatype):
     minDate: int
     maxDate: int
 
-class UserGameFollow(Datatype):
+class UserGameFollow(SpeedrunModel):
     gameId: str
     accessCount: int
     lastAccessDate: int
 
-class UserGameRunnerStats(Datatype):
+class UserGameRunnerStats(SpeedrunModel):
     gameId: str
     totalRuns: int
     totalTime: int
@@ -434,22 +437,22 @@ class UserGameRunnerStats(Datatype):
     minDate: int
     maxDate: int
 
-class GameOrderGroup(Datatype):
+class GameOrderGroup(SpeedrunModel):
     id: str
     name: str
     sortType: GameSortType
     gameIds: list[str]
-    open: OptField[bool]
-    editing: OptField[bool]
+    open: Optional[bool] = None
+    editing: Optional[bool] = None
 
-class GameOrdering(Datatype):
+class GameOrdering(SpeedrunModel):
     defaultGroups: list[GameOrderGroup]
     supporterGroups: list[GameOrderGroup]
 
-class UserProfile(Datatype):  # TODO: check where this exists (if anywhere?)
+class UserProfile(SpeedrunModel):  # TODO: check where this exists (if anywhere?)
 
     userId: str
-    bio: OptField[str]
+    bio: Optional[str] = None
     signupDate: int
     defaultView: DefaultViewType
     showMiscByDefault: bool
@@ -457,58 +460,58 @@ class UserProfile(Datatype):  # TODO: check where this exists (if anywhere?)
     userStats: UserStats
     userSocialConnectionList: list[UserSocialConnection]
 
-class UserReducedProfile(Datatype):
+class UserReducedProfile(SpeedrunModel):
     """UserProfile as returned by GetUserLeaderboard, GetUserSummary & GetUserPopoverData.
     
     Missing userStats and userSocialConnectionList."""
     userId: str
-    bio: OptField[str]
+    bio: Optional[str] = None
     signupDate: int
     defaultView: DefaultViewType
     showMiscByDefault: bool
-    gameOrdering: OptField[GameOrdering]
+    gameOrdering: Optional[GameOrdering] = None
 
-class SeriesModerator(Datatype):
+class SeriesModerator(SpeedrunModel):
     seriesId: str
     userId: str
     level: GamePowerLevel
 
-class GameModerator(Datatype):
+class GameModerator(SpeedrunModel):
     gameId: str
     userId: str
     level: GamePowerLevel
 
-class ChallengeModerator(Datatype):
+class ChallengeModerator(SpeedrunModel):
     
     challengeId: str
     userId: str
     level: GamePowerLevel
 
-class GameBoost(Datatype):
+class GameBoost(SpeedrunModel):
     id: str
     createdAt: int
     updatedAt: int
     gameId: str
     anonymous: bool
-    donorUserId: OptField[str]
+    donorUserId: Optional[str] = None
     """Omitted if anonymous is True"""
     recipientUserIds: list[str]
     """Appears to always be empty"""
 
-class Region(Datatype):
+class Region(SpeedrunModel):
     id: str
     name: str
     url: str
     flag: str
 
-class SocialNetwork(Datatype):
+class SocialNetwork(SpeedrunModel):
     id: NetworkId
     name: str
     major: bool
     pos: int
     pattern: str
 
-class Area(Datatype):
+class Area(SpeedrunModel):
     id: str
     name: str
     fullName: str
@@ -517,7 +520,7 @@ class Area(Datatype):
     lbFlagIcon: str
     lbName: str
 
-class Color(Datatype):
+class Color(SpeedrunModel):
     id: str
     name: str
     darkColor: str
@@ -526,49 +529,49 @@ class Color(Datatype):
     """Deprecated, colors now seem to be sorted by their name's ascending alphabetical order (A-Z)"""
     pos: int
 
-class GameTypeObj(Datatype):
+class GameTypeObj(SpeedrunModel):
     id: GameType
     name: str
     url: str
     description: str
     allowBaseGame: bool
 
-class Run(Datatype):
+class Run(SpeedrunModel):
 
     id: str
     gameId: str
     categoryId: str
-    levelId: OptField[str]
-    time: OptField[float]
-    timeWithLoads: OptField[float]
-    igt: OptField[float]
-    enforceMs: OptField[bool]
+    levelId: Optional[str] = None
+    time: Optional[float] = None
+    timeWithLoads: Optional[float] = None
+    igt: Optional[float] = None
+    enforceMs: Optional[bool] = None
     """Deprecated recent addition, bug SRC to readd this"""
-    platformId: OptField[str]
+    platformId: Optional[str] = None
     emulator: bool
-    regionId: OptField[str]
-    video: OptField[str]
-    comment: OptField[str]
-    submittedById: OptField[str]
+    regionId: Optional[str] = None
+    video: Optional[str] = None
+    comment: Optional[str] = None
+    submittedById: Optional[str] = None
     verified: Verified
-    verifiedById: OptField[str]
-    reason: OptField[str]
+    verifiedById: Optional[str] = None
+    reason: Optional[str] = None
     date: int
-    dateSubmitted: OptField[int]
+    dateSubmitted: Optional[int] = None
     """Only omitted on some very old runs!"""
-    dateVerified: OptField[int]
+    dateVerified: Optional[int] = None
     hasSplits: bool
-    obsolete: OptField[bool]
-    place: OptField[int]
+    obsolete: Optional[bool] = None
+    place: Optional[int] = None
     playerIds: list[str]
     valueIds: list[str]
-    orphaned: OptField[bool]
-    estimated: OptField[bool]
+    orphaned: Optional[bool] = None
+    estimated: Optional[bool] = None
     """Only shown in GetModerationRuns"""
-    issues: OptField[list[str] | None]
+    issues: Optional[list[str] | None] = None
     videoState: VideoState
 
-class ChallengeStanding(Datatype):
+class ChallengeStanding(SpeedrunModel):
     challengeId: str
     place: int
     registeredPlayerIds: list[str]
@@ -576,16 +579,16 @@ class ChallengeStanding(Datatype):
     unregisteredPlayers: list[str]  # TODO: str is an assumption
     prizeCurrency: str
 
-class ChallengePrize(Datatype):
+class ChallengePrize(SpeedrunModel):
     place: int
     amount: int
 
-class ChallengePrizeConfig(Datatype):
+class ChallengePrizeConfig(SpeedrunModel):
     prizePool: int
     currency: str
     prizes: list[ChallengePrize]
 
-class GlobalChallengeRanking(Datatype):
+class GlobalChallengeRanking(SpeedrunModel):
     """Sitewide rank based on all challenges entered."""
     userId: str
     rank: int
@@ -595,7 +598,7 @@ class GlobalChallengeRanking(Datatype):
     thirdPlaces: int
     challengesEntered: int
 
-class Challenge(Datatype):
+class Challenge(SpeedrunModel):
 
     id: str
     name: str
@@ -621,42 +624,42 @@ class Challenge(Datatype):
     type: int  # TODO: enum
     phase: int  # TODO: enum
 
-class ChallengeRun(Datatype):
+class ChallengeRun(SpeedrunModel):
 
     id: str
     gameId: str
     challengeId: str
-    time: OptField[float]
-    timeWithLoads: OptField[float]
-    igt: OptField[float]
-    enforceMs: OptField[bool]
+    time: Optional[float] = None
+    timeWithLoads: Optional[float] = None
+    igt: Optional[float] = None
+    enforceMs: Optional[bool] = None
     """Deprecated recent addition, bug SRC to readd this"""
-    platformId: OptField[str]
+    platformId: Optional[str] = None
     emulator: bool
-    regionId: OptField[str]
-    video: OptField[str]
-    comment: OptField[str]
-    submittedById: OptField[str]
+    regionId: Optional[str] = None
+    video: Optional[str] = None
+    comment: Optional[str] = None
+    submittedById: Optional[str] = None
     screened: bool
-    screenedById: OptField[str]
+    screenedById: Optional[str] = None
     verified: int
-    verifiedById: OptField[str]
-    reason: OptField[str]
+    verifiedById: Optional[str] = None
+    reason: Optional[str] = None
     date: int
     dateSubmitted: int
-    dateVerified: OptField[int]
-    dateScreened: OptField[int]
-    issues: OptField[None]  # TODO: Find if this is ever Not None
+    dateVerified: Optional[int] = None
+    dateScreened: Optional[int] = None
+    issues: Optional[None] = None  # TODO: Find if this is ever Not None
     playerIds: list[str]
     commentsCount: int
-    place: OptField[int]
-    obsolete: OptField[bool]
+    place: Optional[int] = None
+    obsolete: Optional[bool] = None
     videoState: VideoState
 
-class Theme(Datatype):
+class Theme(SpeedrunModel):
     id: str
     url: str
-    name: OptField[str]  # TODO: check optional
+    name: Optional[str] = None  # TODO: check optional
     primaryColor: str
     panelColor: str
     panelOpacity: int
@@ -673,13 +676,13 @@ class Theme(Datatype):
     touchDate: int
     staticAssets: list[StaticAsset]
 
-class Pagination(Datatype):
+class Pagination(SpeedrunModel):
     count: int
     page: int
     pages: int
     per: int
 
-class Leaderboard(Datatype):
+class Leaderboard(SpeedrunModel):
     category: Category
     game: Game
     pagination: Pagination
@@ -687,10 +690,26 @@ class Leaderboard(Datatype):
     players: list[Player]
     regions: list[Region]
     runs: list[Run]
-    values: list[Value]  # type:ignore
+    values: list[Value]
     variables: list[Variable]
+    
+    _platformDict: dict[str, Platform]
+    _playerDict: dict[str, Player]
+    _regionDict: dict[str, Region]
+    _runDict: dict[str, Run]
+    _variableDict: dict[str, Variable]
+    _valueDict: dict[str, Value]
+    
+    __condenser_map__ = frozenbidict({
+        "platforms": "_platformDict",
+        "players": "_playerDict",
+        "regions": "_regionDict",
+        "runs": "_runDict",
+        "values": "_valueDict",
+        "variables": "_variableDict",
+    })
 
-class Guide(Datatype):
+class Guide(SpeedrunModel):
     id: str
     name: str
     text: str
@@ -698,7 +717,7 @@ class Guide(Datatype):
     userId: str
     gameId: str
 
-class Resource(Datatype):
+class Resource(SpeedrunModel):
     id: str
     type: ResourceType
     name: str
@@ -706,16 +725,16 @@ class Resource(Datatype):
     date: int
     userId: str
     gameId: str
-    path: OptField[str]
-    link: OptField[str]
-    fileName: OptField[str]
+    path: Optional[str] = None
+    link: Optional[str] = None
+    fileName: Optional[str] = None
     authorNames: str  # TODO: exhaustive check for lists
 
-class Stream(Datatype):
+class Stream(SpeedrunModel):
     id: str
-    gameId: OptField[str]
-    userId: OptField[str]
-    areaId: OptField[str]
+    gameId: Optional[str] = None
+    userId: Optional[str] = None
+    areaId: Optional[str] = None
     url: str
     title: str
     previewUrl: str
@@ -724,7 +743,7 @@ class Stream(Datatype):
     hasPb: bool
     """If the stream has a PB on SRC (and has their account linked)"""  # TODO: check
 
-class GameSettings(Datatype):
+class GameSettings(SpeedrunModel):
     id: str
     name: str
     url: str
@@ -760,7 +779,7 @@ class GameSettings(Datatype):
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAssetUpdate]
 
-class SeriesSettings(Datatype):
+class SeriesSettings(SpeedrunModel):
     name: str
     url: str
     discordUrl: str
@@ -768,14 +787,14 @@ class SeriesSettings(Datatype):
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAssetUpdate]
 
-class GameModerationStats(Datatype):
+class GameModerationStats(SpeedrunModel):
     gameId: str
     state: int  # enum? appears to always be 0
     count: int
-    minDate: OptField[int]
-    maxDate: OptField[int]
+    minDate: Optional[int] = None
+    maxDate: Optional[int] = None
 
-class AuditLogEntry(Datatype):
+class AuditLogEntry(SpeedrunModel):
     id: str
     date: int
     eventType: str  # EventType
@@ -783,9 +802,9 @@ class AuditLogEntry(Datatype):
     gameId: str
     context: str
     """A json dict of extra context based on eventType."""
-    userId: OptField[str]
+    userId: Optional[str] = None
 
-class Conversation(Datatype):
+class Conversation(SpeedrunModel):
     id: str
     participantUserIds: list[str]
     lastMessageId: str
@@ -794,64 +813,64 @@ class Conversation(Datatype):
     lastMessageDate: int
     readDate: int
 
-class ConversationLightweight(Datatype):
+class ConversationLightweight(SpeedrunModel):
     id: str
     participantUserIds: list[str]  # TODO: May always be empty?
     lastMessageId: str
     lastMessageDate: int
 
-class ConversationParticipant(Datatype):
+class ConversationParticipant(SpeedrunModel):
     conversationId: str
     userId: str
     joinedDate: int
     leftDate: int  # TODO: OptField?
 
-class ConversationMessage(Datatype):
+class ConversationMessage(SpeedrunModel):
     id: str
     conversationId: str
     userId: str
     text: str
     date: int
 
-class SystemMessage(Datatype):
+class SystemMessage(SpeedrunModel):
     id: str
     userId: str
     text: str
     date: int
     read: bool
 
-class ForumReadStatus(Datatype):
+class ForumReadStatus(SpeedrunModel):
     forumId: str
     date: int
 
-class Notification(Datatype):
+class Notification(SpeedrunModel):
     id: str
     date: int
     title: str
     path: str
     read: bool
 
-class GameFollower(Datatype):
+class GameFollower(SpeedrunModel):
     gameId: str
     followerId: str
-    pos: OptField[int]
+    pos: Optional[int] = None
     accessCount: int
     lastAccessDate: int
 
-class GameRunner(Datatype):
+class GameRunner(SpeedrunModel):
     gameId: str
     userId: str
     runCount: int
 
-class UserFollower(Datatype):
+class UserFollower(SpeedrunModel):
     userId: str
     followerId: str
 
-class Session(Datatype):
+class Session(SpeedrunModel):
     signedIn: bool
     showAds: bool
-    user: OptField[User]
-    theme: OptField[Theme]
+    user: Optional[User] = None
+    theme: Optional[Theme] = None
     powerLevel: SitePowerLevel
     dateFormat: DateFormat
     timeFormat: TimeFormat
@@ -860,21 +879,21 @@ class Session(Datatype):
     homepageStream: HomepageStreamType
     disableThemes: bool
     csrfToken: str
-    networkToken: OptField[str]
+    networkToken: Optional[str] = None
     gameList: list[Game]
     gameFollowerList: list[GameFollower]
     gameModeratorList: list[GameModerator]
     gameRunnerList: list[GameRunner]
     seriesList: list[Series]
     seriesModeratorList: list[SeriesModerator]
-    boostAvailableTokens: OptField[int]
+    boostAvailableTokens: Optional[int] = None
     boostNextTokenDate: int
     boostNextTokenAmount: int
     userFollowerList: list[UserFollower]
     enabledExperimentIds: list[str]  # TODO: check
     challengeModeratorList: list[ChallengeModerator]  # TODO: check
 
-class ThemeSettings(Datatype):
+class ThemeSettings(SpeedrunModel):
     primaryColor: str
     panelColor: str
     panelOpacity: int  # TODO: may be an enum of every 5 between 70 and 100
@@ -891,22 +910,22 @@ class ThemeSettings(Datatype):
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAssetUpdate]
 
-class ThreadReadStatus(Datatype):
+class ThreadReadStatus(SpeedrunModel):
     threadId: str
     date: int
 
-class Ticket(Datatype):
+class Ticket(SpeedrunModel):
     id: str
     queue: TicketQueueType
     type: TicketType
     status: TicketStatus
     requestorId: str
     dateSubmitted: int
-    dateResolved: OptField[int]
+    dateResolved: Optional[int] = None
     metadata: str
     """This is a json object that may be dependent on type"""
 
-class TicketNote(Datatype):
+class TicketNote(SpeedrunModel):
     id: str
     ticketId: str
     readerId: str
@@ -915,22 +934,22 @@ class TicketNote(Datatype):
     isMessage: bool
     isRead: bool
 
-class UserCount(Datatype):
+class UserCount(SpeedrunModel):
     userId: str
     count: int
 
-class UserBlock(Datatype):
+class UserBlock(SpeedrunModel):
     blockerId: str
     blockeeId: str
 
-class NotificationSetting(Datatype):
+class NotificationSetting(SpeedrunModel):
     type: int  # enum
-    gameId: OptField[str]
+    gameId: Optional[str] = None
     site: bool
     email: bool
 
 """A different type of notification are returned by `GetStaticData` than in other areas."""
-class NotificationSettingStaticData(Datatype):
+class NotificationSettingStaticData(SpeedrunModel):
     id: int
     group: str
     title: str
@@ -939,7 +958,7 @@ class NotificationSettingStaticData(Datatype):
     siteDefault: int
     emailDefault: bool
 
-class UserSettings(Datatype):
+class UserSettings(SpeedrunModel):
     id: str
     name: str
     url: str
@@ -950,7 +969,7 @@ class UserSettings(Datatype):
     theme: str
     """May be `<gameUrl>`, `user/<userUrl>` or `Default`"""
     color1Id: str
-    color2Id: OptField[str]
+    color2Id: Optional[str] = None
     colorAnimate: int  # enum
     avatarDecoration: AvatarDecoration  # TODO: check
     defaultView: DefaultViewType
@@ -971,7 +990,7 @@ class UserSettings(Datatype):
     disableMessages: bool
     showAds: bool
     pronouns: list[str]
-    nameChangeDate: OptField[int]
+    nameChangeDate: Optional[int] = None
     runCommentsDisabled: bool
     followedGamesDisabled: bool
     supporterEndDate: int
@@ -981,7 +1000,7 @@ class UserSettings(Datatype):
     staticAssets: list[StaticAsset]
     staticAssetUpdates: list[StaticAssetUpdate]
 
-class SupporterCredit(Datatype):
+class SupporterCredit(SpeedrunModel):
     id: str
     userId: str
     providerId: int  # enum
@@ -996,7 +1015,7 @@ class SupporterCredit(Datatype):
     periodEndsAt: int
     providerItemId: str
 
-class SupporterCode(Datatype):
+class SupporterCode(SpeedrunModel):
     id: str
     code: str
     description: str
@@ -1005,7 +1024,7 @@ class SupporterCode(Datatype):
     createdAt: int
     updatedAt: int
 
-class SupporterSubscription(Datatype):
+class SupporterSubscription(SpeedrunModel):
     id: str
     userId: str
     providerId: int  # enum
@@ -1020,7 +1039,7 @@ class SupporterSubscription(Datatype):
     cancelAtPeriodEnd: bool
     canceledAt: int  # TODO assume timestamp
     
-class Title(Datatype):
+class Title(SpeedrunModel):
     """User reward for completing a Challenge."""
     id: str
     title: str

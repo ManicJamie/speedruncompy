@@ -3,13 +3,15 @@ import logging
 import asyncio, aiohttp
 import sys
 import random
-from typing import Awaitable, Callable, Any, Generic, TypeVar
+from typing import Awaitable, Callable, Any, Generic, Iterable, TypeVar
 
 from yarl import URL
-from copy import copy
 
-from .datatypes import Datatype, LenientDatatype, Pagination
+from .datatypes._impl import SpeedrunModel, ModelEncoder
+
+from .datatypes import Pagination
 from .exceptions import *
+from . import config
 
 API_ROOT = "/api/v2/"
 LANG = "en"
@@ -53,7 +55,7 @@ class SpeedrunClient():
             self.cookie_jar = aiohttp.CookieJar()
             self.cookie_jar.update_cookies(self.loose_cookies)
         return aiohttp.ClientSession(base_url="https://www.speedrun.com", cookie_jar=self.cookie_jar, headers=self._header,
-                                     json_serialize=lambda o: json.dumps(o, separators=(",", ":")))
+                                     json_serialize=lambda o: json.dumps(o, separators=(",", ":"), cls=ModelEncoder))
 
     def _get_PHPSESSID(self) -> str | None:
         if self.cookie_jar is None: return self.loose_cookies.get("PHPSESSID", None)
@@ -72,7 +74,7 @@ class SpeedrunClient():
     @staticmethod
     def _encode_r(params: dict):
         """Encodes a parameter dict into url-base64 encoded min-json, ready for use as `_r` in a GET URL."""
-        paramsjson = bytes(json.dumps(params, separators=(",", ":")).strip(), "utf-8")
+        paramsjson = bytes(json.dumps(params, separators=(",", ":"), cls=ModelEncoder).strip(), "utf-8")
         return base64.urlsafe_b64encode(paramsjson).replace(b"=", b"").decode()
 
     async def do_get(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
@@ -119,7 +121,7 @@ def set_default_PHPSESSID(phpsessionid):
     _default.PHPSESSID = phpsessionid
 
 
-R = TypeVar('R', bound=Datatype)
+R = TypeVar('R', bound=SpeedrunModel)
 
 
 class BaseRequest(Generic[R]):
@@ -182,42 +184,19 @@ class BaseRequest(Generic[R]):
         if status < 200 or status > 299:
             _log.error(f"Unknown response error returned from SRC! {status} {self.response[0]!r}")
             raise APIException(self)
-
-        return self.return_type(json.loads(content.decode()))
+        
+        return self.return_type.model_validate_json(content.decode(), strict=config.strict_mode)
 
 
 class BasePaginatedRequest(BaseRequest[R], Generic[R]):
-    def _combine_results(self, pages: dict[int, R]) -> R:
-        raise NotImplementedError(f"perform_all or perform_all_async on {type(self).__name__} is NOT yet implemented! Use _perform_all_raw() or _perform_all_async_raw()")
-
     def _get_pagination(self, p: R) -> Pagination:
         """Locates the pagination object on a response. Overriden on certain subclasses."""
-        return p["pagination"]  # type:ignore
-    
-    @staticmethod
-    def _combine_keys(pages: dict[int, R], main_keys: list[str], merge_keys: list[str]) -> R:
-        """Merge multiple pages. `main_keys` are appended, `merge_keys` are deduplicated by id."""
-        accumulator: R = copy(pages[1])
-        accuDicts: dict[str, dict[str, Datatype]] = {key: dict() for key in merge_keys}
-        
-        iterator = iter(pages.items())
-        next(iterator)  # skip first page (already in accumulator)
-        for i, p in iterator:
-            for main_key in main_keys:
-                accumulator[main_key] += p[main_key]  # type: ignore
-            for key in merge_keys:
-                if p[key] is not None:  # Guard against None fields
-                    accuDicts[key].update({item["id"]: item for item in p[key]})  # type: ignore
-        
-        for key in merge_keys:
-            accumulator[key] = list(accuDicts[key].values())
-        
-        return accumulator
+        return getattr(p, "pagination")
     
     def perform_all(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
         pages = self._perform_all_raw(retries, delay, autovary, max_pages, **kwargs)
-        return self._combine_results(pages)
+        return self._combine_pages(pages.values())
     
     def _perform_all_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
@@ -229,29 +208,49 @@ class BasePaginatedRequest(BaseRequest[R], Generic[R]):
     async def perform_all_async(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> R:
         """Returns a combined dict of all pages. `pagination` is removed."""
         pages = await self._perform_all_async_raw(retries, delay, autovary, max_pages, **kwargs)
-        return self._combine_results(pages)
+        return self._combine_pages(pages.values())
     
     async def _perform_all_async_raw(self, retries=5, delay=1, autovary=False, max_pages=0, **kwargs) -> dict[int, R]:
         """Get all pages and return a dict of {pageNo : pageData}."""
         self.pages: dict[int, R] = {}
         vary = 0 if not autovary else random.randint(1, 1000000000)
         self.pages[1] = await self.perform_async(retries, delay, page=1, vary=vary, **kwargs)
-        numpages: int = self._get_pagination(self.pages[1])["pages"]  # type: ignore
+        numpages: int = self._get_pagination(self.pages[1]).pages
         if max_pages >= 1:
             numpages = min(numpages, max_pages)
         if numpages > 1:
             results = await asyncio.gather(*[self.perform_async(retries, delay, vary=vary, page=p, **kwargs) for p in range(2, numpages + 1)])
             self.pages.update({p + 2: result for p, result in enumerate(results)})
         return self.pages
+    
+    @classmethod 
+    # This isn't static to allow overriding for a single case (GetGameLeaderboard) that nests results one level deep.
+    def _combine_pages(cls, responses: Iterable[R]):
+        """Combines a set of SpeedrunModels by combining the condenserDicts specified in __condenser_backmap__."""
+        iterator = iter(responses)
+        out_page = next(iterator).model_copy()
+        model_t = type(out_page)
+        
+        # Step 1: combine condenser dicts into out_page
+        for m in iterator:
+            for condenser_name in model_t.__condenser_map__.inverse:
+                setattr(out_page, condenser_name,
+                        getattr(out_page, condenser_name) | getattr(m, condenser_name))
+        
+        # Step 2: override original lists in out_page with combined condenser dicts
+        for condenser_name, target_name in model_t.__condenser_map__.inverse.items():
+            setattr(out_page, target_name, list(getattr(out_page, condenser_name).values()))
+        
+        return out_page
 
 
 class GetRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunClient | None = None, **params) -> None:
+    def __init__(self, endpoint, returns: type[R] = SpeedrunModel, _api: SpeedrunClient | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_get, endpoint=endpoint, returns=returns, **params)
 
 
 class PostRequest(BaseRequest[R], Generic[R]):
-    def __init__(self, endpoint, returns: type = LenientDatatype, _api: SpeedrunClient | None = None, **params) -> None:
+    def __init__(self, endpoint, returns: type[R] = SpeedrunModel, _api: SpeedrunClient | None = None, **params) -> None:
         if _api is None: _api = _default
         super().__init__(method=_api.do_post, endpoint=endpoint, returns=returns, **params)

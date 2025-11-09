@@ -1,4 +1,5 @@
-import enum, typing
+import enum
+from typing import Literal
 
 class CoercionLevel(enum.IntEnum):
     DISABLED = -1
@@ -6,10 +7,15 @@ class CoercionLevel(enum.IntEnum):
     STRICT = 1
 
 
-COERCION: typing.Union[CoercionLevel, int] = CoercionLevel.ENABLED
+COERCION: CoercionLevel | int = CoercionLevel.ENABLED
 """How aggressively to enforce type coercion.
 
 -1: Disabled; types will not be coerced. WARN: field accessors will break!
 0: Enabled; types will be coerced. Sends log warnings on incomplete types.
 1: Strict; types will be coerced. Raises errors on incomplete types.
 """
+
+strict_mode: bool = False
+
+validate_runtime: bool = False
+"""TODO: not implemented"""

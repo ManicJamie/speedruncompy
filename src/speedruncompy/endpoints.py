@@ -1,3 +1,4 @@
+from typing import Iterable
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunClient
 from .datatypes.enums import *
 from .datatypes.responses import *
@@ -70,12 +71,6 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
         super().__init__("GetGameLeaderboard2", r_GetGameLeaderboard2, _api=_api,
                          page=page, **param_construct)
 
-    def _combine_results(self, pages: dict[int, r_GetGameLeaderboard2]) -> r_GetGameLeaderboard2:
-        combined = self._combine_keys(pages, ["runList"], [])  # TODO: check other field separation
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignore
-        return combined
-
 class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[r_GetGameLeaderboard]):
     """A secondary leaderboard view. WARNING: Not used on the site, may be removed at any time!
 
@@ -131,17 +126,16 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
         param_construct["params"].update(params)
         super().__init__("GetGameLeaderboard", r_GetGameLeaderboard, _api=_api, page=page, **param_construct)
     
+    # Overrides to compensate for pagination being stored 
+    
     def _get_pagination(self, p: r_GetGameLeaderboard) -> Pagination:
-        return p["leaderboard"]["pagination"]  # type: ignore
-
-    def _combine_results(self, pages: dict):
-        runList = []
-        for p in pages.values():
-            runList += p["leaderboard"]["runs"]
-        extras: Leaderboard = pages[1]["leaderboard"]
-        extras.pop("runs")
-        extras["pagination"]["page"] = 0  # type: ignore
-        return r_GetGameLeaderboard({"leaderboard": Leaderboard(extras | {"runs": runList})})
+        return p.leaderboard.pagination
+    
+    @classmethod
+    def _combine_pages(cls, responses: Iterable[r_GetGameLeaderboard]) -> r_GetGameLeaderboard:
+        # This is overriden since this is the only response that nests pages within a container object.
+        return r_GetGameLeaderboard.model_construct(leaderboard=BasePaginatedRequest._combine_pages(r.leaderboard for r in responses)) 
+        
 
 class GetGameData(GetRequest[r_GetGameData]):
     """Gets game data used for discovering runs.
@@ -249,15 +243,6 @@ class GetUserComments(GetRequest[r_GetUserComments], BasePaginatedRequest[r_GetU
     """
     def __init__(self, userId: str, **params) -> None:
         super().__init__("GetUserComments", r_GetUserComments, userId=userId, **params)
-    
-    def _combine_results(self, pages: dict[int, r_GetUserComments]) -> r_GetUserComments:
-        # TODO: is this correct?
-        combined = self._combine_keys(pages, ["commentList", "likeList"],
-                                      ["articleList", "forumList", "gameList",
-                                       "newsList", "runList", "threadList", "userList"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetUserPopoverData(GetRequest[r_GetUserPopoverData]):
     """Gets data for user popovers. Includes `userSocialConnectionList`, `userStats` & `titleList`.
@@ -307,13 +292,6 @@ class GetArticleList(GetRequest[r_GetArticleList], BasePaginatedRequest[r_GetArt
                          published=published, rejected=rejected, search=search,
                          tags=tags, target=target, **params)
 
-    def _combine_results(self, pages: dict[int, r_GetArticleList]) -> r_GetArticleList:
-        combined = self._combine_keys(pages, ["articleList"],
-                                      ["gameList", "userList"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
-
 class GetArticle(GetRequest[r_GetArticle]):
     """Gets a specific article from the site.
     
@@ -344,12 +322,6 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
         ) -> None:
         super().__init__("GetGameList", r_GetGameList, seriesId=seriesId, platformId=platformId,
                          search=search, orderType=orderType, **params)
-    
-    def _combine_results(self, pages: dict[int, r_GetGameList]) -> r_GetGameList:
-        combined = self._combine_keys(pages, ["gameList"], [])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetHomeSummary(GetRequest[r_GetHomeSummary]):
     """Gets information for the home page. Often empty.
@@ -371,12 +343,6 @@ class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSerie
             orderType: GameOrderType | None = None,
             **params) -> None:
         super().__init__("GetSeriesList", r_GetSeriesList, search=search, orderType=orderType, **params)
-
-    def _combine_results(self, pages: dict[int, r_GetSeriesList]) -> r_GetSeriesList:
-        combined = self._combine_keys(pages, ["seriesList"], [])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetSeriesSummary(GetRequest[r_GetSeriesSummary]):
     """Gets most information pertinent to a series.
@@ -520,6 +486,8 @@ class GetChallenge(GetRequest[r_GetChallenge]):
 
 class GetChallengeLeaderboard(GetRequest[r_GetChallengeLeaderboard], BasePaginatedRequest[r_GetChallengeLeaderboard]):
     """Get runs from a Challenge board.
+    
+    NB: While this response is paginated, the default "per" set is 1,000,000, so depagination is not particularly necessary.
 
     ### Mandatory:
     - @challengeId
@@ -561,13 +529,6 @@ class GetCommentList(GetRequest[r_GetCommentList], BasePaginatedRequest[r_GetCom
     """
     def __init__(self, itemId: str, itemType: ItemType, **params) -> None:
         super().__init__("GetCommentList", r_GetCommentList, itemId=itemId, itemType=itemType, **params)
-    
-    def _combine_results(self, pages: dict[int, r_GetCommentList]) -> r_GetCommentList:
-        # TODO: check likeList, userList for page separation
-        combined = self._combine_keys(pages, ["commentList"], [])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     """Get a specific thread.
@@ -577,12 +538,6 @@ class GetThread(GetRequest[r_GetThread], BasePaginatedRequest[r_GetThread]):
     """
     def __init__(self, id: str, **params) -> None:
         super().__init__("GetThread", r_GetThread, id=id, **params)
-
-    def _combine_results(self, pages: dict[int, r_GetThread]) -> r_GetThread:
-        combined = self._combine_keys(pages, ["commentList"], ["userList", "likeList"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetForumList(GetRequest[r_GetForumList]):
     """Get a list of site-wide forums. When logged in, may include forums of followed games.
@@ -660,14 +615,6 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
                  eventType: EventType = EventType.NONE, page: int = 1, **params) -> None:
         super().__init__("GetAuditLogList", r_GetAuditLogList, gameId=gameId, seriesId=seriesId,
                          userId=userId, actorId=actorId, eventType=eventType, page=page, **params)
-    
-    def _combine_results(self, pages: dict[int, r_GetAuditLogList]) -> r_GetAuditLogList:
-        combined = self._combine_keys(pages, ["auditLogList"],
-                                      ["userList", "gameList", "categoryList", "levelList",
-                                       "variableList", "valueList", "runList"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 #region GameSettings
 class GetGameSettings(PostRequest[r_GetGameSettings]):
@@ -869,7 +816,7 @@ class PutNews(PostRequest[r_Empty]):
     """
     def __init__(self, gameId: str, userId: str, title: str,
                  body: str, date: int, **params) -> None:
-        super().__init__("PutNews", r_Ok, gameId=gameId, userId=userId, title=title, body=body, date=date, **params)
+        super().__init__("PutNews", r_Empty, gameId=gameId, userId=userId, title=title, body=body, date=date, **params)
 
 class PutNewsUpdate(PostRequest[r_Empty]):
     """Updates a news item.
@@ -883,7 +830,7 @@ class PutNewsUpdate(PostRequest[r_Empty]):
     """
     def __init__(self, newsId: str, userId: str, title: str,
                  body: str, date: int, **params) -> None:
-        super().__init__("PutNewsUpdate", r_Ok, newsId=newsId, userId=userId, title=title, body=body, date=date, **params)
+        super().__init__("PutNewsUpdate", r_Empty, newsId=newsId, userId=userId, title=title, body=body, date=date, **params)
 
 class PutNewsDelete(PostRequest[r_Empty]):
     """Deletes a news item.
@@ -906,7 +853,7 @@ class PutGuide(PostRequest[r_Empty]):
     """
     def __init__(self, gameId: str, userId: str, name: str,
                  text: str, date: int, **params) -> None:
-        super().__init__("PutGuide", r_Ok, gameId=gameId, userId=userId, name=name, text=text, date=date, **params)
+        super().__init__("PutGuide", r_Empty, gameId=gameId, userId=userId, name=name, text=text, date=date, **params)
 
 class PutGuideUpdate(PostRequest[r_Empty]):
     """Updates a guide item.
@@ -920,7 +867,7 @@ class PutGuideUpdate(PostRequest[r_Empty]):
     """
     def __init__(self, guideId: str, userId: str, name: str,
                  text: str, date: int, **params) -> None:
-        super().__init__("PutGuideUpdate", r_Ok, guideId=guideId, userId=userId, name=name, text=text, date=date, **params)
+        super().__init__("PutGuideUpdate", r_Empty, guideId=guideId, userId=userId, name=name, text=text, date=date, **params)
 
 class PutGuideDelete(PostRequest[r_Empty]):
     """Deletes a guide item.
@@ -952,7 +899,7 @@ class PutResource(PostRequest[r_Empty]):
     """
     def __init__(self, gameId: str, userId: str, name: str,
                  description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
-        super().__init__("PutResource", r_Ok, gameId=gameId, userId=userId, name=name, description=description,
+        super().__init__("PutResource", r_Empty, gameId=gameId, userId=userId, name=name, description=description,
                          date=date, type=type, authorNames=authorNames, **params)
 
 class PutResourceUpdate(PostRequest[r_Empty]):
@@ -977,7 +924,7 @@ class PutResourceUpdate(PostRequest[r_Empty]):
     """
     def __init__(self, resourceId: str, userId: str, name: str,
                  description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
-        super().__init__("PutResourceUpdate", r_Ok, resourceId=resourceId, userId=userId, name=name, description=description,
+        super().__init__("PutResourceUpdate", r_Empty, resourceId=resourceId, userId=userId, name=name, description=description,
                          date=date, type=type, authorNames=authorNames, **params)
 
 class PutResourceDelete(PostRequest[r_Empty]):
@@ -1017,15 +964,6 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
     # Default for `limit` is 20 which is what the site uses
     def __init__(self, gameId: str, limit: int = 20, page: int = 1, **params) -> None:
         super().__init__("GetModerationRuns", r_GetModerationRuns, gameId=gameId, limit=limit, page=page, **params)
-    
-    def _combine_results(self, pages: dict):
-        # TODO: check merging requirement
-        combined = self._combine_keys(pages, ["runs"],
-                                      ["categories", "levels", "platforms", "players",
-                                       "regions", "users", "values", "variables"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class PutRunAssignee(PostRequest[r_Empty]):
     """Assigns a verifier to a run."""
@@ -1067,7 +1005,7 @@ class PutRunSettings(PostRequest[r_PutRunSettings]):
     - @settings: Existing run settings if `runId is not None`, otherwise new run's settings.
     - @autoverify: If the run should be automatically verified after editing or not. - only works for game moderators.
     """
-    def __init__(self, csrfToken: str, settings: RunSettings, autoverify=OptField[bool], **params) -> None:
+    def __init__(self, csrfToken: str, settings: RunSettings, autoverify: bool, **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
         super().__init__("PutRunSettings", r_PutRunSettings, csrfToken=csrfToken, settings=settings, autoverify=autoverify, **params)
 
@@ -1139,12 +1077,6 @@ class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_G
     """
     def __init__(self, **params) -> None:
         super().__init__("GetNotifications", r_GetNotifications, **params)
-
-    def _combine_results(self, pages: dict[int, r_GetNotifications]) -> r_GetNotifications:
-        combined = self._combine_keys(pages, ["notifications"], [])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class PutGameFollower(PostRequest[r_Empty]):
     """Follow a game.
@@ -1443,13 +1375,6 @@ class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets]):
         super().__init__("GetTickets", r_GetTickets, ticketIds=ticketIds, queues=queues,
                          types=types, statuses=statuses, requestorIds=requestorIds,
                          search=search, **params)
-    
-    def _combine_results(self, pages: dict):
-        combined = self._combine_keys(pages, ["ticketList"],
-                                      ["userList", "gameList", "userModCountList", "userRunCountList"])
-        combined["pagination"] = copy.copy(combined["pagination"])
-        combined["pagination"]["page"] = 0  # type: ignorecombined["pagination"]["page"] = 0  # type: ignore
-        return combined
 
 class GetSeriesSettings(PostRequest[r_GetSeriesSettings]):
     """Gets settings of a series.
@@ -1610,7 +1535,7 @@ class PutUserUpdateEmail(PostRequest[r_PutUserUpdateEmail]):
     - @password: str # Only optional if the user is authed as an admin
     """
     def __init__(self, userUrl: str, email: str, password: str | None = None, token: str | None = None, **params) -> None:
-        super().__init__("PutUserUpdateEmail", r_Ok, userUrl=userUrl, email=email, password=password, token=token, **params)
+        super().__init__("PutUserUpdateEmail", r_PutUserUpdateEmail, userUrl=userUrl, email=email, password=password, token=token, **params)
 
 class PutUserUpdateName(PostRequest[r_Ok]):  # TODO: check what the response is
     """Update a user's name.
@@ -1621,7 +1546,7 @@ class PutUserUpdateName(PostRequest[r_Ok]):  # TODO: check what the response is
     - @acceptTerms: bool
     """  # TODO: check if these are mandatory
     def __init__(self, userUrl: str, newName: str, acceptTerms: bool, **params) -> None:
-        super().__init__("PutUserUpdateName", r_Empty, userUrl=userUrl, newName=newName, acceptTerms=acceptTerms, **params)
+        super().__init__("PutUserUpdateName", r_Ok, userUrl=userUrl, newName=newName, acceptTerms=acceptTerms, **params)
 
 class PutCommentDelete(PostRequest[r_Empty]):
     """Delete a comment.

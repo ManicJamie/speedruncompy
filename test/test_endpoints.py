@@ -1,8 +1,10 @@
+import json
+from speedruncompy.datatypes._impl import SpeedrunModel
 from speedruncompy.endpoints import *
 from speedruncompy.api import SpeedrunClient, _default
 from speedruncompy.exceptions import *
 from speedruncompy import config as srccfg
-from utils import check_datatype_coverage, check_pages
+from utils import check_model_coverage, check_pages
 
 import pytest, os, logging, asyncio
 
@@ -88,11 +90,8 @@ def check_api_conformance():
         assert len(_default.cookie_jar._cookies) == 0
     yield
 
-def log_result(result: Datatype | dict):
-    if isinstance(result, Datatype):
-        logging.debug(result.to_json())
-    else:
-        logging.debug(result)
+def log_result(result: SpeedrunModel):
+    logging.debug(result.model_dump_json())
 
 class TestGeneric():
     api = SpeedrunClient("Test")
@@ -120,11 +119,11 @@ class TestGeneric():
     def test_DefaultAPI_separation(self):
         """Ensure separation between default api instance and the declared api instance"""
         session = GetSession().perform()
-        assert "signedIn" in session.session
+        assert "signedIn" in session.session.model_dump()
         assert session.session.signedIn is False, "Default API incorrectly signed in"
 
         session = GetSession(_api=self.api).perform()
-        assert "signedIn" in session.session
+        assert "signedIn" in session.session.model_dump()
         assert session.session.signedIn is True, "High-auth api not signed in"
     
     async def test_API_Context_Manager(self):
@@ -183,39 +182,39 @@ class TestGetRequests():
     def test_GetGameLeaderboard(self):
         result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameLeaderboard_paginated(self):
         result = GetGameLeaderboard(gameId=game_id, categoryId=category_id).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        assert len(result.leaderboard._runDict) == 1000
+        check_model_coverage(result)
 
     def test_GetGameLeaderboard2(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id, page=1).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameLeaderboard2_paginated(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetGameLeaderboard2_paginated_raw(self):
         result = GetGameLeaderboard2(_api=self.api, gameId=game_id, categoryId=category_id)._perform_all_raw()
-        log_result(result)
         check_pages(result)
     
     def test_GetGameData_id(self):
         result = GetGameData(_api=self.api, gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert result.game.id == game_id
         assert result.game.url == game_url
 
     def test_GetGameData_url(self):
         result = GetGameData(_api=self.api, gameUrl="hollowknight").perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert result.game.id == game_id
         assert result.game.url == game_url
     
@@ -226,74 +225,71 @@ class TestGetRequests():
     def test_GetGameSummary(self):
         result = GetGameSummary(gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameLevelSummary(self):
         result = GetGameLevelSummary(gameId=game_id, categoryId=level_category).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameRecordHistory(self):
         result = GetGameRecordHistory(gameId=game_id, categoryId=level_category).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetSearch(self):
         #TODO: other search types
         result = GetSearch("Hollow Knight", includeGames=True).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetLatestLeaderboard(self):
         result = GetLatestLeaderboard().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetRun(self):
         result = GetRun(run_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserSummary(self):
         result = GetUserSummary(user_url).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserPopoverData(self):
         result = GetUserPopoverData(user_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetCommentList(self):
         result = GetCommentList(comment_list_source, comment_list_type).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetCommentList_paginated_raw(self):
         result = GetCommentList(comment_list_source, comment_list_type)._perform_all_raw()
-        log_result(result)
-        for p, page in result.items():
-            check_datatype_coverage(page)
+        check_pages(result)
 
     def test_GetCommentList_paginated(self):
         result = GetCommentList(comment_list_source, comment_list_type).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetThread(self):
         result = GetThread(thread_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetThread_paginated_raw(self):
         result = GetThread(thread_id)._perform_all_raw()
-        log_result(result)
         check_pages(result)
 
     def test_GetThread_paginated(self):
         result = GetThread(thread_id).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetThread_nonexistent(self):
         with pytest.raises(NotFound):
@@ -302,125 +298,125 @@ class TestGetRequests():
     def test_GetUserLeaderboard(self):
         result = GetUserLeaderboard(userId=user_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetForumList(self):
         """TODO: account dependent!"""
         result = GetForumList().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetStaticData(self):
         result = GetStaticData().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGuideList(self):
         result = GetGuideList(gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetGuide(self):
         result = GetGuide(guide_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetChallenge(self):
         result = GetChallenge(_api=self.api, id="5e3eoymq").perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetTitleList(self):
         result = GetTitleList().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetTitle(self):
         result = GetTitle("m2p98y5x").perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetArticleList(self):
         result = GetArticleList(limit=50).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetArticle(self):
         result = GetArticle(id=article_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert article_slug == result.article.slug
 
         slug_result = GetArticle(slug=article_slug).perform()
         log_result(slug_result)
-        check_datatype_coverage(slug_result)
+        check_model_coverage(slug_result)
         assert article_id == slug_result.article.id
     
     def test_GetGameList(self):
         """NB: paginated testing in TestDatatypes_Integration_Heavy"""
         result = GetGameList().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetHomeSummary(self):
         result = GetHomeSummary(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetSeriesList(self):
         result = GetSeriesList().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetNewsList(self):
         result = GetNewsList(gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetNews(self):
         result = GetNews(id="z34yzw38").perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetResourceList(self):
         result = GetResourceList(game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetStreamList(self):
         result = GetStreamList().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetStreamList_game(self):
         result = GetStreamList(gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetStreamList_series(self):
         result = GetStreamList(seriesId=series_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetThreadList(self):
         result = GetThreadList(forum_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetChallengeLeaderboard(self):
         result = GetChallengeLeaderboard(challengeId=challenge_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetChallengeRun(self):
         result = GetChallengeRun(challenge_run_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserComments(self):
         result = GetUserComments(userId=hornet_uid).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
 class TestPostRequests():
     api = SpeedrunClient("Test")
@@ -432,32 +428,30 @@ class TestPostRequests():
     def test_GetSession(self):
         result = GetSession(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert result.session.signedIn
     
     def test_GetSession_unauthed(self):
         result = GetSession().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert not result.session.signedIn
 
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     def test_GetAuditLogList(self):
         result = GetAuditLogList(_api=self.api, gameId=super_gameId).perform()
-        log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     def test_GetAuditLogList_paginated_raw(self):
         result = GetAuditLogList(_api=self.api, gameId=super_gameId)._perform_all_raw()
-        log_result(result)
         check_pages(result)
     
     @pytest.mark.skipif(not IS_SUPERMOD, reason="Insufficient auth to complete test")
     def test_GetAuditLogList_paginated(self):
         result = GetAuditLogList(_api=self.api, gameId=super_gameId).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetAuditLogList_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -471,12 +465,12 @@ class TestPostRequests():
         """POST, can be called unauthed for `commentable` but `permissions` will be unhelpful."""
         result = GetCommentable(itemId=comment_list_source, itemType=comment_list_type).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetConversationMessages(self):
         result = GetConversationMessages(_api=self.api, conversationId=conversation_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetConversationMessages_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -485,7 +479,7 @@ class TestPostRequests():
     def test_GetConversations(self):
         result = GetConversations(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetConversations_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -495,17 +489,17 @@ class TestPostRequests():
     def test_GetForumReadStatus(self):
         result = GetForumReadStatus(forumIds=[forum_id], _api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetForumReadStatus_unauthed(self):
         result = GetForumReadStatus(forumIds=[forum_id]).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameSettings(self):
         result = GetGameSettings(_api=self.api, gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetGameSettings_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -514,28 +508,27 @@ class TestPostRequests():
     def test_GetModerationGames(self):
         result = GetModerationGames(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetModerationGames_unauthed(self):
         result = GetModerationGames().perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
         assert result.gameModerationStats is None
         assert result.games is None
     
     def test_GetModerationRuns(self):
         result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetModerationRuns_paginated(self):
         result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetModerationRuns_paginated_raw(self):
         result = GetModerationRuns(_api=self.api, gameId=game_id, limit=20, page=1, verified=Verified.PENDING)._perform_all_raw()
-        log_result(result)
         check_pages(result)
 
     def test_GetModerationRuns_unauthed(self):
@@ -545,16 +538,15 @@ class TestPostRequests():
     def test_GetNotifications(self):
         result = GetNotifications(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetNotifications_paginated(self):
         result = GetNotifications(_api=self.api).perform_all(max_pages=5)
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetNotifications_paginated_raw(self):
         result = GetNotifications(_api=self.api)._perform_all_raw()
-        log_result(result)
         check_pages(result)
     
     def test_GetNotifications_unauthed(self):
@@ -564,7 +556,7 @@ class TestPostRequests():
     def test_GetRunSettings(self):
         result = GetRunSettings(_api=self.api, runId=run_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetRunSettings_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -573,7 +565,7 @@ class TestPostRequests():
     def test_GetSeriesSettings(self):
         result = GetSeriesSettings(series_id, _api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetSeriesSettings_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -582,12 +574,12 @@ class TestPostRequests():
     def test_GetThemeSettings_user(self):
         result = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetThemeSettings_game(self):
         result = GetThemeSettings(_api=self.api, gameId=game_id).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetThemeSettings_game_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -596,23 +588,22 @@ class TestPostRequests():
     def test_GetThreadReadStatus(self):
         result = GetThreadReadStatus(_api=self.api, threadIds=[thread_id]).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetThreadReadStatus_unauthed(self):
         result = GetThreadReadStatus(threadIds=[thread_id]).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetTickets(self):
         result = GetTickets(_api=self.api, requestorIds=[hornet_uid]).perform()
-        log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     #TODO: GetTickets depagination
     def test_GetUserBlocks(self):
         result = GetUserBlocks(_api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserBlocks_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -621,7 +612,7 @@ class TestPostRequests():
     def test_GetUserSettings(self):
         result = GetUserSettings(_api=self.api, userUrl=hornet_url).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetUserSettings_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -630,7 +621,7 @@ class TestPostRequests():
     def test_GetUserSupporterData(self):
         result = GetUserSupporterData(_api=self.api, userUrl=hornet_url).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     def test_GetUserSupporterData_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -639,7 +630,7 @@ class TestPostRequests():
     def test_GetUserDataExport(self):
         result = GetUserDataExport(userId=hornet_uid, _api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserDataExport_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -648,7 +639,7 @@ class TestPostRequests():
     def test_GetUserGameBoostData(self):
         result = GetUserGameBoostData(userId=hornet_uid, _api=self.api).perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     def test_GetUserGameBoostData_unauthed(self):
         with pytest.raises(Unauthorized):
@@ -666,14 +657,14 @@ class TestPutRequests():
     def testingGame(self):
         """Provides a game for testing."""
         gData = GetGameData(gameUrl="ThirdParty_Testing").perform()
-        check_datatype_coverage(gData)
+        check_model_coverage(gData)
         yield gData
     
     @pytest.fixture(scope="class")
     def testingSeries(self):
         """Provides a series for testing"""
         sData = GetSeriesSummary(seriesUrl="shrek_fangames").perform()
-        check_datatype_coverage(sData)
+        check_model_coverage(sData)
         yield sData
 
     @pytest.fixture(scope="class")
@@ -683,25 +674,25 @@ class TestPutRequests():
         yield threadPut.thread
         threadDelete = PutThreadDelete(_api=self.api, threadId=threadPut.thread.id).perform()
         with pytest.raises(NotFound): GetThread(threadPut.thread.id).perform()
-        check_datatype_coverage(threadPut)
-        check_datatype_coverage(threadDelete)
+        check_model_coverage(threadPut)
+        check_model_coverage(threadDelete)
 
     def test_PutComment_Flow(self, testingThread: Thread):
         """Posts and then deletes a comment"""
         COMMENT_DESC = "Test comment."
 
         commentPut = PutComment(testingThread.id, ItemType.THREAD, COMMENT_DESC, _api=self.api).perform()
-        check_datatype_coverage(commentPut)
+        check_model_coverage(commentPut)
 
         commentCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform(autovary=True)
-        check_datatype_coverage(commentCheck)
+        check_model_coverage(commentCheck)
         comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
 
         commentDelete = PutCommentDelete(comment.id, _api=self.api).perform()
-        check_datatype_coverage(commentDelete)
+        check_model_coverage(commentDelete)
 
         commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform(autovary=True)
-        check_datatype_coverage(commentDelCheck)
+        check_model_coverage(commentDelCheck)
         """
         with pytest.raises(StopIteration):
             next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
@@ -721,7 +712,7 @@ class TestPutRequests():
         assert new_gameIds == reversed_gameIds
 
         log_result(following_order)
-        check_datatype_coverage(following_order)
+        check_model_coverage(following_order)
 
         # Reset it back to what it was before
         PutGameFollowerOrder(gameIds=gameIds, userId=hornet_uid, _api=self.api).perform()
@@ -735,8 +726,11 @@ class TestPutRequests():
         # TODO: test with games and series aswell?
         """Changes the theme settings of the user and then reverts it back"""
         get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
+        
+        assert get_theme.settings is not None
+        assert get_theme.settings.staticAssets is not None
 
-        new_theme_options = ThemeSettings(template={
+        new_theme_options = ThemeSettings(**{
             "primaryColor": "000000",
             "panelColor": "000000",
             "panelOpacity": 100,
@@ -756,7 +750,7 @@ class TestPutRequests():
 
         putTheme = PutThemeSettings(_api=self.api, userId=hornet_uid, settings=new_theme_options).perform()
         log_result(putTheme)
-        check_datatype_coverage(putTheme)
+        check_model_coverage(putTheme)
 
         new_get_theme = GetThemeSettings(_api=self.api, userId=hornet_uid).perform()
 
@@ -771,7 +765,7 @@ class TestPutRequests():
     def test_GetUserApiKey(self):
         result = GetUserApiKey(userId=hornet_uid, _api=self.api).perform()
         # Don't log this result
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
         # Test excluded so as to not affect applications relying on Hornet's API key
         """
@@ -783,125 +777,125 @@ class TestPutRequests():
     def test_PutConversation(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversationMessage(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameBoostGrant(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModerator(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModeratorDelete(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameSettings(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunAssignee(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunSettings(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunVerification(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGame(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGameDelete(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutSessionPing(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutThreadRead(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Unreasonable test, as would spam site staff")
     @pytest.mark.skip(reason="Test stub")
     def test_PutTicket(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSettings(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnections(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnectionDelete(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
     
     @pytest.mark.skip(reason="Unreasonable test, as password would need to be updated")
     def test_PutUserUpdatePassword(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     @pytest.mark.skip(reason="Unreasonable test, as the email would change")
     def test_PutUserUpdateEmail(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     @pytest.mark.skip(reason="Unreasonable test, as the name can only change once every 60 days")
     def test_PutUserUpdateName(self):
         result = ...
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)
 
     @pytest.mark.skip(reason="Test stub")
     def test_GetSeriesSettings(self):
         result = GetSeriesSettings("").perform()
         log_result(result)
-        check_datatype_coverage(result)
+        check_model_coverage(result)

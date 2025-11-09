@@ -12,15 +12,15 @@ def login(username: str, pwd: str, _api: SpeedrunClient = _default, tokenEntry: 
     except NotFound:
         print("Password is incorrect!")
         return False
-    if result.get("loggedIn", False):
+    if result.loggedIn:
         log.info("Logged in using username & password")
         return True
-    if result.get("tokenChallengeSent", False):
+    if result.tokenChallengeSent:
         if tokenEntry:
             log.warning("2FA is enabled - Not logged in!")
             key = input("Enter 2FA token: ")
             result = PutAuthLogin(username, pwd, key, _api=_api).perform()
-            if result.get("loggedIn", False):
+            if result.loggedIn:
                 log.info("Logged in using 2fa")
                 return True
             else:
@@ -33,11 +33,11 @@ def login_PHPSESSID(sessID: str, _api: SpeedrunClient = _default):
     """Login using PHPSESSID. Uses GetSession to check if session is logged in."""
     _api.PHPSESSID = sessID
     result = GetSession(_api=_api).perform()
-    session = result["session"]
-    if session is None or not session["signedIn"]:
+    session = result.session
+    if not session.signedIn or session.user is None:
         log.error("Provided PHPSESSID is not logged in - use speedruncompy.auth.login() instead")
         return False
-    log.info(f"Logged in as {session['user']['name']} using PHPSESSID")
+    log.info(f"Logged in as {session.user.name} using PHPSESSID")
     return True
 
 def logout(_api: SpeedrunClient = _default):
@@ -47,7 +47,7 @@ def logout(_api: SpeedrunClient = _default):
 def get_CSRF(_api: SpeedrunClient = _default):
     """Get the csrfToken of the currently logged in user, required for some endpoints."""
     result = GetSession(_api=_api).perform()
-    session = result["session"]
-    if session is None or not session.get("signedIn", False):
+    session = result.session
+    if session is None or not session.signedIn:
         raise AuthException("Not logged in, cannot retrieve csrfToken")
-    return session.get("csrfToken")
+    return session.csrfToken
