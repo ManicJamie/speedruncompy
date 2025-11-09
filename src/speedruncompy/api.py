@@ -81,7 +81,7 @@ class SpeedrunClient():
     async def GET(self, endpoint: str, params: dict = {}) -> tuple[bytes, int]:
         self._log.debug(f"GET {endpoint} w/ params {params}")
         
-        session = self._session
+        session: aiohttp.ClientSession | None = self._session
         if session is None:
             session = await (await self._construct_session()).__aenter__()
         
