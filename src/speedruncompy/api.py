@@ -1,7 +1,6 @@
 import base64, json
 import logging
 import asyncio, aiohttp
-from warnings import deprecated
 import sys
 import random
 from typing import Awaitable, Callable, Any, ClassVar, Generic, Iterable, TypeVar
@@ -182,7 +181,6 @@ class BaseRequest(Generic[R]):
         
         return self.return_type.model_validate_json(content.decode(), strict=config.strict_mode)
     
-    #@deprecated("Speedruncompy is async-first - use `perform()` instead.")
     def perform_sync(self, retries=5, delay=1, autovary=False, **kwargs) -> R:
         """Synchronously perform the request.
         
