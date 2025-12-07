@@ -19,8 +19,8 @@ classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
 ]
 dependencies = [
-    "aiohttp~=3.13.2",
-    "pydantic~=2.12.4",
+    "aiohttp[speedups]~=3.13.2",
+    "pydantic~=2.12.5",
     "bidict~=0.23.1"
 ]
 dynamic = ["version"]
