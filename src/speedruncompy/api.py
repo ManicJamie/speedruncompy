@@ -153,7 +153,7 @@ class BaseRequest(Generic[R]):
             if retries > 0:
                 _log.error(f"SRC returned error {status} {content!r}. Retrying with delay {delay}:")
                 for attempt in range(0, retries + 1):
-                    self.response = await method(self.endpoint, self.params)
+                    self.response = await method(self.endpoint, self.params | kwargs)
                     content = self.response[0]
                     status = self.response[1]
                     if not (status >= 500 and status <= 599) or status == 408:
