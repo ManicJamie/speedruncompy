@@ -198,6 +198,8 @@ class r_GetGameSummary(SpeedrunModel):
     resourceCount: int
     streamCount: int
     threadCount: int
+    sourceOfAudienceIds: list[str]
+    """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
 class r_GetGuide(SpeedrunModel):
     guide: Guide
