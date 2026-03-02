@@ -133,7 +133,7 @@ class RunSettings(SpeedrunModel):
     platformId: str
     emulator: bool
     video: str
-    comment: str
+    comment: Optional[str] = None
     date: int
     values: list[VarValue]  # type:ignore
     videoState: Optional[VideoState] = None  # TODO: check if opt
