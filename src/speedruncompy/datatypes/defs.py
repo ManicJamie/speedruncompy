@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 from bidict import frozenbidict
 
 from .enums import *
@@ -675,6 +675,13 @@ class Theme(SpeedrunModel):
     foregroundScrolling: ScrollType
     touchDate: int
     staticAssets: list[StaticAsset]
+
+class DefaultTheme(SpeedrunModel):
+    """Stub theme occasionally returned by the site in place of Theme"""
+    name: Literal['Default']
+    url: Literal['default']
+    staticAssets: list[StaticAsset]
+    """Should always be empty"""
 
 class Pagination(SpeedrunModel):
     count: int

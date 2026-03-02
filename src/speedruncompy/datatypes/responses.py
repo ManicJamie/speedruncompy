@@ -566,7 +566,7 @@ class r_GetUserSettings(SpeedrunModel):
     notificationSettings: list[NotificationSetting]
     userSocialConnectionList: list[UserSocialConnection]
     gameList: list[Game]
-    themeList: list[Theme]
+    themeList: list[Theme | DefaultTheme]
     titleList: list[Title]
     supporterCreditList: list[SupporterCredit]
     supporterCodeList: list[SupporterCode]
