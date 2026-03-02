@@ -254,6 +254,8 @@ class r_GetSearch(SpeedrunModel):
     seriesList: list[Series]
     userList: list[User]
     challengeList: list[Challenge]
+    challengeGameLookupList: list[Game]
+    """Games referenced by challengeList"""
     platformList: list[Platform]
 
 class r_GetSeriesList(SpeedrunModel):
