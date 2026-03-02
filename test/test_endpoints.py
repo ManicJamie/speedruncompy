@@ -668,6 +668,7 @@ class TestPutRequests():
         check_model_coverage(threadPut)
         check_model_coverage(threadDelete)
 
+    @pytest.mark.skip(reason="PutThread put behind Cloudflare challenge.")
     def test_PutComment_Flow(self, testingThread: Thread):
         """Posts and then deletes a comment"""
         COMMENT_DESC = "Test comment."

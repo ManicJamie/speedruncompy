@@ -1713,6 +1713,8 @@ class PutThread(PostRequest[r_PutThread],
                 endpoint="PutThread", response=r_PutThread):
     """Create a new thread on a forum.
 
+    NOTE: This endpoint now requires a browser challenge and as such is no longer directly usable.
+
     ### Mandatory:
     - @forumId
     - @name
