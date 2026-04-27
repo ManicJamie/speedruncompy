@@ -185,7 +185,7 @@ class Game(SpeedrunModel):
     addedDate: int
     touchDate: int
     baseGameId: Optional[str] = None
-    coverPath: str
+    coverPath: Optional[str]
     trophy1stPath: Optional[str] = None
     trophy2ndPath: Optional[str] = None
     trophy3rdPath: Optional[str] = None
