@@ -89,6 +89,7 @@ class GameType(IntEnum):
     MINI_GAME = 10
     SERVER_MAP = 11
     HOMEBREW_GAME = 12
+    SECONDARY = 13
 
 class GameOrderType(IntEnum):
     NAME = 1
