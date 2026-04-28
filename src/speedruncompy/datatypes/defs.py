@@ -107,7 +107,6 @@ class Forum(SpeedrunModel):
 class Thread(SpeedrunModel):
     id: str
     name: str
-    gameId: str
     forumId: str
     userId: str
     replies: int
@@ -185,7 +184,6 @@ class Game(SpeedrunModel):
     addedDate: int
     touchDate: int
     baseGameId: Optional[str] = None
-    coverPath: str
     trophy1stPath: Optional[str] = None
     trophy2ndPath: Optional[str] = None
     trophy3rdPath: Optional[str] = None
@@ -350,6 +348,10 @@ class Player(SpeedrunModel):
     # NOTE: `minimal regex: u-[a-f0-9]{8}-?[a-f0-9]{4}-?5[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}`
     _is_registered = property(fget=_is_user)
     """Checks if a player has an account or is a text label"""
+
+class DeletedPlayer(SpeedrunModel):
+    """Challenge leaderboards will continue to contain nonexistent playerList entries that no longer have an account as their IDs only."""
+    id: str
 
 class AvatarDecoration(SpeedrunModel):
     """Supporter feature for rings around names.
@@ -534,7 +536,6 @@ class GameTypeObj(SpeedrunModel):
     name: str
     url: str
     description: str
-    allowBaseGame: bool
 
 class Run(SpeedrunModel):
 
@@ -992,7 +993,6 @@ class UserSettings(SpeedrunModel):
     latestTimeFollowed: int
     showMiscByDefault: bool
     showOnStreamsPage: bool
-    showUnofficialGameTypes: bool
     homepageStream: HomepageStreamType
     disableMessages: bool
     showAds: bool

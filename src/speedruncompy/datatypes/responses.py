@@ -57,13 +57,13 @@ class r_GetChallenge(SpeedrunModel):
 
 class r_GetChallengeLeaderboard(SpeedrunModel):
     challengeRunList: list[ChallengeRun]
-    playerList: list[Player]
+    playerList: list[Player | DeletedPlayer]
     userList: list[User]
     platformList: list[Platform]
     pagination: Pagination
     
     _challengeRunDict: dict[str, ChallengeRun]
-    _playerDict: dict[str, Player]
+    _playerDict: dict[str, Player | DeletedPlayer]
     _userDict: dict[str, User]
     _platformDict: dict[str, Platform]
     
@@ -568,7 +568,6 @@ class r_GetUserSettings(SpeedrunModel):
     notificationSettings: list[NotificationSetting]
     userSocialConnectionList: list[UserSocialConnection]
     gameList: list[Game]
-    themeList: list[Theme | DefaultTheme]
     titleList: list[Title]
     supporterCreditList: list[SupporterCredit]
     supporterCodeList: list[SupporterCode]
