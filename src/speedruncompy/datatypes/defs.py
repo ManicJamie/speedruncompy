@@ -130,6 +130,7 @@ class RunSettings(SpeedrunModel):
     """RTA if LRT is enabled."""
     igt: Optional[RuntimeTuple] = None
     platformId: str
+    regionId: Optional[str] = None
     emulator: bool
     video: str
     comment: Optional[str] = None

@@ -337,7 +337,7 @@ class r_GetUserSummary(SpeedrunModel):
     userGameRunnerStats: list[UserGameRunnerStats]
     userSocialConnectionList: list[UserSocialConnection]
     games: list[Game]
-    theme: Theme
+    theme: Optional[Theme] = None
     titleList: list[Title]
 
 class r_GetUserComments(SpeedrunModel):
