@@ -272,13 +272,18 @@ class r_GetSeriesSummary(SpeedrunModel):
     series: Series
     forum: Forum
     gameList: list[Game]
+    secondaryGameList: list[Game]
+    """Appears to be unused as of 2026-06-27."""
     moderatorList: list[SeriesModerator]
-    theme: Theme
+    platformList: list[Platform]
+    theme: Optional[Theme] = None
     threadList: list[Thread]
     userList: list[User]
     gameCount: int
     streamCount: int
     threadCount: int
+    sourceOfAudienceIds: list[str]
+    """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
 class r_GetStreamList(SpeedrunModel):
     gameList: list[Game]

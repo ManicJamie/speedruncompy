@@ -359,6 +359,11 @@ class TestGetRequests():
         log_result(result)
         check_model_coverage(result)
     
+    def test_GetSeriesSummary(self):
+        result = GetSeriesSummary(seriesUrl="hkseries").perform_sync()
+        log_result(result)
+        check_model_coverage(result)
+    
     def test_GetNewsList(self):
         result = GetNewsList(gameId=game_id).perform_sync()
         log_result(result)

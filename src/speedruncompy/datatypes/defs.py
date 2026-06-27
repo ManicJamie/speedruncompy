@@ -99,9 +99,9 @@ class Forum(SpeedrunModel):
     type: ForumType
     threadCount: int
     postCount: int
-    lastPostId: str
-    lastPostUserId: str
-    lastPostDate: int
+    lastPostId: Optional[str] = None
+    lastPostUserId: Optional[str] = None
+    lastPostDate: Optional[int] = None
     touchDate: int
 
 class Thread(SpeedrunModel):

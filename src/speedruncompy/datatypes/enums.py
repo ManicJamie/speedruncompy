@@ -60,6 +60,7 @@ class ForumType(IntEnum):
     FRONT_PAGE = 1
     SUPPORTER = 2
     GAME = 3
+    SERIES = 4
 
 class TimerName(IntEnum):
     """`time` is LRT if present, otherwise RTA.
