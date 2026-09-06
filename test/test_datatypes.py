@@ -1,3 +1,4 @@
+from typing import no_type_check
 import asyncio
 import os
 from random import randint, sample
@@ -85,6 +86,7 @@ class TestModels():
 
 
 @pytest.mark.skipif(SKIP_HEAVY_TESTS, reason="SKIP_HEAVY_TESTS == True")
+@pytest.mark.skip("Module not updated for v1.0.0 and requires significant rewrites")
 class TestDatatypes_Integration_Heavy():
     """
     Heavy testing meant to be semi-exhaustive, that will most likely hit rate limits on repeat runs.
@@ -94,74 +96,76 @@ class TestDatatypes_Integration_Heavy():
     GetGameData: 200
     GetGameLeaderboard2: 200
     """
-    # @pytest_asyncio.fixture(scope="session")
-    # async def all_games(self) -> r_GetGameList:
-    #     """All pages of GetGameList"""
-    #     return await GetGameList().perform_all_async()
+    @pytest_asyncio.fixture(scope="session")
+    async def all_games(self) -> r_GetGameList:
+        """All pages of GetGameList"""
+        return await GetGameList().perform_all()
 
-    # @pytest_asyncio.fixture(scope="session")
-    # async def small_game_subset(self) -> list[str]:
-    #     """List of 250 random game IDs"""
-    #     return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 200)  # type: ignore
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset(self) -> list[str]:
+        """List of 250 random game IDs"""
+        return sample([g["id"] for g in (await GetGameList(page=randint(1, 50)).perform_async()).gameList], 200)  # type: ignore
 
-    # @pytest_asyncio.fixture(scope="session")
-    # async def small_game_subset_data(self, small_game_subset) -> list[r_GetGameSummary]:
-    #     """GetGameData for 200 random games"""
-    #     return await asyncio.gather(*[GetGameSummary(gameId=g).perform_async() for g in small_game_subset], return_exceptions=False)
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset_data(self, small_game_subset) -> list[r_GetGameSummary]:
+        """GetGameData for 200 random games"""
+        return await asyncio.gather(*[GetGameSummary(gameId=g).perform() for g in small_game_subset], return_exceptions=False)
     
-    # @pytest.fixture(scope="session")
-    # async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameSummary]) -> list[tuple[r_GetGameSummary, str]]:
-    #     """1 category per game based on largest runCount, for a total of <=200 games (games with no runs excluded)"""
-    #     overall = []
-    #     for g in small_game_subset_data:
-    #         if len(g.stats.) == 0: continue
-    #         top = max(g.runCounts, key=lambda x: x.count)
-    #         if top.count == 0: continue
-    #         overall.append((g, top.categoryId))
-    #     return overall
+    @no_type_check # TODO: stub
+    @pytest.fixture(scope="session")
+    async def small_game_subset_categories(self, small_game_subset_data: list[r_GetGameSummary]) -> list[tuple[r_GetGameSummary, str]]:
+        """1 category per game based on largest runCount, for a total of <=200 games (games with no runs excluded)
+        
+        TODO: stub, do not use!"""
+        overall = []
+        for g in small_game_subset_data:
+            if len(g.stats) == 0: continue
+            top = max(g, key=lambda x: x.count)
+            if top.count == 0: continue
+            overall.append((g, top.categoryId))
+        return overall
     
-    # @pytest_asyncio.fixture(scope="session")
-    # async def small_game_subset_leaderboards(self, small_game_subset_categories: list[tuple[r_GetGameData, str]]) -> list[r_GetGameLeaderboard2]:
-    #     """1 leaderboard per game, 1 page per board (to avoid rate limit on an average > 2 boards per game)"""
-    #     return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform_async() for g, c in small_game_subset_categories])
+    @pytest_asyncio.fixture(scope="session")
+    async def small_game_subset_leaderboards(self, small_game_subset_categories: list[tuple[r_GetGameData, str]]) -> list[r_GetGameLeaderboard2]:
+        """1 leaderboard per game, 1 page per board (to avoid rate limit on an average > 2 boards per game)"""
+        return await asyncio.gather(*[GetGameLeaderboard2(gameId=g.game.id, categoryId=c).perform() for g, c in small_game_subset_categories])
 
-    # def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
-    #     for board in small_game_subset_leaderboards:
-    #         for run in board.runList:
-    #             check_model_coverage(run)
+    def test_Runs(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
+        for board in small_game_subset_leaderboards:
+            for run in board.runList:
+                check_model_coverage(run)
     
-    # def test_Challenge_Runs(self):
-    #     source = GetChallengeLeaderboard(challenge_id).perform()
-    #     if len(source.challengeRunList) == 0: return
-    #     for run in source.challengeRunList:
-    #         check_model_coverage(run)
+    async def test_Challenge_Runs(self):
+        source = await GetChallengeLeaderboard(challenge_id).perform_all()
+        for run in source.challengeRunList:
+            check_model_coverage(run)
     
-    # def test_Game(self, all_games: r_GetGameList):
-    #     games = all_games.gameList
-    #     for game in games:
-    #         check_model_coverage(game)
+    def test_Game(self, all_games: r_GetGameList):
+        games = all_games.gameList
+        for game in games:
+            check_model_coverage(game)
     
-    # def test_Category(self, small_game_subset_data: list[r_GetGameData]):
-    #     for g in small_game_subset_data:
-    #         for cat in g.categories:
-    #             check_model_coverage(cat)
+    def test_Category(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for cat in g.categories:
+                check_model_coverage(cat)
     
-    # def test_Level(self, small_game_subset_data: list[r_GetGameData]):
-    #     for g in small_game_subset_data:
-    #         for lev in g.levels:
-    #             check_model_coverage(lev)
+    def test_Level(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for lev in g.levels:
+                check_model_coverage(lev)
 
-    # def test_Platform(self, small_game_subset_data: list[r_GetGameData]):
-    #     for g in small_game_subset_data:
-    #         for plat in g.platforms:
-    #             check_model_coverage(plat)
+    def test_Platform(self, small_game_subset_data: list[r_GetGameData]):
+        for g in small_game_subset_data:
+            for plat in g.platforms:
+                check_model_coverage(plat)
 
-    # def test_Player(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
-    #     for board in small_game_subset_leaderboards:
-    #         for player in board.playerList:
-    #             check_model_coverage(player)
+    def test_Player(self, small_game_subset_leaderboards: list[r_GetGameLeaderboard2]):
+        for board in small_game_subset_leaderboards:
+            for player in board.playerList:
+                check_model_coverage(player)
 
-    # def test_User(self):
-    #     source = GetChallengeLeaderboard(challenge_id).perform()
-    #     for user in source.userList:
-    #         check_model_coverage(user)
+    async def test_User(self):
+        source = await GetChallengeLeaderboard(challenge_id).perform()
+        for user in source.userList:
+            check_model_coverage(user)

@@ -178,20 +178,55 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory],
     - @gameId
     - @categoryId
 
-    ### Other:
-    - @values: A list of VariableValues
-    - @emulator: EmulatorFilter
-    - @obsolete: ObsoleteFilter
+    ### Optional:
+    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
+    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @emulator: `EmulatorFilter`
+    - @levelId: If `categoryId` refers to a level category.
+    - @obsolete: `ObsoleteFilter` = 0
+    - @platformIds
+    - @regionIds
+    - @timer: TimerName to sort by
+    - @verified: `VerifiedFilter` = 1 # Runs will be filtered by status
+    - @values: A list of `VarValues`
+    - @video: `VideoFilter` = 1 (=Required (!))
+    - @page
     """
     def __init__(self, 
-                 gameId: str, 
-                 categoryId: str, 
-                 _client: SpeedrunClient | None = None, 
-                 **params) -> None:
-        page = params.pop("page", None)
-        param_construct = {"params": {"gameId": gameId, "categoryId": categoryId}}
-        param_construct["params"].update(params)
-        super().__init__(_client=_client, page=page, **param_construct)
+        gameId: str, 
+        categoryId: str, 
+
+        _client: SpeedrunClient | None = None,
+        dateFrom: str | None = None,
+        dateTo: str | None = None,
+        emulator: EmulatorFilter | None = None,
+        levelId: str | None = None,
+        obsolete: ObsoleteFilter | None = None,
+        platformIds: list[str] | None = None,
+        regionIds: list[str] | None = None,
+        timer: TimerName | None = None,
+        verified: VerifiedFilter | None = None,
+        values: list[VarValues] | None = None,
+        video: VideoFilter | None = None,
+        **params
+        ) -> None:
+        super().__init__(_client=_client, 
+            **_nested_params(
+            gameId=gameId,
+            categoryId=categoryId,
+            dateFrom=dateFrom,
+            dateTo=dateTo,
+            emulator=emulator,
+            levelId=levelId,
+            obsolete=obsolete,
+            platformIds=platformIds,
+            regionIds=regionIds,
+            timer=timer,
+            verified=verified,
+            values=values,
+            video=video,
+            **params
+        ))
 
 class GetSearch(GetRequest[r_GetSearch], 
                 endpoint="GetSearch", response=r_GetSearch):
@@ -1293,13 +1328,13 @@ class GetUserGameBoostData(PostRequest[r_GetUserGameBoostData],
 
 class GetUserDataExport(PostRequest[r_GetUserDataExport],
                         endpoint="GetUserDataExport", response=r_GetUserDataExport):
-    """Get a user's exported data.
+    """Get a user's exported data. Requires a reauth grant from PutUserReauth.
 
     ### Mandatory:
-    - @userId
+    - @reauthGrant
     """
-    def __init__(self, userId: str, **params) -> None:
-        super().__init__(userId=userId, **params)
+    def __init__(self, reauthGrant: str, **params) -> None:
+        super().__init__(userId=reauthGrant, **params)
 
 class PutGameFollowerOrder(PostRequest[r_Empty],
                            endpoint="PutGameFollowerOrder", response=r_Empty):

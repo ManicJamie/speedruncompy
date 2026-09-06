@@ -15,7 +15,7 @@ class SpeedrunModel(BaseModel, ser_json_timedelta='float', extra='allow'):
     
     __condenser_overrides__: ClassVar[dict[str, str]] = {}
     """Internal mapping of list fields' id names. Used for some types that have a PKEY not named 'id'."""
-    
+
     @model_validator(mode='after')
     def create_condensed_dicts(self) -> Self:
         for source_field_name, target_field_name in self.__condenser_map__.items():

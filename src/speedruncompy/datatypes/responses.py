@@ -173,7 +173,7 @@ class r_GetGameList(SpeedrunModel):
 
 class r_GetGameRecordHistory(SpeedrunModel):
     playerList: list[Player]
-    runList: list[Run]
+    recordEventList: list[RecordEvent]
 
 class r_GetGameSummary(SpeedrunModel):
     game: Game

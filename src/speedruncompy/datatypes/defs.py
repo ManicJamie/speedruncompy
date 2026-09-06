@@ -558,7 +558,8 @@ class Run(SpeedrunModel):
     verified: Verified
     verifiedById: Optional[str] = None
     reason: Optional[str] = None
-    date: int
+    date: Optional[int] = None
+    """Appears to be omitted on some >10y old submissions"""
     dateSubmitted: Optional[int] = None
     """Only omitted on some very old runs!"""
     dateVerified: Optional[int] = None
@@ -572,6 +573,11 @@ class Run(SpeedrunModel):
     """Only shown in GetModerationRuns"""
     issues: Optional[list[str] | None] = None
     videoState: VideoState
+
+class RecordEvent(SpeedrunModel):
+    date: int
+    recordImprovedBy: Optional[float] = None
+    runList: list[Run]
 
 class ChallengeStanding(SpeedrunModel):
     challengeId: str

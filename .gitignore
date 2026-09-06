@@ -1,4 +1,3 @@
-.vscode
 __pycache__
 *.log
 secret.*
@@ -8,8 +7,12 @@ dist
 playground.py
 probeEndpoints.py
 .pytest_cache
-env/
 .coverage
 coverage.*
 htmlcov/
+
+# Test 
 .env
+
+# Environment setup (using uv.lock)
+.venv/

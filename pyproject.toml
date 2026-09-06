@@ -15,19 +15,19 @@ license = {text = "LGPLv2.1"}
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
 ]
 dependencies = [
-    "aiohttp[speedups]~=3.13.5",
-    "pydantic~=2.13.3",
-    "bidict~=0.23.1"
+    "aiohttp[speedups]~=3.14.3",
+    "pydantic~=2.13.5",
+    "bidict~=0.24.1"
 ]
 dynamic = ["version"]
 
 [project.scripts]
 srcompy-login = "speedruncompy.scripts.srcompy_login:main"
 
+# We have to use Hatch for this; uv's build backend doesn't
 [tool.hatch.version]
 source = "vcs"
 

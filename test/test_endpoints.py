@@ -1,3 +1,4 @@
+from typing import no_type_check
 import json
 from speedruncompy.datatypes._impl import SpeedrunModel
 from speedruncompy.endpoints import *
@@ -31,9 +32,9 @@ SESSID = os.environ.get("HORNET_PHPSESSID", None)
 LOW_SESSID = os.environ.get("LOW_PHPSESSID", None)
 LOW_USERNAME = os.environ.get("LOW_USERNAME", None)
 LOW_PASSWORD = os.environ.get("LOW_PASSWORD", None)
-IS_SUPERMOD = bool(os.environ.get("IS_SUPERMOD", False))
+IS_SUPERMOD = bool(os.environ.get("IS_SUPERMOD", None))
 
-if not os.environ.get("SUPPRESS_LOGS", False):
+if not bool(os.environ.get("SUPPRESS_LOGS", None)):
     logging.getLogger().setLevel(logging.DEBUG)
 else:
     logging.getLogger().setLevel(logging.WARNING)
@@ -88,7 +89,7 @@ class TestGeneric():
     api = SpeedrunClient("Test")
     api.PHPSESSID = SESSID
 
-    low_api = SpeedrunClient("Test_LOWAUTH")
+    low_api = SpeedrunClient("Test")
     low_api.PHPSESSID = LOW_SESSID
 
     def test_GetAsync(self):
@@ -622,15 +623,6 @@ class TestPostRequests():
     def test_GetUserSupporterData_unauthed(self):
         with pytest.raises(Unauthorized):
             GetUserSupporterData(userUrl=user_url).perform_sync()
-    
-    def test_GetUserDataExport(self):
-        result = GetUserDataExport(userId=hornet_uid, _client=self.api).perform_sync()
-        log_result(result)
-        check_model_coverage(result)
-    
-    def test_GetUserDataExport_unauthed(self):
-        with pytest.raises(Unauthorized):
-            GetUserDataExport(userId=hornet_uid).perform_sync()
 
     def test_GetUserGameBoostData(self):
         result = GetUserGameBoostData(userId=hornet_uid, _client=self.api).perform_sync()
@@ -727,23 +719,23 @@ class TestPutRequests():
         assert get_theme.settings is not None
         assert get_theme.settings.staticAssets is not None
 
-        new_theme_options = ThemeSettings(**{
-            "primaryColor": "000000",
-            "panelColor": "000000",
-            "panelOpacity": 100,
-            "navbarColor": NavbarColorType.PRIMARY,
-            "backgroundColor": "000000",
-            "backgroundFit": FitType.ORIGINAL,
-            "backgroundPosition": PositionType.TL,
-            "backgroundRepeat": RepeatType.NONE,
-            "backgroundScrolling": ScrollType.NONE,
-            "foregroundFit": FitType.ORIGINAL,
-            "foregroundPosition": PositionType.TL,
-            "foregroundRepeat": RepeatType.NONE,
-            "foregroundScrolling": ScrollType.NONE,
-            "staticAssets": get_theme.settings.staticAssets,
-            "staticAssetUpdates": []
-        })
+        new_theme_options = ThemeSettings(
+            primaryColor="000000",
+            panelColor="000000",
+            panelOpacity=100,
+            navbarColor=NavbarColorType.PRIMARY,
+            backgroundColor="000000",
+            backgroundFit=FitType.ORIGINAL,
+            backgroundPosition=PositionType.TL,
+            backgroundRepeat=RepeatType.NONE,
+            backgroundScrolling=ScrollType.NONE,
+            foregroundFit=FitType.ORIGINAL,
+            foregroundPosition=PositionType.TL,
+            foregroundRepeat=RepeatType.NONE,
+            foregroundScrolling=ScrollType.NONE,
+            staticAssets=get_theme.settings.staticAssets,
+            staticAssetUpdates=[]
+        )
 
         putTheme = PutThemeSettings(_client=self.api, userId=hornet_uid, settings=new_theme_options).perform_sync()
         log_result(putTheme)
@@ -759,6 +751,7 @@ class TestPutRequests():
         reset_get_theme = GetThemeSettings(_client=self.api, userId=hornet_uid).perform_sync()
         assert reset_get_theme.settings == get_theme.settings
 
+    @pytest.mark.skip("Requires reauth")
     def test_GetUserApiKey(self):
         result = GetUserApiKey(userId=hornet_uid, _client=self.api).perform_sync()
         # Don't log this result
@@ -770,84 +763,98 @@ class TestPutRequests():
         assert result.apiKey != new_result.apiKey
         """
 
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversation(self):
         result = ...
-        log_result(result)
+        log_result(result)  
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutConversationMessage(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameBoostGrant(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModerator(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameModeratorDelete(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutGameSettings(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunAssignee(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunSettings(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutRunVerification(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGame(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
 
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutSeriesGameDelete(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutSessionPing(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutThreadRead(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Unreasonable test, as would spam site staff")
     @pytest.mark.skip(reason="Test stub")
     def test_PutTicket(self):
@@ -855,36 +862,42 @@ class TestPutRequests():
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSettings(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnections(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
 
+    @no_type_check
     @pytest.mark.skip(reason="Test stub")
     def test_PutUserSocialConnectionDelete(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
     
+    @no_type_check
     @pytest.mark.skip(reason="Unreasonable test, as password would need to be updated")
     def test_PutUserUpdatePassword(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
 
+    @no_type_check
     @pytest.mark.skip(reason="Unreasonable test, as the email would change")
     def test_PutUserUpdateEmail(self):
         result = ...
         log_result(result)
         check_model_coverage(result)
 
+    @no_type_check
     @pytest.mark.skip(reason="Unreasonable test, as the name can only change once every 60 days")
     def test_PutUserUpdateName(self):
         result = ...

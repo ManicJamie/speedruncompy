@@ -14,7 +14,7 @@ Speedrun.com's official API (aka APIv1) is not actively maintained, and both mis
 
 APIv2 does struggle with some tasks APIv1 excels at; in particular grabbing all runs from a game at once is not currently possible with APIv2, instead requiring iterating through every leaderboard.
 
-APIv2 also has no promise of stability; it can and will change without warning. This library attempts to stay up-to-date, but you may need to periodically check for updates.
+APIv2 also has no promise of stability; it can and will change without warning. This library attempts to stay up-to-date, but you may need to periodically check for updates or monkeypatch while the library is missing updated values.
 
 ## Usage
 
@@ -119,6 +119,22 @@ async def session_demo():
         all_summaries = asyncio.gather(*[r.perform() for r in requests])
 ```
 
+## Building
+
+If you wish to build & test Speedruncompy, you will need to install [uv](https://docs.astral.sh/uv/) for environment & package management.
+
+We include `.vscode/extensions.json` for recommended extensions.
+
+1. Run `uv sync --all-extras` to install both the runtime & testing dependencies.
+2. Build using `uv build`.
+    - Wheels are generated to `dist`; the package version is obtained from version control, so the version will contain a dev postfix unless you commit your changes and tag the commit with a `vM.m.v` version tag.
+
+### Testing
+
+Testing requires additional environment constants, which can be provided via a `.env` file; a `.env_example` is provided with the necessary variables.
+
+PHPSESSID is obtained from a logged-in session on the site; open dev tools > Storage > Cookies > Copy the PHPSESSID value. **This is a secret that allows people to access your account with no restrictions**, so keep it safe.
+
 ## Omissions
 
 Admin-only endpoints will not be added due to lack of testability and usability. These include:
@@ -128,4 +144,4 @@ Admin-only endpoints will not be added due to lack of testability and usability.
 - GetAdminStatusSummary
 - GetTicketQueueCounts
 - GetTicketStatusCounts
-- PutGameDelete  - _Will be added once users can delete games again_
+- PutGameDelete
