@@ -1201,7 +1201,7 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-test = [
+dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -1213,12 +1213,12 @@ requires-dist = [
     { name = "aiohttp", extras = ["speedups"], specifier = "~=3.14.3" },
     { name = "bidict", specifier = "~=0.24.1" },
     { name = "pydantic", specifier = "~=2.13.5" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-asyncio", marker = "extra == 'test'" },
-    { name = "pytest-cov", marker = "extra == 'test'" },
-    { name = "python-dotenv", marker = "extra == 'test'" },
+    { name = "pytest", marker = "extra == 'dev'" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'" },
+    { name = "pytest-cov", marker = "extra == 'dev'" },
+    { name = "python-dotenv", marker = "extra == 'dev'" },
 ]
-provides-extras = ["test"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "tomli"
