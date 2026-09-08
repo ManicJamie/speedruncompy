@@ -1214,6 +1214,17 @@ class GetNotifications(PostRequest[r_GetNotifications], BasePaginatedRequest[r_G
     def __init__(self, **params) -> None:
         super().__init__(**params)
 
+class PutNotificationsRead(PostRequest[r_Empty],
+                            endpoint="PutNotificationsRead", response=r_Empty):
+    """Mark notifications as read.
+
+    ### Optional:
+    - @notificationId: str, Marks a specific notification as read.
+                            If omitted, marks all notifications as read.
+    """
+    def __init__(self, notificationId: str | None = None, **params) -> None:
+        super().__init__(notificationId=notificationId, **params) 
+
 class PutGameFollower(PostRequest[r_Empty],
                       endpoint="PutGameFollower", response=r_Empty):
     """Follow a game.
