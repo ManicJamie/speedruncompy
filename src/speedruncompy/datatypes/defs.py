@@ -397,9 +397,9 @@ class UserStats(SpeedrunModel):
     runsFg: int
     runsIl: int
     runsPending: int
-    runTime: int
-    minRunDate: int
-    maxRunDate: int
+    runTime: Optional[int] = None
+    minRunDate: Optional[int] = None
+    maxRunDate: Optional[int] = None
     commentsPosted: int
     guidesCreated: int
     resourcesCreated: int
