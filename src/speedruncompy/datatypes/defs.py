@@ -172,7 +172,7 @@ class Game(SpeedrunModel):
     name: str
     url: str
     type: str  # enum? is this true? afaict is always "game"
-    loadtimes: bool
+    loadTimes: bool
     milliseconds: bool
     igt: bool
     verification: bool
@@ -181,25 +181,17 @@ class Game(SpeedrunModel):
     emulator: EmulatorType
     defaultTimer: TimerName
     validTimers: list[TimerName]
-    releaseDate: Optional[int] = None
-    addedDate: int
-    touchDate: int
-    baseGameId: Optional[str] = None
-    trophy1stPath: Optional[str] = None
-    trophy2ndPath: Optional[str] = None
-    trophy3rdPath: Optional[str] = None
-    trophy4thPath: Optional[str] = None
+    releaseDate: Optional[dict[str, int]] = None
+    addedAt: str
+    updatedAt: str
     runCommentsMode: PermissionType
-    runCount: int
-    activePlayerCount: int
-    totalPlayerCount: int
-    boostReceivedCount: int
-    boostDistinctDonorsCount: int
+    runCount: str
+    activePlayerCount: str
+    totalPlayerCount: str
+    boostReceivedCount: str
+    boostDistinctDonorsCount: str
     rules: Optional[str] = None
     viewPowerLevel: SitePowerLevel
-    platformIds: list[str]
-    regionIds: list[str]
-    gameTypeIds: list[GameType]
     websiteUrl: Optional[str] = None
     discordUrl: Optional[str] = None
     defaultView: DefaultViewType
@@ -564,7 +556,7 @@ class Run(SpeedrunModel):
     dateSubmitted: Optional[int] = None
     """Only omitted on some very old runs!"""
     dateVerified: Optional[int] = None
-    hasSplits: bool
+    hasSplits: Optional[bool] = None
     obsolete: Optional[bool] = None
     place: Optional[str] = None
     playerIds: list[str]
@@ -704,7 +696,7 @@ class Leaderboard(SpeedrunModel):
     pagination: Pagination
     platforms: list[Platform]
     players: list[Player]
-    regions: list[Region]
+    regions: Optional[list[Region]] = None
     runs: list[Run]
     values: list[Value]
     variables: list[Variable]
