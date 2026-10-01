@@ -102,7 +102,7 @@ class Forum(SpeedrunModel):
     lastPostId: Optional[str] = None
     lastPostUserId: Optional[str] = None
     lastPostDate: Optional[int] = None
-    touchDate: int
+    updatedAt: str
 
 class Thread(SpeedrunModel):
     id: str
@@ -156,8 +156,8 @@ class Series(SpeedrunModel):
     id: str
     name: str
     url: str
-    addedDate: int
-    touchDate: int
+    addedAt: str
+    updatedAt: str
     websiteUrl: Optional[str] = None
     discordUrl: Optional[str] = None
     runCount: int
@@ -381,9 +381,9 @@ class User(SpeedrunModel):
     isSupporter: Optional[bool] = None
     avatarDecoration: Optional[AvatarDecoration] = None
     iconType: IconType
-    onlineDate: int
-    signupDate: int
-    touchDate: int
+    lastOnlineAt: str
+    signedUpAt: str
+    updatedAt: str
     staticAssets: list[StaticAsset]
     supporterIconType: Optional[IconType] = None
     supporterIconPosition: Optional[IconPosition] = None
@@ -456,7 +456,7 @@ class UserProfile(SpeedrunModel):  # TODO: check where this exists (if anywhere?
 
     userId: str
     bio: Optional[str] = None
-    signupDate: int
+    signedUpAt: str
     defaultView: DefaultViewType
     showMiscByDefault: bool
     gameOrdering: GameOrdering
@@ -469,7 +469,7 @@ class UserReducedProfile(SpeedrunModel):
     Missing userStats and userSocialConnectionList."""
     userId: str
     bio: Optional[str] = None
-    signupDate: int
+    signedUpAt: str
     defaultView: DefaultViewType
     showMiscByDefault: bool
     gameOrdering: Optional[GameOrdering] = None
@@ -681,7 +681,7 @@ class Theme(SpeedrunModel):
     foregroundPosition: PositionType
     foregroundRepeat: RepeatType
     foregroundScrolling: ScrollType
-    touchDate: int
+    updatedAt: str
     staticAssets: list[StaticAsset]
 
 class DefaultTheme(SpeedrunModel):
@@ -781,7 +781,7 @@ class GameSettings(SpeedrunModel):
     websiteUrl: str
     rules: str
     showOnStreamsPage: int  # enum
-    touchDate: int
+    updatedAt: str
     noEvents: bool
     promoted: bool
     runCommentsMode: PermissionType
