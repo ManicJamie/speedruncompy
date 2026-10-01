@@ -240,7 +240,7 @@ class Category(SpeedrunModel):
     id: str
     name: str
     url: str
-    pos: int
+    position: str
     gameId: str
     isMisc: bool
     isPerLevel: bool
@@ -257,7 +257,7 @@ class Variable(SpeedrunModel):
     id: str
     name: str
     url: str
-    pos: int
+    position: str
     gameId: str
     description: Optional[str] = None
     categoryScope: VarCategoryScope
@@ -277,7 +277,7 @@ class Value(SpeedrunModel):
     id: str
     name: str
     url: str
-    pos: int
+    position: str
     variableId: str
     isMisc: Optional[bool] = None
     rules: Optional[str] = None
@@ -289,7 +289,7 @@ class Level(SpeedrunModel):
     gameId: str
     name: str
     url: str
-    pos: int
+    position: str
     rules: Optional[str] = None
     archived: bool
 
@@ -511,7 +511,7 @@ class SocialNetwork(SpeedrunModel):
     id: NetworkId
     name: str
     major: bool
-    pos: int
+    position: str
     pattern: str
 
 class Area(SpeedrunModel):
@@ -530,7 +530,7 @@ class Color(SpeedrunModel):
     """Deprecated, darkColor is always used on the site"""
     lightColor: str
     """Deprecated, colors now seem to be sorted by their name's ascending alphabetical order (A-Z)"""
-    pos: int
+    position: str
 
 class GameTypeObj(SpeedrunModel):
     id: GameType
@@ -968,7 +968,7 @@ class NotificationSettingStaticData(SpeedrunModel):
     id: int
     group: str
     title: str
-    pos: int
+    position: str
     gameSpecific: bool
     siteDefault: bool
     emailDefault: bool
