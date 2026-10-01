@@ -245,7 +245,7 @@ class Category(SpeedrunModel):
     gameId: str
     isMisc: bool
     isPerLevel: bool
-    numPlayers: int
+    numPlayers: str
     exactPlayers: bool
     playerMatchMode: PlayerMatchMode
     timeDirection: TimeDirection
@@ -299,7 +299,7 @@ class Platform(SpeedrunModel):
     id: str
     name: str
     url: str
-    year: int
+    year: str
 
 class Article(SpeedrunModel):
 
@@ -566,7 +566,7 @@ class Run(SpeedrunModel):
     dateVerified: Optional[int] = None
     hasSplits: bool
     obsolete: Optional[bool] = None
-    place: Optional[int] = None
+    place: Optional[str] = None
     playerIds: list[str]
     valueIds: list[str]
     orphaned: Optional[bool] = None
@@ -693,10 +693,10 @@ class DefaultTheme(SpeedrunModel):
     """Should always be empty"""
 
 class Pagination(SpeedrunModel):
-    count: int
-    page: int
-    pages: int
-    per: int
+    count: str
+    page: str
+    pages: str
+    per: str
 
 class Leaderboard(SpeedrunModel):
     category: Category
