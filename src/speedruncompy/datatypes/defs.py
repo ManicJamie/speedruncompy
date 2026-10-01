@@ -205,6 +205,7 @@ class Game(SpeedrunModel):
     defaultView: DefaultViewType
     guidePermissionType: PermissionType
     resourcePermissionType: PermissionType
+    forumId: str
     staticAssets: list[StaticAsset]
     embargoDate: Optional[int] = None
     embargoText: Optional[str] = None
