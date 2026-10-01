@@ -544,9 +544,9 @@ class Run(SpeedrunModel):
     gameId: str
     categoryId: str
     levelId: Optional[str] = None
-    time: Optional[float] = None
-    timeWithLoads: Optional[float] = None
-    igt: Optional[float] = None
+    time: Optional[str] = None
+    timeWithLoads: Optional[str] = None
+    igt: Optional[str] = None
     enforceMs: Optional[bool] = None
     """Deprecated recent addition, bug SRC to readd this"""
     platformId: Optional[str] = None
