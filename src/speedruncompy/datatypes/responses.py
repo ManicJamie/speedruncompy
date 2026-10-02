@@ -23,15 +23,15 @@ class r_Ok(SpeedrunModel):
 
 class r_GetArticle(SpeedrunModel):
     article: Article
-    relatedArticleList: list[Article]
-    gameList: list[Game]
-    userList: list[User]
+    relatedArticleList: list[ArticleBase] = []
+    gameList: list[GameBase] = []
+    userList: list[UserBase] = []
     
 class r_GetArticleList(SpeedrunModel):
-    articleList: list[Article]
+    articleList: list[Article] = []
     pagination: Pagination
-    gameList: list[Game]
-    userList: list[User]
+    gameList: list[Game] = []
+    userList: list[User] = []
     
     _articleDict: dict[str, Article]
     _gameDict: dict[str, Game]
@@ -46,20 +46,20 @@ class r_GetArticleList(SpeedrunModel):
 class r_GetChallenge(SpeedrunModel):
     challenge: Challenge
     game: Game
-    moderatorList: list[ChallengeModerator]
-    standingList: list[ChallengeStanding]
+    moderatorList: list[ChallengeModerator] = []
+    standingList: list[ChallengeStanding] = []
     theme: Theme
-    userList: list[User]
-    challengeRunCount: int
-    gameFollowerCount: int
-    titleList: list[Title]
-    platformList: list[Platform]
+    userList: list[User] = []
+    challengeRunCount: Int64_
+    gameFollowerCount: Int64_
+    titleList: list[Title] = []
+    platformList: list[Platform] = []
 
 class r_GetChallengeLeaderboard(SpeedrunModel):
-    challengeRunList: list[ChallengeRun]
-    playerList: list[Player | DeletedPlayer]
-    userList: list[User]
-    platformList: list[Platform]
+    challengeRunList: list[ChallengeRun] = []
+    playerList: list[Player | DeletedPlayer] = []
+    userList: list[User] = []
+    platformList: list[Platform] = []
     pagination: Pagination
     
     _challengeRunDict: dict[str, ChallengeRun]
@@ -78,19 +78,19 @@ class r_GetChallengeRun(SpeedrunModel):
     challenge: Challenge
     challengeRun: ChallengeRun
     game: Game
-    playerList: list[Player]
-    userList: list[User]
-    platformList: list[Platform]
+    playerList: list[Player] = []
+    userList: list[User] = []
+    platformList: list[Platform] = []
 
 class r_GetChallengeGlobalRankingList(SpeedrunModel):
-    rankingList: list[GlobalChallengeRanking]
-    userList: list[User]
+    rankingList: list[ChallengeGlobalRanking] = []
+    userList: list[User] = []
 
 class r_GetCommentList(SpeedrunModel):
     commentable: Commentable
-    commentList: list[Comment]
-    likeList: list[Like]
-    userList: list[User]
+    commentList: list[Comment] = []
+    likeList: list[Like] = []
+    userList: list[User] = []
     pagination: Pagination
     
     _commentDict: dict[str, Comment]
@@ -104,30 +104,30 @@ class r_GetCommentList(SpeedrunModel):
     })
 
 class r_GetForumList(SpeedrunModel):
-    forumList: list[Forum]
-    gameList: list[Game]
-    userList: list[User]
+    forumList: list[Forum] = []
+    gameList: list[Game] = []
+    userList: list[User] = []
 
 class r_GetStaticData(SpeedrunModel):
-    areas: list[Area]
-    colors: list[Color]
-    gameTypeList: list[GameTypeObj]
-    notificationSettings: list[NotificationSettingStaticData]
-    regionList: list[Region]
-    socialNetworkList: list[SocialNetwork]
+    areas: list[Area] = []
+    colors: list[Color] = []
+    gameTypeList: list[GameTypeObj] = []
+    notificationSettings: list[NotificationSettingStaticData] = []
+    regionList: list[Region] = []
+    socialNetworkList: list[SocialNetwork] = []
     supporterPlanList: Optional[list[Any] | None] = None  # Unknown type
 
 class r_GetGameData(SpeedrunModel):
     game: Game
-    categories: list[Category]
-    levels: list[Level]
-    moderators: list[GameModerator]
-    platforms: list[Platform]
-    regions: list[Region]
+    categories: list[Category] = []
+    levels: list[Level] = []
+    moderators: list[GameModerator] = []
+    platforms: list[Platform] = []
+    regions: list[Region] = []
     theme: Optional[Theme] = None
-    users: list[User]
-    values: list[Value]  # type:ignore
-    variables: list[Variable]
+    users: list[UserBase] = []
+    values: list[Value] = []
+    variables: list[Variable] = []
 
 class r_GetGameLeaderboard(SpeedrunModel):
     leaderboard: Leaderboard  # not funny. didn't laugh
@@ -138,9 +138,9 @@ class r_GetGameLeaderboard2(SpeedrunModel):
     Args:
         SpeedrunModel (r_GetGameLeaderboard2): _description_
     """
-    runList: list[Run]
-    playerList: list[Player]
-    platformList: list[Platform]
+    runList: list[Run] = []
+    playerList: list[Player] = []
+    platformList: list[Platform] = []
     pagination: Pagination
     
     _runDict: dict[str, Run] = PrivateAttr()
@@ -154,13 +154,13 @@ class r_GetGameLeaderboard2(SpeedrunModel):
     })
 
 class r_GetGameLevelSummary(SpeedrunModel):
-    category: Category
-    runList: list[Run]
-    playerList: list[Player]
+    category: Optional[Category] = None
+    runList: list[Run] = []
+    playerList: list[Player] = []
 
 class r_GetGameList(SpeedrunModel):
-    gameList: list[Game]
-    platformList: list[Platform]
+    gameList: list[Game] = []
+    platformList: list[Platform] = []
     pagination: Pagination
     
     _gameDict: dict[str, Game]
@@ -172,94 +172,94 @@ class r_GetGameList(SpeedrunModel):
     })
 
 class r_GetGameRecordHistory(SpeedrunModel):
-    playerList: list[Player]
-    recordEventList: list[RecordEvent]
+    playerList: list[Player] = []
+    recordEventList: list[RecordEvent] = []
 
 class r_GetGameSummary(SpeedrunModel):
     game: Game
-    gameBoosts: list[GameBoost]
-    gameModerators: list[GameModerator]
+    gameBoosts: list[GameBoost] = []
+    gameModerators: list[GameModerator] = []
     forum: Forum
-    newsList: list[News]
-    gameStats: list[GameStats]
+    newsList: list[News] = []
+    gameStats: list[GameStats] = []
     stats: GameStats
-    relatedGames: list[Game]
-    seriesList: list[Series]
-    platformList: list[Platform]
+    relatedGames: list[Game] = []
+    seriesList: list[Series] = []
+    platformList: list[Platform] = []
     theme: Theme
-    threadList: list[Thread]
-    users: list[User]
-    challengeList: list[Challenge]
-    challengeCount: int
-    guideCount: int
-    levelCount: int
-    newsCount: int
-    relatedCount: int
-    resourceCount: int
-    streamCount: int
-    threadCount: int
-    sourceOfAudienceIds: list[str]
+    threadList: list[Thread] = []
+    users: list[User] = []
+    challengeList: list[Challenge] = []
+    challengeCount: Int64_
+    guideCount: Int64_
+    levelCount: Int64_
+    newsCount: Int64_
+    relatedCount: Int64_
+    resourceCount: Int64_
+    streamCount: Int64_
+    threadCount: Int64_
+    sourceOfAudienceIds: list[str] = []
     """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
 class r_GetGuide(SpeedrunModel):
     guide: Guide
-    users: list[User]
+    users: list[User] = []
 
 class r_GetGuideList(SpeedrunModel):
-    guideList: list[Guide]
-    users: list[User]
+    guideList: list[Guide] = []
+    users: list[User] = []
 
 class r_GetHomeSummary(SpeedrunModel):
     stream: Optional[Stream] = None
 
 class r_GetLatestLeaderboard(SpeedrunModel):
-    categories: list[Category]
-    games: list[Game]
-    levels: list[Level]
-    players: list[Player]
-    regions: list[Region]
-    runs: list[Run]
-    values: list[Value]  # type:ignore
-    variables: list[Variable]
-    platforms: list[Platform]
+    categories: list[Category] = []
+    games: list[Game] = []
+    levels: list[Level] = []
+    players: list[Player] = []
+    regions: list[Region] = []
+    runs: list[Run] = []
+    values: list[Value] = []
+    variables: list[Variable] = []
+    platforms: list[Platform] = []
 
 class r_GetNews(SpeedrunModel):
     news: News
-    users: list[User]
+    users: list[User] = []
 
 class r_GetNewsList(SpeedrunModel):
-    newsList: list[News]
-    users: list[User]
+    newsList: list[News] = []
+    users: list[User] = []
 
 class r_GetResourceList(SpeedrunModel):
-    resourceList: list[Resource]
-    users: list[User]
+    resourceList: list[Resource] = []
+    users: list[User] = []
 
 class r_GetRun(SpeedrunModel):
     game: Game
     category: Category
     level: Optional[Level] = None
     platform: Optional[Platform] = None
-    players: list[Player]
+    players: list[Player] = []
     region: Optional[Region] = None
     run: Run
-    users: list[User]
-    values: list[Value]  # type:ignore
-    variables: list[Variable]
+    users: list[User] = []
+    values: list[Value] = []
+    variables: list[Variable] = []
 
 class r_GetSearch(SpeedrunModel):
-    gameList: list[Game]
-    newsList: list[News]
-    pageList: list[Article]
-    seriesList: list[Series]
-    userList: list[User]
-    challengeList: list[Challenge]
-    challengeGameLookupList: list[Game]
+    gameList: list[Game] = []
+    newsList: list[News] = []
+    pageList: list[Article] = []
+    seriesList: list[Series] = []
+    userList: list[User] = []
+    challengeList: list[Challenge] = []
+    challengeGameLookupList: list[Game] = []
     """Games referenced by challengeList"""
-    platformList: list[Platform]
+    platformList: list[Platform] = []
 
 class r_GetSeriesList(SpeedrunModel):
-    seriesList: list[Series]
+    seriesList: list[Series] = []
     pagination: Pagination
     
     _seriesDict: dict[str, Series]
@@ -271,31 +271,31 @@ class r_GetSeriesList(SpeedrunModel):
 class r_GetSeriesSummary(SpeedrunModel):
     series: Series
     forum: Forum
-    gameList: list[Game]
-    secondaryGameList: list[Game]
+    gameList: list[Game] = []
+    secondaryGameList: list[Game] = []
     """Appears to be unused as of 2026-06-27."""
-    moderatorList: list[SeriesModerator]
-    platformList: list[Platform]
+    moderatorList: list[SeriesModerator] = []
+    platformList: list[Platform] = []
     theme: Optional[Theme] = None
-    threadList: list[Thread]
-    userList: list[User]
-    gameCount: int
-    streamCount: int
-    threadCount: int
-    sourceOfAudienceIds: list[str]
+    threadList: list[Thread] = []
+    userList: list[User] = []
+    gameCount: Int64_
+    streamCount: Int64_
+    threadCount: Int64_
+    sourceOfAudienceIds: list[str] = []
     """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
 class r_GetStreamList(SpeedrunModel):
-    gameList: list[Game]
-    streamList: list[Stream]
-    userList: list[User]
+    gameList: list[Game] = []
+    streamList: list[Stream] = []
+    userList: list[User] = []
     pagination: Pagination
 
 class r_GetThread(SpeedrunModel):
     thread: Thread
-    commentList: list[Comment]
-    userList: list[User]
-    likeList: list[Like]
+    commentList: list[Comment] = []
+    userList: list[User] = []
+    likeList: list[Like] = []
     pagination: Pagination
     
     _commentDict: dict[str, Comment]
@@ -309,52 +309,51 @@ class r_GetThread(SpeedrunModel):
     })
 
 class r_GetThreadList(SpeedrunModel):
-    threadList: list[Thread]
+    threadList: list[Thread] = []
     pagination: Pagination
-    users: list[User]
+    users: list[User] = []
 
 class r_GetUserLeaderboard(SpeedrunModel):
-    categories: list[Category]
-    games: list[Game]
-    levels: list[Level]
-    platforms: list[Platform]
-    regions: list[Region]
-    runs: list[Run]
+    categories: list[Category] = []
+    games: list[Game] = []
+    levels: list[Level] = []
+    platforms: list[Platform] = []
+    regions: list[Region] = []
+    runs: list[Run] = []
     user: User
     userProfile: UserReducedProfile
-    users: list[User]
+    users: list[User] = []
     """Always empty"""
-    players: list[Player]
-    values: list[Value]  # type:ignore
-    variables: list[Variable]
-    followedGameIds: NoneType
-    """Unused null key"""
-    challengeList: list[Challenge]
-    challengeRunList: list[ChallengeRun]
+    players: list[Player] = []
+    values: list[Value] = []
+    variables: list[Variable] = []
+    followedGameIds: list[str] = []
+    challengeList: list[Challenge] = []
+    challengeRunList: list[ChallengeRun] = []
 
 class r_GetUserSummary(SpeedrunModel):
     user: User
     userProfile: UserReducedProfile
     userStats: UserStats
-    userGameFollowerStats: list[UserGameFollow]
+    userGameFollowerStats: list[UserGameFollow] = []
     """Empty list if the user has set game follows to private."""
-    userGameModeratorStats: list[UserModerationStats]
-    userGameRunnerStats: list[UserGameRunnerStats]
-    userSocialConnectionList: list[UserSocialConnection]
-    games: list[Game]
+    userGameModeratorStats: list[UserModerationStats] = []
+    userGameRunnerStats: list[UserGameRunnerStats] = []
+    userSocialConnectionList: list[UserSocialConnection] = []
+    games: list[Game] = []
     theme: Optional[Theme] = None
-    titleList: list[Title]
+    titleList: list[Title] = []
 
 class r_GetUserComments(SpeedrunModel):
-    articleList: list[Article]
-    commentList: list[Comment]
-    forumList: list[Forum]
-    gameList: list[Game]
-    likeList: list[Like]
-    newsList: list[News]
-    runList: list[Run]
-    threadList: list[Thread]
-    userList: list[User]
+    articleList: list[Article] = []
+    commentList: list[Comment] = []
+    forumList: list[Forum] = []
+    gameList: list[Game] = []
+    likeList: list[Like] = []
+    newsList: list[News] = []
+    runList: list[Run] = []
+    threadList: list[Thread] = []
+    userList: list[User] = []
     pagination: Pagination
     
     _articleDict: dict[str, Article]
@@ -383,13 +382,13 @@ class r_GetUserPopoverData(SpeedrunModel):
     user: User
     userProfile: UserReducedProfile
     userStats: UserStats
-    userSocialConnectionList: list[UserSocialConnection]
-    games: list[Game]
+    userSocialConnectionList: list[UserSocialConnection] = []
+    games: list[Game] = []
     """Contains games sometimes:tm:"""
-    titleList: list[Title]
+    titleList: list[Title] = []
 
 class r_GetTitleList(SpeedrunModel):
-    titleList: list[Title]
+    titleList: list[Title] = []
 
 class r_GetTitle(SpeedrunModel):
     title: Title
@@ -399,15 +398,14 @@ class r_GetTitle(SpeedrunModel):
 
 
 class r_GetAuditLogList(SpeedrunModel):
-    auditLogList: list[AuditLogEntry]
-    userList: list[User]
-    gameList: list[Game]
-    categoryList: list[Category]
-    levelList: list[Level] | None
-    """WARN: is None when empty rather than []."""
-    variableList: list[Variable]
-    valueList: list[Value]
-    runList: list[Run]
+    auditLogList: list[AuditLogEntry] = []
+    userList: list[User] = []
+    gameList: list[Game] = []
+    categoryList: list[Category] = []
+    levelList: list[Level] = []
+    variableList: list[Variable] = []
+    valueList: list[Value] = []
+    runList: list[Run] = []
     pagination: Pagination
     
     _auditLogDict: dict[str, AuditLogEntry]
@@ -435,45 +433,45 @@ class r_GetCommentable(SpeedrunModel):
 
 class r_GetConversationMessages(SpeedrunModel):
     conversation: Conversation
-    participants: list[ConversationParticipant]
-    messages: list[ConversationMessage]
-    users: list[User]
-    userBlocks: list[UserBlock]
+    participants: list[ConversationParticipant] = []
+    messages: list[ConversationMessage] = []
+    users: list[User] = []
+    userBlocks: list[UserBlock] = []
 
 class r_GetConversations(SpeedrunModel):
-    conversations: list[Conversation]
-    participants: list[ConversationParticipant]
-    users: list[User]
-    systemMessages: list[SystemMessage]
+    conversations: list[Conversation] = []
+    participants: list[ConversationParticipant] = []
+    users: list[User] = []
+    systemMessages: list[SystemMessage] = []
 
 class r_GetForumReadStatus(SpeedrunModel):
-    forumReadStatusList: list[ForumReadStatus]
+    forumReadStatusList: list[ForumReadStatus] = []
 
 class r_GetGameSettings(SpeedrunModel):
     settings: GameSettings
-    moderatorList: list[GameModerator]
+    moderatorList: list[GameModerator] = []
     theme: Theme
-    gameList: list[Game]
-    userList: list[User]
+    gameList: list[Game] = []
+    userList: list[User] = []
 
 class r_GetModerationGames(SpeedrunModel):
-    games: list[Game] | None
+    games: list[Game] | None = None
     """Is null when not logged in."""
-    gameModerationStats: list[GameModerationStats] | None
+    gameModerationStats: list[GameModerationStats] | None = None
     """Is null when not logged in."""
 
 class r_GetModerationRuns(SpeedrunModel):
-    categories: list[Category]
-    games: list[Game]
-    levels: list[Level]
+    categories: list[Category] = []
+    games: list[Game] = []
+    levels: list[Level] = []
     pagination: Pagination
-    platforms: list[Platform]
-    players: list[Player]
-    regions: list[Region]
-    runs: list[Run]
-    values: list[Value]  # type:ignore
-    variables: list[Variable]
-    users: list[User]
+    platforms: list[Platform] = []
+    players: list[Player] = []
+    regions: list[Region] = []
+    runs: list[Run] = []
+    values: list[Value] = []
+    variables: list[Variable] = []
+    users: list[User] = []
     
     _categoryDict: dict[str, Category]
     _gameDict: dict[str, Game]
@@ -500,8 +498,8 @@ class r_GetModerationRuns(SpeedrunModel):
     })
 
 class r_GetNotifications(SpeedrunModel):
-    unreadCount: int
-    notifications: list[Notification]
+    unreadCount: Int64_
+    notifications: list[Notification] = []
     pagination: Pagination
     
     _notificationDict: dict[str, Notification]
@@ -512,14 +510,14 @@ class r_GetNotifications(SpeedrunModel):
 
 class r_GetRunSettings(SpeedrunModel):
     settings: RunSettings
-    users: list[User]
+    users: list[User] = []
 
 class r_GetSeriesSettings(SpeedrunModel):
     settings: SeriesSettings
-    moderatorList: list[SeriesModerator]
-    gameList: list[Game]
+    moderatorList: list[SeriesModerator] = []
+    gameList: list[Game] = []
     theme: Theme
-    userList: list[User]
+    userList: list[User] = []
 
 class r_GetSession(SpeedrunModel):
     session: Session
@@ -530,17 +528,17 @@ class r_GetThemeSettings(SpeedrunModel):
     theme: Optional[Theme] = None
 
 class r_GetThreadReadStatus(SpeedrunModel):
-    threadReadStatusList: list[ThreadReadStatus]
+    threadReadStatusList: list[ThreadReadStatus] = []
 
 class r_GetTickets(SpeedrunModel):
-    ticketList: list[Ticket]
-    ticketNoteList: list[TicketNote]
+    ticketList: list[Ticket] = []
+    ticketNoteList: list[TicketNote] = []
     """Admins can see all notes, users can see messages here."""
     pagination: Pagination
-    userList: list[User]
-    gameList: list[Game]
-    userModCountList: list[UserCount]
-    userRunCountList: list[UserCount]
+    userList: list[User] = []
+    gameList: list[Game] = []
+    userModCountList: list[UserCount] = []
+    userRunCountList: list[UserCount] = []
     
     _ticketDict: dict[str, Ticket]
     _ticketNoteDict: dict[str, TicketNote]
@@ -564,25 +562,23 @@ class r_GetTickets(SpeedrunModel):
     }
 
 class r_GetUserBlocks(SpeedrunModel):
-    userBlocks: list[UserBlock]
+    userBlocks: list[UserBlock] = []
 
 class r_GetUserSettings(SpeedrunModel):
     settings: UserSettings
-    gameFollowerList: list[GameFollower]
-    gameModeratorList: list[GameModerator]
-    notificationSettings: list[NotificationSetting]
-    userSocialConnectionList: list[UserSocialConnection]
-    gameList: list[Game]
-    titleList: list[Title]
-    supporterCreditList: list[SupporterCredit]
-    supporterCodeList: list[SupporterCode]
+    gameFollowerList: list[GameFollower] = []
+    gameModeratorList: list[GameModerator] = []
+    notificationSettings: list[NotificationSetting] = []
+    userSocialConnectionList: list[UserSocialConnection] = []
+    gameList: list[Game] = []
+    titleList: list[Title] = []
+    supporterCreditList: list[SupporterCredit] = []
+    supporterCodeList: list[SupporterCode] = []
     supporterSubscription: Optional[SupporterSubscription] = None
-    experimentList: Any
-    enabledExperimentIds: Any
 
 class r_GetUserSupporterData(SpeedrunModel):
-    supporterEndDate: int
-    boostEndDate: int
+    supporterEndsAt: Optional[Timestamp_] = None
+    boostEndsAt: Optional[Timestamp_] = None
 
 class r_PutUserSupporterNewSubscription(SpeedrunModel):
     subscription: SupporterSubscription
@@ -616,8 +612,8 @@ class r_PutThread(SpeedrunModel):
     thread: Thread
 
 class r_PutLike(SpeedrunModel):
-    likeList: list[Like]
-    userList: list[User]
+    likeList: list[Like] = []
+    userList: list[User] = []
 
 class r_PutTicket(SpeedrunModel):
     ticketId: str
@@ -629,38 +625,38 @@ class r_GetUserApiKey(SpeedrunModel):
     apiKey: str
 
 class r_GetUserGameBoostData(SpeedrunModel):
-    boostAvailableTokens: int
-    boostDistinctGamesCount: int
-    boostDistinctUsersCount: int
-    boostEndDate: int
-    boostGiftedCount: int
-    boostLastTokenDate: int
-    boostNextTokenAmount: int
-    boostNextTokenDate: int
-    boostReceivedCount: int
-    gameBoostList: list[GameBoost]
-    gameList: list[Game]
+    boostAvailableTokens: Int64_
+    boostDistinctGamesCount: Int64_
+    boostDistinctUsersCount: Int64_
+    boostEndsAt: Optional[Timestamp_] = None
+    boostGiftedCount: Int64_
+    boostLastTokenAt: Optional[Timestamp_] = None
+    boostNextTokenAmount: Int64_
+    boostNextTokenAt: Optional[Timestamp_] = None
+    boostReceivedCount: Int64_
+    gameBoostList: list[GameBoost] = []
+    gameList: list[Game] = []
     isBoosted: bool
-    userList: list[User]
+    userList: list[User] = []
 
 class r_GetUserDataExport(SpeedrunModel):
-    articleList: list[Article]
-    commentList: list[Comment]
-    conversationList: list[ConversationLightweight]
-    gameFollowerList: list[GameFollower]
-    guideList: list[Guide]
-    likeList: list[Like]
-    messageList: list[ConversationMessage]
-    newsList: list[News]
-    resourceList: list[Resource]
-    runList: list[Run]
-    threadList: list[Thread]
-    ticketList: list[Ticket]
-    ticketNoteList: list[TicketNote]
+    articleList: list[Article] = []
+    commentList: list[Comment] = []
+    conversationList: list[ConversationLightweight] = []
+    gameFollowerList: list[GameFollower] = []
+    guideList: list[Guide] = []
+    likeList: list[Like] = []
+    messageList: list[ConversationMessage] = []
+    newsList: list[News] = []
+    resourceList: list[Resource] = []
+    runList: list[Run] = []
+    threadList: list[Thread] = []
+    ticketList: list[Ticket] = []
+    ticketNoteList: list[TicketNote] = []
     user: User
-    userFollowerList: list[UserFollower]
+    userFollowerList: list[UserFollower] = []
     userSettings: UserSettings
-    userSocialConnectionList: list[UserSocialConnection]
+    userSocialConnectionList: list[UserSocialConnection] = []
 
 class r_PutUserUpdateEmail(SpeedrunModel):
     emailChanged: bool

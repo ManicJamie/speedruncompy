@@ -45,9 +45,9 @@ def non_strict():
 class TestModels():
     async def test_convenience_dicts(self):
         runs = [
-            Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, date=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN),
-            Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, date=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN),
-            Run(id="c", gameId="c", categoryId="c", time=1, emulator=False, verified=Verified.VERIFIED, date=100, hasSplits=False, playerIds=["c"], valueIds=["c"], videoState=VideoState.UNKNOWN),
+            Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN),
+            Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN),
+            Run(id="c", gameId="c", categoryId="c", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["c"], valueIds=["c"], videoState=VideoState.UNKNOWN),
         ]
         response = r_GetGameLeaderboard2(runList=runs, playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1))
         
@@ -56,10 +56,10 @@ class TestModels():
     async def test_convenience_paginated(self):
         pages = {
             1: r_GetGameLeaderboard2(runList=[
-                Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, date=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN)],
+                Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN)],
                 playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1)),
             2: r_GetGameLeaderboard2(runList=[
-                Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, date=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN)],
+                Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN)],
                 playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1)),
         }
         

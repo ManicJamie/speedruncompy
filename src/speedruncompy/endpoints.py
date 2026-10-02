@@ -1,3 +1,4 @@
+from aiohttp import request
 from typing import Iterable
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunClient
 from .datatypes.enums import *
@@ -13,6 +14,21 @@ def _nested_params(**params: Any) -> dict:
     param_construct = {"params": params, "page": page}
     return param_construct
 
+class GameLeaderboardParameters(SpeedrunModel):
+    gameId: str
+    categoryId: str
+    minRunDate: Date | None = None
+    maxRunDate: Date | None = None
+    emulator: EmulatorFilter | None = None
+    levelId: str | None = None
+    obsolete: ObsoleteFilter | None = None
+    platformIds: list[str] | None = None
+    regionIds: list[str] | None = None
+    timer: TimerName | None = None
+    verified: VerifiedFilter | None = None
+    values: list[VarValues] | None = None
+    video: VideoFilter | None = None
+
 class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedRequest[r_GetGameLeaderboard2],
                           endpoint="GetGameLeaderboard2", response=r_GetGameLeaderboard2):
     """The default leaderboard view.
@@ -24,8 +40,8 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
     - @categoryId
 
     ### Optional:
-    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
-    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @minRunDate: `Date` = Release date
+    - @maxRunDate: `Date` = Now
     - @emulator: `EmulatorFilter`
     - @levelId: If `categoryId` refers to a level category.
     - @obsolete: `ObsoleteFilter` = 0
@@ -43,8 +59,8 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
             categoryId: str,
             
             _client: SpeedrunClient | None = None,
-            dateFrom: str | None = None,
-            dateTo: str | None = None,
+            minRunDate: Date | None = None,
+            maxRunDate: Date | None = None,
             emulator: EmulatorFilter | None = None,
             levelId: str | None = None,
             obsolete: ObsoleteFilter | None = None,
@@ -59,8 +75,8 @@ class GetGameLeaderboard2(GetRequest[r_GetGameLeaderboard2], BasePaginatedReques
         super().__init__(_client=_client, **_nested_params(
             gameId=gameId,
             categoryId=categoryId,
-            dateFrom=dateFrom,
-            dateTo=dateTo,
+            minRunDate=minRunDate,
+            maxRunDate=maxRunDate,
             emulator=emulator,
             levelId=levelId,
             obsolete=obsolete,
@@ -82,8 +98,8 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
     - @categoryId
 
     ### Optional: # These are copied from GetGameLeaderboard2 - impart from verified
-    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
-    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @minRunDate: `Date` = Release date
+    - @maxRunDate: `Date` = Now
     - @emulator: `EmulatorFilter`
     - @levelId: If `categoryId` refers to a level category.
     - @obsolete: `ObsoleteFilter` = 0
@@ -100,8 +116,8 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
             categoryId: str,
             
             _client: SpeedrunClient | None = None,
-            dateFrom: str | None = None,
-            dateTo: str | None = None,
+            minRunDate: Date | None = None,
+            maxRunDate: Date | None = None,
             emulator: EmulatorFilter | None = None,
             levelId: str | None = None,
             obsolete: ObsoleteFilter | None = None,
@@ -115,8 +131,8 @@ class GetGameLeaderboard(GetRequest[r_GetGameLeaderboard], BasePaginatedRequest[
         super().__init__(_client=_client, **_nested_params(
             gameId=gameId,
             categoryId=categoryId,
-            dateFrom=dateFrom,
-            dateTo=dateTo,
+            minRunDate=minRunDate,
+            maxRunDate=maxRunDate,
             emulator=emulator,
             levelId=levelId,
             obsolete=obsolete,
@@ -179,8 +195,8 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory],
     - @categoryId
 
     ### Optional:
-    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
-    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @minRunDate: `Date` = Release date
+    - @maxRunDate: `Date` = Now
     - @emulator: `EmulatorFilter`
     - @levelId: If `categoryId` refers to a level category.
     - @obsolete: `ObsoleteFilter` = 0
@@ -197,8 +213,8 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory],
         categoryId: str, 
 
         _client: SpeedrunClient | None = None,
-        dateFrom: str | None = None,
-        dateTo: str | None = None,
+        minRunDate: Date | None = None,
+        maxRunDate: Date | None = None,
         emulator: EmulatorFilter | None = None,
         levelId: str | None = None,
         obsolete: ObsoleteFilter | None = None,
@@ -214,8 +230,8 @@ class GetGameRecordHistory(GetRequest[r_GetGameRecordHistory],
             **_nested_params(
             gameId=gameId,
             categoryId=categoryId,
-            dateFrom=dateFrom,
-            dateTo=dateTo,
+            minRunDate=minRunDate,
+            maxRunDate=maxRunDate,
             emulator=emulator,
             levelId=levelId,
             obsolete=obsolete,
@@ -242,6 +258,7 @@ class GetSearch(GetRequest[r_GetSearch],
     - @includeUsers: bool = False
     - @includeChallenges: bool = False
     - @limit: <= 500 = 500
+    - @limitGames: integer, unknown
     """
     def __init__(
             self,
@@ -347,7 +364,7 @@ class GetArticleList(BasePaginatedRequest[r_GetArticleList], GetRequest[r_GetArt
             search: str | None = None,
             tags: list[str] | None = None,
             target: str | None = None,
-            limit: int | None = None,
+            limit: Int64_ | None = None,
             **params
         ) -> None:
         super().__init__(published=published, rejected=rejected, search=search,
@@ -369,22 +386,27 @@ class GetGameList(GetRequest[r_GetGameList], BasePaginatedRequest[r_GetGameList]
                   endpoint="GetGameList", response=r_GetGameList):
     """Gets a list of all games on the site.
     
+    ## Required:
+    - @orderType: `GameOrderType` = 4 (Most Active)
+    
     ### Optional:
     - @seriesId: filter by series
     - @platformId: filter by platform
     - @search: str
-    - @orderType: `GameOrderType` = 1
     - @limit: <= 200 = 500 (!)"""
     def __init__(
             self,
+            orderType: GameOrderType = GameOrderType.MOST_ACTIVE,
             seriesId: str | None = None,
             platformId: str | None = None,
             search: str | None = None,
-            orderType: GameOrderType | None = None,
+            minReleaseDate: Date | None = None,
+            maxReleaseDate: Date | None = None,
+            showNoPromote: bool | None = None,
             **params
         ) -> None:
         super().__init__(seriesId=seriesId, platformId=platformId,
-                         search=search, orderType=orderType, **params)
+                         search=search, orderType=orderType, minReleaseDate=minReleaseDate, maxReleaseDate=maxReleaseDate, showNoPromote=showNoPromote, **params)
 
 class GetHomeSummary(GetRequest[r_GetHomeSummary],
                      endpoint="GetHomeSummary", response=r_GetHomeSummary):
@@ -396,16 +418,18 @@ class GetHomeSummary(GetRequest[r_GetHomeSummary],
 class GetSeriesList(GetRequest[r_GetSeriesList], BasePaginatedRequest[r_GetSeriesList],
                     endpoint="GetSeriesList", response=r_GetSeriesList):
     """Gets a list of series on the site.
+    
+    ### Required:
+    - @orderType: `GameOrderType` = 4 (most active)
 
     ### Optional:
     - @search: str
-    - @orderType: `GameOrderType` = 1
     - @limit: <= 500 = 500
     """
     def __init__(
             self,
+            orderType: GameOrderType = GameOrderType.MOST_ACTIVE,
             search: str | None = None,
-            orderType: GameOrderType | None = None,
             **params) -> None:
         super().__init__(search=search, orderType=orderType, **params)
 
@@ -430,8 +454,8 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary],
     - @categoryId
 
     ### Optional:
-    - @dateFrom: datestr = Release date # Needs to be in "YYYY-MM-DD" format
-    - @dateTo: datestr = Now # Needs to be in "YYYY-MM-DD" format
+    - @minRunDate: `Date` = Release date
+    - @maxRunDate: `Date` = Now
     - @emulator: `EmulatorFilter`
     - @levelId: If `categoryId` refers to a level category.
     - @obsolete: `ObsoleteFilter` = 0
@@ -449,8 +473,8 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary],
             categoryId: str,
             
             _client: SpeedrunClient | None = None,
-            dateFrom: str | None = None,
-            dateTo: str | None = None,
+            minRunDate: Date | None = None,
+            maxRunDate: Date | None = None,
             emulator: EmulatorFilter | None = None,
             levelId: str | None = None,
             obsolete: ObsoleteFilter | None = None,
@@ -464,8 +488,8 @@ class GetGameLevelSummary(GetRequest[r_GetGameLevelSummary],
         super().__init__(_client=_client, **_nested_params(
             gameId=gameId,
             categoryId=categoryId,
-            dateFrom=dateFrom,
-            dateTo=dateTo,
+            minRunDate=minRunDate,
+            maxRunDate=maxRunDate,
             emulator=emulator,
             levelId=levelId,
             obsolete=obsolete,
@@ -705,7 +729,7 @@ class GetAuditLogList(PostRequest[r_GetAuditLogList], BasePaginatedRequest[r_Get
                  userId: str | None = None, 
                  actorId: str | None = None,
                  eventType: EventType = EventType.NONE, 
-                 page: int = 1, 
+                 page: Int64_ = 1, 
                  **params
                  ) -> None:
         super().__init__(gameId=gameId, seriesId=seriesId, userId=userId, actorId=actorId, 
@@ -926,11 +950,11 @@ class PutNews(PostRequest[r_Empty],
     - @userId: of the author
     - @title
     - @body
-    - @date
+    - @submittedAt
     """
     def __init__(self, gameId: str, userId: str, title: str,
-                 body: str, date: int, **params) -> None:
-        super().__init__(gameId=gameId, userId=userId, title=title, body=body, date=date, **params)
+                 body: str, submittedAt: Timestamp_, **params) -> None:
+        super().__init__(gameId=gameId, userId=userId, title=title, body=body, submittedAt=submittedAt, **params)
 
 class PutNewsUpdate(PostRequest[r_Empty],
                     endpoint="PutNewsUpdate", response=r_Empty):
@@ -941,11 +965,11 @@ class PutNewsUpdate(PostRequest[r_Empty],
     - @userId: of the author
     - @title
     - @body
-    - @date
+    - @submittedAt
     """
     def __init__(self, newsId: str, userId: str, title: str,
-                 body: str, date: int, **params) -> None:
-        super().__init__(newsId=newsId, userId=userId, title=title, body=body, date=date, **params)
+                 body: str, submittedAt: Timestamp_, **params) -> None:
+        super().__init__(newsId=newsId, userId=userId, title=title, body=body, submittedAt=submittedAt, **params)
 
 class PutNewsDelete(PostRequest[r_Empty],
                     endpoint="PutNewsDelete", response=r_Empty):
@@ -966,11 +990,11 @@ class PutGuide(PostRequest[r_Empty],
     - @userId: of the author
     - @name
     - @text
-    - @date
+    - @updatedAt
     """
     def __init__(self, gameId: str, userId: str, name: str,
-                 text: str, date: int, **params) -> None:
-        super().__init__(gameId=gameId, userId=userId, name=name, text=text, date=date, **params)
+                 text: str, updatedAt: Timestamp_, **params) -> None:
+        super().__init__(gameId=gameId, userId=userId, name=name, text=text, updatedAt=updatedAt, **params)
 
 class PutGuideUpdate(PostRequest[r_Empty],
                      endpoint="PutGuideUpdate", response=r_Empty):
@@ -981,11 +1005,11 @@ class PutGuideUpdate(PostRequest[r_Empty],
     - @userId: of the author
     - @name
     - @text
-    - @date
+    - @updatedAt
     """
     def __init__(self, guideId: str, userId: str, name: str,
-                 text: str, date: int, **params) -> None:
-        super().__init__(guideId=guideId, userId=userId, name=name, text=text, date=date, **params)
+                 text: str, updatedAt: Timestamp_, **params) -> None:
+        super().__init__(guideId=guideId, userId=userId, name=name, text=text, updatedAt=updatedAt, **params)
 
 class PutGuideDelete(PostRequest[r_Empty],
                      endpoint="PutGuideDelete", response=r_Empty):
@@ -1005,7 +1029,7 @@ class PutResource(PostRequest[r_Empty],
     - @gameId
     - @userId: Manager ID
     - @authorNames: Comma-separated list of names
-    - @date
+    - @updatedAt
     - @name
     - @description
     - @type: ResourceType
@@ -1018,9 +1042,9 @@ class PutResource(PostRequest[r_Empty],
     - @uploadContent: str "data:application/json;base64,examplebase64data"
     """
     def __init__(self, gameId: str, userId: str, name: str,
-                 description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
+                 description: str, updatedAt: Timestamp_, type: ResourceType, authorNames: str, **params) -> None:
         super().__init__(gameId=gameId, userId=userId, name=name, description=description,
-                         date=date, type=type, authorNames=authorNames, **params)
+                         updatedAt=updatedAt, type=type, authorNames=authorNames, **params)
 
 class PutResourceUpdate(PostRequest[r_Empty],
                         endpoint="PutResourceUpdate", response=r_Empty):
@@ -1030,7 +1054,7 @@ class PutResourceUpdate(PostRequest[r_Empty],
     - @gameId
     - @userId: Manager ID
     - @authorNames: Comma-separated list of names
-    - @date
+    - @updatedAt
     - @name
     - @description
     - @type: ResourceType
@@ -1044,9 +1068,9 @@ class PutResourceUpdate(PostRequest[r_Empty],
     - @uploadContent: str "data:application/json;base64,examplebase64data"
     """
     def __init__(self, resourceId: str, userId: str, name: str,
-                 description: str, date: int, type: ResourceType, authorNames: str, **params) -> None:
+                 description: str, updatedAt: Timestamp_, type: ResourceType, authorNames: str, **params) -> None:
         super().__init__(resourceId=resourceId, userId=userId, name=name, description=description,
-                         date=date, type=type, authorNames=authorNames, **params)
+                         updatedAt=updatedAt, type=type, authorNames=authorNames, **params)
 
 class PutResourceDelete(PostRequest[r_Empty],
                         endpoint="PutResourceDelete", response=r_Empty):
@@ -1086,7 +1110,7 @@ class GetModerationRuns(PostRequest[r_GetModerationRuns], BasePaginatedRequest[r
     """
 
     # Default for `limit` is 20 which is what the site uses
-    def __init__(self, gameId: str, limit: int = 20, page: int = 1, **params) -> None:
+    def __init__(self, gameId: str, limit: Int64_ = 20, page: Int64_ = 1, **params) -> None:
         super().__init__(gameId=gameId, limit=limit, page=page, **params)
 
 class PutRunAssignee(PostRequest[r_Empty],
@@ -1132,11 +1156,11 @@ class PutRunSettings(PostRequest[r_PutRunSettings],
     ### Mandatory:
     - @csrfToken: May be retrieved by `GetSession`.
     - @settings: Existing run settings if `runId is not None`, otherwise new run's settings.
-    - @autoverify: If the run should be automatically verified after editing or not. - only works for game moderators.
+    - @autoVerify: If the run should be automatically verified after editing or not. - only works for game moderators.
     """
-    def __init__(self, csrfToken: str, settings: RunSettings, autoverify: bool, **params) -> None:
+    def __init__(self, csrfToken: str, settings: RunSettings, autoVerify: bool, **params) -> None:
         """Sets a run's settings. Note that the runId is contained in `settings`."""
-        super().__init__(csrfToken=csrfToken, settings=settings, autoverify=autoverify, **params)
+        super().__init__(csrfToken=csrfToken, settings=settings, autoVerify=autoVerify, **params)
 
 # User inbox actions
 class GetConversations(PostRequest[r_GetConversations],
@@ -1295,11 +1319,11 @@ class PutUserUpdateFeaturedRun(PostRequest[r_Empty],
     
     ### Mandatory:
     - @userUrl: must be your own unless you are an admin.
-    - @fullRunId: If omitted, clears the full game featured run.
+    - @fullGameRunId: If omitted, clears the full game featured run.
     - @levelRunId: If omitted, clears the level featured run
     """
-    def __init__(self, userUrl: str, fullRunId: str | None = None, levelRunId: str | None = None, **params) -> None:
-        super().__init__(userUrl=userUrl, fullRunId=fullRunId, levelRunId=levelRunId, **params)
+    def __init__(self, userUrl: str, fullGameRunId: str | None = None, levelRunId: str | None = None, **params) -> None:
+        super().__init__(userUrl=userUrl, fullGameRunId=fullGameRunId, levelRunId=levelRunId, **params)
 
 class PutUserUpdateGameOrdering(PostRequest[r_Empty],
                                 endpoint="PutUserUpdateGameOrdering", response=r_Empty):
@@ -1531,7 +1555,7 @@ class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets],
     - @queues: list of `TicketQueueType` to filter by
     - @types: list of `TicketType`
     - @statuses: list of `TicketStatus`
-    - @requestorIds: list of userIds who requested the ticket. - this is meant for use by site admins
+    - @requestedByIds: list of userIds who requested the ticket. - this is meant for use by site admins
     - @search: str
     """
     def __init__(
@@ -1540,12 +1564,12 @@ class GetTickets(PostRequest[r_GetTickets], BasePaginatedRequest[r_GetTickets],
             queues: list[TicketQueueType] | None = None,
             types: list[TicketType] | None = None,
             statuses: list[TicketStatus] | None = None,
-            requestorIds: list[str] | None = None,
+            requestedByIds: list[str] | None = None,
             search: str | None = None,
             **params
         ) -> None:
         super().__init__(ticketIds=ticketIds, queues=queues,
-                         types=types, statuses=statuses, requestorIds=requestorIds,
+                         types=types, statuses=statuses, requestedByIds=requestedByIds,
                          search=search, **params)
 
 class GetSeriesSettings(PostRequest[r_GetSeriesSettings],
@@ -1587,21 +1611,22 @@ class PutGame(PostRequest[r_PutGame],
     ### Optional:
     - @gameTypeIds: list of `GameType`
     - @baseGame: str # If one of the GameTypes supports a baseGame, then this can be included with a game id.
-
-    #### Optional:
     - @seriesId
+
+    Also check requestedById
     """
     def __init__(
             self,
             name: str,
-            releaseDate: int,
+            releaseDate: Date,
             gameTypeIds: list[GameType] | None = None,
             baseGame: str | None = None,
             seriesId: str | None = None,
+            requestedById: str | None = None,
             **params
         ) -> None:
         super().__init__(name=name, releaseDate=releaseDate, gameTypeIds=gameTypeIds,
-                         baseGame=baseGame, seriesId=seriesId, **params)
+                         baseGame=baseGame, seriesId=seriesId, requestedById=requestedById, **params)
 
 class PutGameModerator(PostRequest[r_Empty],
                        endpoint="PutGameModerator", response=r_Empty):

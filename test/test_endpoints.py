@@ -593,7 +593,7 @@ class TestPostRequests():
         check_model_coverage(result)
     
     def test_GetTickets(self):
-        result = GetTickets(_client=self.api, requestorIds=[hornet_uid]).perform_sync()
+        result = GetTickets(_client=self.api, requestedByIds=[hornet_uid]).perform_sync()
         check_model_coverage(result)
 
     #TODO: GetTickets depagination
