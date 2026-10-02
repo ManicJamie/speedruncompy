@@ -4,6 +4,14 @@ from bidict import frozenbidict
 from .enums import *
 from ._impl import SpeedrunModel
 
+class Date(SpeedrunModel):
+    year: int
+    month: int
+    day: int
+    
+    def __str__(self): 
+        return f"{self.year}-{self.month:02}-{self.day:02}"
+
 class StaticAsset(SpeedrunModel):
 
     assetType: str
@@ -135,7 +143,7 @@ class RunSettings(SpeedrunModel):
     video: str
     comment: Optional[str] = None
     date: int
-    values: list[VarValue]  # type:ignore
+    values: list[VarValue]
     videoState: Optional[VideoState] = None  # TODO: check if opt
     
     # TODO: this only guarantees RTA if both time and timeWithLoads is present in the run,

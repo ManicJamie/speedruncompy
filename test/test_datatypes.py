@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, tzinfo
+from speedruncompy.datatypes._impl import Timestamp_, Int64_, Duration_
 from typing import no_type_check
 import asyncio
 import os
@@ -83,6 +85,68 @@ class TestModels():
         check_model_coverage(varVal)
         with pytest.raises(Exception):
             check_model_coverage(varVal2)
+
+class TestTransparentTypes():
+    class ModelWithTimestamp(SpeedrunModel):
+        ts: Timestamp_
+    
+    async def test_datetime_validation(self):
+        testModel = self.ModelWithTimestamp.model_validate({"ts": "2025-08-27T23:30:02Z"})
+        expectedDatetime = datetime(2025, 8, 27, 23, 30, 2, tzinfo=timezone.utc)
+        
+        assert testModel.ts == expectedDatetime
+    
+    async def test_datetime_ser(self):            
+        expectedTimestring = "2025-08-27T23:30:02Z"
+        
+        dt= datetime(2025, 8, 27, 23, 30, 2, tzinfo=timezone.utc)
+        
+        testModel = self.ModelWithTimestamp(ts=dt)
+        dump = testModel.model_dump()
+        
+        assert dump["ts"] == expectedTimestring
+    
+    # These tests assume we match strategy across all the transparent fields, because i don't  want to copy this a bunch...
+    class ModelWithOptTimestamp(SpeedrunModel):
+        ts: Optional[Timestamp_] = None
+    
+    async def test_optional_dt_validation(self):    
+        testModel= self.ModelWithOptTimestamp.model_validate({})
+        
+        assert testModel.ts is None
+    
+    async def test_optional_dt_ser(self):
+        testModel = self.ModelWithOptTimestamp(ts=None)
+        dump = testModel.model_dump()
+        
+        assert dump["ts"] is None
+        
+    class ModelWithInt64(SpeedrunModel):
+        number: Int64_
+        
+    async def test_int64_validation(self):
+        testModel = self.ModelWithInt64.model_validate({"number": "5"})
+        
+        assert testModel.number == 5
+        
+    async def test_int64_ser(self):
+        testModel = self.ModelWithInt64(number=5)
+        
+        assert testModel.model_dump()["number"] == '5'
+    
+    class ModelWithDuration(SpeedrunModel):
+        duration: Duration_
+    
+    async def test_duration_validation(self):
+        testModel = self.ModelWithDuration.model_validate({"duration": "5.2s"})
+        
+        assert testModel.duration == 5.2
+    
+    async def test_duration_ser(self):
+        testModel = self.ModelWithDuration(duration=5.2)
+        
+        assert testModel.model_dump()["duration"] == '5.2s'
+        
 
 
 @pytest.mark.skipif(SKIP_HEAVY_TESTS, reason="SKIP_HEAVY_TESTS == True")
