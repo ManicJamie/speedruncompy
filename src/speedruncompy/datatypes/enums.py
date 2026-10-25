@@ -1,5 +1,6 @@
 from enum import IntEnum, StrEnum
 
+
 class ItemType(IntEnum):
     """The type of the item this object is referencing (eg. a comment on either a run or a thread)"""
     UNKNOWN = 0

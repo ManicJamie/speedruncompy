@@ -1,7 +1,8 @@
 import logging
-from .exceptions import AuthException, NotFound
+
 from .api import SpeedrunClient, _default
-from .endpoints import PutAuthLogin, PutAuthLogout, GetSession
+from .endpoints import GetSession, PutAuthLogin, PutAuthLogout
+from .exceptions import AuthException, NotFound
 
 log = logging.getLogger("speedruncompy.auth")
 

@@ -44,7 +44,6 @@ class MethodNotAllowed(ClientException):
 
 class RequestTimeout(ClientException):
     """Server waited too long to receive request. Only called after retries."""
-    pass
 
 class RateLimitExceeded(ClientException):
     """Too many requests. You must wait the full timeout period to make any more requests.

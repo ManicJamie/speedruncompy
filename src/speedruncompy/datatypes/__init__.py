@@ -4,5 +4,5 @@ Note that while types endeavour to be kept up-to-date, we cannot guarantee all c
 
 from ._impl import SpeedrunModel, ModelEncoder, unix_to_datetime  # noqa
 
-from .defs import *  # noqa
+from .defs import *
 from . import responses, enums, _impl  # noqa

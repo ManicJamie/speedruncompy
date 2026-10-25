@@ -1,9 +1,9 @@
-from aiohttp import request
-from typing import Iterable
+from collections.abc import Iterable
+
 from .api import BasePaginatedRequest, GetRequest, PostRequest, SpeedrunClient
+from .datatypes import Pagination
 from .datatypes.enums import *
 from .datatypes.responses import *
-from .datatypes import Pagination
 
 """
 GET requests are all unauthed & do not require PHPSESSID.

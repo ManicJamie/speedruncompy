@@ -54,3 +54,9 @@ Repository = "https://github.com/ManicJamie/speedruncompy.git"
 [tool.pytest.ini_options]
 log_cli = true
 asyncio_mode = "auto"
+
+[tool.ruff.lint]
+ignore = ["UP039"]
+
+[tool.ruff]
+line-length=120

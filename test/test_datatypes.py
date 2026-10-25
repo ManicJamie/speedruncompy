@@ -1,30 +1,30 @@
-from datetime import datetime, timezone, tzinfo
-from speedruncompy.datatypes._impl import Timestamp_, Int64_, Duration_
-from typing import no_type_check
 import asyncio
+import logging
 import os
+from datetime import UTC, datetime
 from random import randint, sample
+from typing import no_type_check
 
+import pytest
+import pytest_asyncio
 from pydantic import ValidationError
-
-from speedruncompy.datatypes import *
-from speedruncompy import config as srccfg
-from speedruncompy.endpoints import *
-from speedruncompy.exceptions import IncompleteDatatype, IncompleteEnum
-
 from utils import check_model_coverage
 
-import pytest, pytest_asyncio, logging
+from speedruncompy import config as srccfg
+from speedruncompy.datatypes import *
+from speedruncompy.datatypes._impl import Duration_, Int64_, Timestamp_
+from speedruncompy.endpoints import *
 
 logging.getLogger().setLevel(logging.DEBUG)
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
 
-SKIP_HEAVY_TESTS = bool(os.environ.get("SKIP_HEAVY_TESTS", True))
+SKIP_HEAVY_TESTS = bool(os.environ.get("SKIP_HEAVY_TESTS", "1"))
 
 game_id = "76rqmld8"  # Hollow Knight
 category_id = "02q8o4p2"  # Any%
@@ -32,8 +32,10 @@ challenge_id = "42ymr396"  # Ghostrunner 2
 
 srccfg.strict_mode = True
 
+
 class DemoModel(SpeedrunModel):
     name: str
+
 
 @pytest.fixture()
 def non_strict():
@@ -42,64 +44,142 @@ def non_strict():
     srccfg.strict_mode = True
 
 
-class TestModels():
+class TestModels:
     async def test_convenience_dicts(self):
         runs = [
-            Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN),
-            Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN),
-            Run(id="c", gameId="c", categoryId="c", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["c"], valueIds=["c"], videoState=VideoState.UNKNOWN),
+            Run(
+                id="a",
+                gameId="a",
+                categoryId="a",
+                time=1,
+                emulator=False,
+                verified=Verified.VERIFIED,
+                performedAt=100,
+                hasSplits=False,
+                playerIds=["a"],
+                valueIds=["a"],
+                videoState=VideoState.UNKNOWN,
+            ),
+            Run(
+                id="b",
+                gameId="b",
+                categoryId="b",
+                time=1,
+                emulator=False,
+                verified=Verified.VERIFIED,
+                performedAt=100,
+                hasSplits=False,
+                playerIds=["b"],
+                valueIds=["b"],
+                videoState=VideoState.UNKNOWN,
+            ),
+            Run(
+                id="c",
+                gameId="c",
+                categoryId="c",
+                time=1,
+                emulator=False,
+                verified=Verified.VERIFIED,
+                performedAt=100,
+                hasSplits=False,
+                playerIds=["c"],
+                valueIds=["c"],
+                videoState=VideoState.UNKNOWN,
+            ),
         ]
-        response = r_GetGameLeaderboard2(runList=runs, playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1))
-        
-        assert "a" in response._runDict and "b" in response._runDict and "c" in response._runDict, "_runDict not constructed!"
-    
+        response = r_GetGameLeaderboard2(
+            runList=runs,
+            playerList=[],
+            platformList=[],
+            pagination=Pagination(count=1, page=1, pages=1, per=1),
+        )
+
+        assert "a" in response._runDict and "b" in response._runDict and "c" in response._runDict, (
+            "_runDict not constructed!"
+        )
+
     async def test_convenience_paginated(self):
         pages = {
-            1: r_GetGameLeaderboard2(runList=[
-                Run(id="a", gameId="a", categoryId="a", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["a"], valueIds=["a"], videoState=VideoState.UNKNOWN)],
-                playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1)),
-            2: r_GetGameLeaderboard2(runList=[
-                Run(id="b", gameId="b", categoryId="b", time=1, emulator=False, verified=Verified.VERIFIED, performedAt=100, hasSplits=False, playerIds=["b"], valueIds=["b"], videoState=VideoState.UNKNOWN)],
-                playerList=[], platformList=[], pagination=Pagination(count=1, page=1, pages=1, per=1)),
+            1: r_GetGameLeaderboard2(
+                runList=[
+                    Run(
+                        id="a",
+                        gameId="a",
+                        categoryId="a",
+                        time=1,
+                        emulator=False,
+                        verified=Verified.VERIFIED,
+                        performedAt=100,
+                        hasSplits=False,
+                        playerIds=["a"],
+                        valueIds=["a"],
+                        videoState=VideoState.UNKNOWN,
+                    )
+                ],
+                playerList=[],
+                platformList=[],
+                pagination=Pagination(count=1, page=1, pages=1, per=1),
+            ),
+            2: r_GetGameLeaderboard2(
+                runList=[
+                    Run(
+                        id="b",
+                        gameId="b",
+                        categoryId="b",
+                        time=1,
+                        emulator=False,
+                        verified=Verified.VERIFIED,
+                        performedAt=100,
+                        hasSplits=False,
+                        playerIds=["b"],
+                        valueIds=["b"],
+                        videoState=VideoState.UNKNOWN,
+                    )
+                ],
+                playerList=[],
+                platformList=[],
+                pagination=Pagination(count=1, page=1, pages=1, per=1),
+            ),
         }
-        
+
         combined: r_GetGameLeaderboard2 = BasePaginatedRequest._combine_pages(pages.values())
-        
+
         assert "a" in combined._runDict and "b" in combined._runDict
         assert len(combined.runList) == 2
-    
+
     async def test_model_missing_fields(self):
         dump = r'{"id":"zgje3ljz","gameId":"76rqmld8"}'
         with pytest.raises(ValidationError):
             Run.model_validate_json(dump)
-    
+
     async def test_model_extra_fields(self):
         varVal = VarValue(variableId="a", valueId="b")
         varVal2 = VarValue.model_validate({"variableId": "a", "valueId": "b", "c": "c"})
-        
+
         assert varVal2.__pydantic_extra__ is not None
         assert "c" in varVal2.__pydantic_extra__
         assert varVal != varVal2
-        
+
         # Test suite checking; no extra fields = pass, extra fields = complain
         check_model_coverage(varVal)
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017
             check_model_coverage(varVal2)
 
-class TestTransparentTypes():
+
+class TestTransparentTypes:
     class ModelWithTimestamp(SpeedrunModel):
         ts: Timestamp_
-    
+
     async def test_datetime_validation(self):
         testModel = self.ModelWithTimestamp.model_validate({"ts": "2025-08-27T23:30:02Z"})
-        expectedDatetime = datetime(2025, 8, 27, 23, 30, 2, tzinfo=timezone.utc)
-        
+        expectedDatetime = datetime(2025, 8, 27, 23, 30, 2, tzinfo=UTC)
+
         assert testModel.ts == expectedDatetime
-    
-    async def test_datetime_ser(self):            
+
+    async def test_datetime_ser(self):
         expectedTimestring = "2025-08-27T23:30:02Z"
-        
-        dt= datetime(2025, 8, 27, 23, 30, 2, tzinfo=timezone.utc)
+
+        dt = datetime(2025, 8, 27, 23, 30, 2, tzinfo=UTC)
         
         testModel = self.ModelWithTimestamp(ts=dt)
         dump = testModel.model_dump()
@@ -108,7 +188,7 @@ class TestTransparentTypes():
     
     # These tests assume we match strategy across all the transparent fields, because i don't  want to copy this a bunch...
     class ModelWithOptTimestamp(SpeedrunModel):
-        ts: Optional[Timestamp_] = None
+        ts: Timestamp_ | None = None
     
     async def test_optional_dt_validation(self):    
         testModel= self.ModelWithOptTimestamp.model_validate({})

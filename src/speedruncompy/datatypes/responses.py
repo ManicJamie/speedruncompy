@@ -1,21 +1,25 @@
-from types import NoneType
 from typing import Any
 
-from pydantic import PrivateAttr
 from bidict import frozenbidict
+from pydantic import PrivateAttr
 
-from .defs import *
 from ._impl import SpeedrunModel
+from .defs import *
+
+# ruff: noqa: RUF012
 
 
 class r_Empty(SpeedrunModel):
     """No Content"""
 
+
 class r_Ok(SpeedrunModel):
     """Response only including `ok`."""
+
     ok: bool
 
-    def __bool__(self): return self.ok
+    def __bool__(self):
+        return self.ok
 
 
 """GET responses"""
@@ -26,22 +30,26 @@ class r_GetArticle(SpeedrunModel):
     relatedArticleList: list[ArticleBase] = []
     gameList: list[GameBase] = []
     userList: list[UserBase] = []
-    
+
+
 class r_GetArticleList(SpeedrunModel):
     articleList: list[Article] = []
     pagination: Pagination
     gameList: list[Game] = []
     userList: list[User] = []
-    
+
     _articleDict: dict[str, Article]
     _gameDict: dict[str, Game]
     _userDict: dict[str, User]
-    
-    __condenser_map__ = frozenbidict({
-        "articleList": "_articleDict",
-        "gameList": "_gameDict",
-        "userList": "_userDict"
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "articleList": "_articleDict",
+            "gameList": "_gameDict",
+            "userList": "_userDict",
+        }
+    )
+
 
 class r_GetChallenge(SpeedrunModel):
     challenge: Challenge
@@ -55,24 +63,28 @@ class r_GetChallenge(SpeedrunModel):
     titleList: list[Title] = []
     platformList: list[Platform] = []
 
+
 class r_GetChallengeLeaderboard(SpeedrunModel):
     challengeRunList: list[ChallengeRun] = []
     playerList: list[Player | DeletedPlayer] = []
     userList: list[User] = []
     platformList: list[Platform] = []
     pagination: Pagination
-    
+
     _challengeRunDict: dict[str, ChallengeRun]
     _playerDict: dict[str, Player | DeletedPlayer]
     _userDict: dict[str, User]
     _platformDict: dict[str, Platform]
-    
-    __condenser_map__ = frozenbidict({
-        "challengeRunList": "_challengeRunDict",
-        "playerList": "_playerDict",
-        "userList": "_userDict",
-        "platformList": "_platformDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "challengeRunList": "_challengeRunDict",
+            "playerList": "_playerDict",
+            "userList": "_userDict",
+            "platformList": "_platformDict",
+        }
+    )
+
 
 class r_GetChallengeRun(SpeedrunModel):
     challenge: Challenge
@@ -82,9 +94,11 @@ class r_GetChallengeRun(SpeedrunModel):
     userList: list[User] = []
     platformList: list[Platform] = []
 
+
 class r_GetChallengeGlobalRankingList(SpeedrunModel):
     rankingList: list[ChallengeGlobalRanking] = []
     userList: list[User] = []
+
 
 class r_GetCommentList(SpeedrunModel):
     commentable: Commentable
@@ -92,21 +106,25 @@ class r_GetCommentList(SpeedrunModel):
     likeList: list[Like] = []
     userList: list[User] = []
     pagination: Pagination
-    
+
     _commentDict: dict[str, Comment]
     _likeDict: dict[str, Like]
     _userDict: dict[str, User]
-    
-    __condenser_map__ = frozenbidict({
-        "commentList": "_commentDict",
-        "likeList": "_likeDict",
-        "userList": "_userDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "commentList": "_commentDict",
+            "likeList": "_likeDict",
+            "userList": "_userDict",
+        }
+    )
+
 
 class r_GetForumList(SpeedrunModel):
     forumList: list[Forum] = []
     gameList: list[Game] = []
     userList: list[User] = []
+
 
 class r_GetStaticData(SpeedrunModel):
     areas: list[Area] = []
@@ -115,7 +133,8 @@ class r_GetStaticData(SpeedrunModel):
     notificationSettings: list[NotificationSettingStaticData] = []
     regionList: list[Region] = []
     socialNetworkList: list[SocialNetwork] = []
-    supporterPlanList: Optional[list[Any] | None] = None  # Unknown type
+    supporterPlanList: list[Any] | None = None  # Unknown type
+
 
 class r_GetGameData(SpeedrunModel):
     game: Game
@@ -124,13 +143,15 @@ class r_GetGameData(SpeedrunModel):
     moderators: list[GameModerator] = []
     platforms: list[Platform] = []
     regions: list[Region] = []
-    theme: Optional[Theme] = None
+    theme: Theme | None = None
     users: list[UserBase] = []
     values: list[Value] = []
     variables: list[Variable] = []
 
+
 class r_GetGameLeaderboard(SpeedrunModel):
     leaderboard: Leaderboard  # not funny. didn't laugh
+
 
 class r_GetGameLeaderboard2(SpeedrunModel):
     """_summary_
@@ -138,42 +159,51 @@ class r_GetGameLeaderboard2(SpeedrunModel):
     Args:
         SpeedrunModel (r_GetGameLeaderboard2): _description_
     """
+
     runList: list[Run] = []
     playerList: list[Player] = []
     platformList: list[Platform] = []
     pagination: Pagination
-    
+
     _runDict: dict[str, Run] = PrivateAttr()
     _playerDict: dict[str, Player] = PrivateAttr()
     _platformDict: dict[str, Platform] = PrivateAttr()
-    
-    __condenser_map__ = frozenbidict({
-        "runList": "_runDict",
-        "playerList": "_playerDict",
-        "platformList": "_platformDict"
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "runList": "_runDict",
+            "playerList": "_playerDict",
+            "platformList": "_platformDict",
+        }
+    )
+
 
 class r_GetGameLevelSummary(SpeedrunModel):
-    category: Optional[Category] = None
+    category: Category | None = None
     runList: list[Run] = []
     playerList: list[Player] = []
+
 
 class r_GetGameList(SpeedrunModel):
     gameList: list[Game] = []
     platformList: list[Platform] = []
     pagination: Pagination
-    
+
     _gameDict: dict[str, Game]
     _platformDict: dict[str, Platform]
-    
-    __condenser_map__ = frozenbidict({
-        "gameList": "_gameDict",
-        "platformList": "_platformDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "gameList": "_gameDict",
+            "platformList": "_platformDict",
+        }
+    )
+
 
 class r_GetGameRecordHistory(SpeedrunModel):
     playerList: list[Player] = []
     recordEventList: list[RecordEvent] = []
+
 
 class r_GetGameSummary(SpeedrunModel):
     game: Game
@@ -201,16 +231,20 @@ class r_GetGameSummary(SpeedrunModel):
     sourceOfAudienceIds: list[str] = []
     """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
+
 class r_GetGuide(SpeedrunModel):
     guide: Guide
     users: list[User] = []
+
 
 class r_GetGuideList(SpeedrunModel):
     guideList: list[Guide] = []
     users: list[User] = []
 
+
 class r_GetHomeSummary(SpeedrunModel):
-    stream: Optional[Stream] = None
+    stream: Stream | None = None
+
 
 class r_GetLatestLeaderboard(SpeedrunModel):
     categories: list[Category] = []
@@ -223,29 +257,34 @@ class r_GetLatestLeaderboard(SpeedrunModel):
     variables: list[Variable] = []
     platforms: list[Platform] = []
 
+
 class r_GetNews(SpeedrunModel):
     news: News
     users: list[User] = []
+
 
 class r_GetNewsList(SpeedrunModel):
     newsList: list[News] = []
     users: list[User] = []
 
+
 class r_GetResourceList(SpeedrunModel):
     resourceList: list[Resource] = []
     users: list[User] = []
 
+
 class r_GetRun(SpeedrunModel):
     game: Game
     category: Category
-    level: Optional[Level] = None
-    platform: Optional[Platform] = None
+    level: Level | None = None
+    platform: Platform | None = None
     players: list[Player] = []
-    region: Optional[Region] = None
+    region: Region | None = None
     run: Run
     users: list[User] = []
     values: list[Value] = []
     variables: list[Variable] = []
+
 
 class r_GetSearch(SpeedrunModel):
     gameList: list[Game] = []
@@ -258,15 +297,19 @@ class r_GetSearch(SpeedrunModel):
     """Games referenced by challengeList"""
     platformList: list[Platform] = []
 
+
 class r_GetSeriesList(SpeedrunModel):
     seriesList: list[Series] = []
     pagination: Pagination
-    
+
     _seriesDict: dict[str, Series]
-    
-    __condenser_map__ = frozenbidict({
-        "seriesList": "_seriesDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "seriesList": "_seriesDict",
+        }
+    )
+
 
 class r_GetSeriesSummary(SpeedrunModel):
     series: Series
@@ -276,7 +319,7 @@ class r_GetSeriesSummary(SpeedrunModel):
     """Appears to be unused as of 2026-06-27."""
     moderatorList: list[SeriesModerator] = []
     platformList: list[Platform] = []
-    theme: Optional[Theme] = None
+    theme: Theme | None = None
     threadList: list[Thread] = []
     userList: list[User] = []
     gameCount: Int64_
@@ -285,11 +328,13 @@ class r_GetSeriesSummary(SpeedrunModel):
     sourceOfAudienceIds: list[str] = []
     """Unknown usage as of introduction c. 2026/01. Endpoints relating to this are admin-only."""
 
+
 class r_GetStreamList(SpeedrunModel):
     gameList: list[Game] = []
     streamList: list[Stream] = []
     userList: list[User] = []
     pagination: Pagination
+
 
 class r_GetThread(SpeedrunModel):
     thread: Thread
@@ -297,21 +342,25 @@ class r_GetThread(SpeedrunModel):
     userList: list[User] = []
     likeList: list[Like] = []
     pagination: Pagination
-    
+
     _commentDict: dict[str, Comment]
     _userDict: dict[str, User]
     _likeDict: dict[str, Like]
-    
-    __condenser_map__ = frozenbidict({
-        "commentList": "_commentDict",
-        "userList": "_userDict",
-        "likeList": "_likeDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "commentList": "_commentDict",
+            "userList": "_userDict",
+            "likeList": "_likeDict",
+        }
+    )
+
 
 class r_GetThreadList(SpeedrunModel):
     threadList: list[Thread] = []
     pagination: Pagination
     users: list[User] = []
+
 
 class r_GetUserLeaderboard(SpeedrunModel):
     categories: list[Category] = []
@@ -331,6 +380,7 @@ class r_GetUserLeaderboard(SpeedrunModel):
     challengeList: list[Challenge] = []
     challengeRunList: list[ChallengeRun] = []
 
+
 class r_GetUserSummary(SpeedrunModel):
     user: User
     userProfile: UserReducedProfile
@@ -341,8 +391,10 @@ class r_GetUserSummary(SpeedrunModel):
     userGameRunnerStats: list[UserGameRunnerStats] = []
     userSocialConnectionList: list[UserSocialConnection] = []
     games: list[Game] = []
-    theme: Optional[Theme] = None
+    theme: Theme | None = None
     titleList: list[Title] = []
+    noIndex: bool
+
 
 class r_GetUserComments(SpeedrunModel):
     articleList: list[Article] = []
@@ -355,7 +407,7 @@ class r_GetUserComments(SpeedrunModel):
     threadList: list[Thread] = []
     userList: list[User] = []
     pagination: Pagination
-    
+
     _articleDict: dict[str, Article]
     _commentDict: dict[str, Comment]
     _forumDict: dict[str, Forum]
@@ -365,18 +417,21 @@ class r_GetUserComments(SpeedrunModel):
     _runDict: dict[str, Run]
     _threadDict: dict[str, Thread]
     _userDict: dict[str, User]
-    
-    __condenser_map__ = frozenbidict({
-        "articleList": "_articleDict",
-        "commentList": "_commentDict",
-        "forumList": "_forumDict",
-        "gameList": "_gameDict",
-        "likeList": "_likeDict",
-        "newsList": "_newsDict",
-        "runList": "_runDict",
-        "threadList": "_threadDict",
-        "userList": "_userDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "articleList": "_articleDict",
+            "commentList": "_commentDict",
+            "forumList": "_forumDict",
+            "gameList": "_gameDict",
+            "likeList": "_likeDict",
+            "newsList": "_newsDict",
+            "runList": "_runDict",
+            "threadList": "_threadDict",
+            "userList": "_userDict",
+        }
+    )
+
 
 class r_GetUserPopoverData(SpeedrunModel):
     user: User
@@ -387,8 +442,10 @@ class r_GetUserPopoverData(SpeedrunModel):
     """Contains games sometimes:tm:"""
     titleList: list[Title] = []
 
+
 class r_GetTitleList(SpeedrunModel):
     titleList: list[Title] = []
+
 
 class r_GetTitle(SpeedrunModel):
     title: Title
@@ -407,7 +464,7 @@ class r_GetAuditLogList(SpeedrunModel):
     valueList: list[Value] = []
     runList: list[Run] = []
     pagination: Pagination
-    
+
     _auditLogDict: dict[str, AuditLogEntry]
     _userDict: dict[str, User]
     _gameDict: dict[str, Game]
@@ -416,20 +473,24 @@ class r_GetAuditLogList(SpeedrunModel):
     _variableDict: dict[str, Variable]
     _valueDict: dict[str, Value]
     _runDict: dict[str, Run]
-    
-    __condenser_map__ = frozenbidict({
-        "auditLogList": "_auditLogDict",
-        "userList": "_userDict",
-        "gameList": "_gameDict",
-        "categoryList": "_categoryDict",
-        "levelList": "_levelDict",
-        "variableList": "_variableDict",
-        "valueList": "_valueDict",
-        "runList": "_runDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "auditLogList": "_auditLogDict",
+            "userList": "_userDict",
+            "gameList": "_gameDict",
+            "categoryList": "_categoryDict",
+            "levelList": "_levelDict",
+            "variableList": "_variableDict",
+            "valueList": "_valueDict",
+            "runList": "_runDict",
+        }
+    )
+
 
 class r_GetCommentable(SpeedrunModel):
     commentable: Commentable
+
 
 class r_GetConversationMessages(SpeedrunModel):
     conversation: Conversation
@@ -438,14 +499,17 @@ class r_GetConversationMessages(SpeedrunModel):
     users: list[User] = []
     userBlocks: list[UserBlock] = []
 
+
 class r_GetConversations(SpeedrunModel):
     conversations: list[Conversation] = []
     participants: list[ConversationParticipant] = []
     users: list[User] = []
     systemMessages: list[SystemMessage] = []
 
+
 class r_GetForumReadStatus(SpeedrunModel):
     forumReadStatusList: list[ForumReadStatus] = []
+
 
 class r_GetGameSettings(SpeedrunModel):
     settings: GameSettings
@@ -454,11 +518,13 @@ class r_GetGameSettings(SpeedrunModel):
     gameList: list[Game] = []
     userList: list[User] = []
 
+
 class r_GetModerationGames(SpeedrunModel):
     games: list[Game] | None = None
     """Is null when not logged in."""
     gameModerationStats: list[GameModerationStats] | None = None
     """Is null when not logged in."""
+
 
 class r_GetModerationRuns(SpeedrunModel):
     categories: list[Category] = []
@@ -472,7 +538,7 @@ class r_GetModerationRuns(SpeedrunModel):
     values: list[Value] = []
     variables: list[Variable] = []
     users: list[User] = []
-    
+
     _categoryDict: dict[str, Category]
     _gameDict: dict[str, Game]
     _levelDict: dict[str, Level]
@@ -483,34 +549,41 @@ class r_GetModerationRuns(SpeedrunModel):
     _variableDict: dict[str, Variable]
     _valueDict: dict[str, Value]
     _userDict: dict[str, User]
-    
-    __condenser_map__ = frozenbidict({
-        "categories": "_categoryDict",
-        "games": "_gameDict",
-        "levels": "_levelDict",
-        "platforms": "_platformDict",
-        "players": "_playerDict",
-        "regions": "_regionDict",
-        "runs": "_runDict",
-        "variables": "_variableDict",
-        "values": "_valueDict",
-        "users": "_userDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "categories": "_categoryDict",
+            "games": "_gameDict",
+            "levels": "_levelDict",
+            "platforms": "_platformDict",
+            "players": "_playerDict",
+            "regions": "_regionDict",
+            "runs": "_runDict",
+            "variables": "_variableDict",
+            "values": "_valueDict",
+            "users": "_userDict",
+        }
+    )
+
 
 class r_GetNotifications(SpeedrunModel):
     unreadCount: Int64_
     notifications: list[Notification] = []
     pagination: Pagination
-    
+
     _notificationDict: dict[str, Notification]
-    
-    __condenser_map__ = frozenbidict({
-        "notifications": "_notificationDict",
-    })
+
+    __condenser_map__ = frozenbidict(
+        {
+            "notifications": "_notificationDict",
+        }
+    )
+
 
 class r_GetRunSettings(SpeedrunModel):
     settings: RunSettings
     users: list[User] = []
+
 
 class r_GetSeriesSettings(SpeedrunModel):
     settings: SeriesSettings
@@ -519,16 +592,21 @@ class r_GetSeriesSettings(SpeedrunModel):
     theme: Theme
     userList: list[User] = []
 
+
 class r_GetSession(SpeedrunModel):
     session: Session
 
+
 class r_GetThemeSettings(SpeedrunModel):
     """NB: if no theme is set then this response will be empty"""
-    settings: Optional[ThemeSettings] = None
-    theme: Optional[Theme] = None
+
+    settings: ThemeSettings | None = None
+    theme: Theme | None = None
+
 
 class r_GetThreadReadStatus(SpeedrunModel):
     threadReadStatusList: list[ThreadReadStatus] = []
+
 
 class r_GetTickets(SpeedrunModel):
     ticketList: list[Ticket] = []
@@ -539,22 +617,24 @@ class r_GetTickets(SpeedrunModel):
     gameList: list[Game] = []
     userModCountList: list[UserCount] = []
     userRunCountList: list[UserCount] = []
-    
+
     _ticketDict: dict[str, Ticket]
     _ticketNoteDict: dict[str, TicketNote]
     _userDict: dict[str, User]
     _gameDict: dict[str, Game]
     _userModCountDict: dict[str, UserCount]
     _userRunCountDict: dict[str, UserCount]
-    
-    __condenser_map__ = frozenbidict(({
-        "ticketList": "_ticketDict",
-        "ticketNoteList": "_ticketNoteDict",
-        "userList": "_userDict",
-        "gameList": "_gameDict",
-        "userModCountList": "_userModCountDict",
-        "userRunCountList": "_userRunCountDict",
-    }))
+
+    __condenser_map__ = frozenbidict(
+        {
+            "ticketList": "_ticketDict",
+            "ticketNoteList": "_ticketNoteDict",
+            "userList": "_userDict",
+            "gameList": "_gameDict",
+            "userModCountList": "_userModCountDict",
+            "userRunCountList": "_userRunCountDict",
+        }
+    )
     
     __condenser_overrides__ = {
         "userModCountList": "userId",
@@ -574,11 +654,11 @@ class r_GetUserSettings(SpeedrunModel):
     titleList: list[Title] = []
     supporterCreditList: list[SupporterCredit] = []
     supporterCodeList: list[SupporterCode] = []
-    supporterSubscription: Optional[SupporterSubscription] = None
+    supporterSubscription: SupporterSubscription | None = None
 
 class r_GetUserSupporterData(SpeedrunModel):
-    supporterEndsAt: Optional[Timestamp_] = None
-    boostEndsAt: Optional[Timestamp_] = None
+    supporterEndsAt: Timestamp_ | None = None
+    boostEndsAt: Timestamp_ | None = None
 
 class r_PutUserSupporterNewSubscription(SpeedrunModel):
     subscription: SupporterSubscription
@@ -586,11 +666,11 @@ class r_PutUserSupporterNewSubscription(SpeedrunModel):
 
 class r_PutAuthLogin(SpeedrunModel):
     loggedIn: bool
-    tokenChallengeSent: Optional[bool] = None
+    tokenChallengeSent: bool | None = None
 
 class r_PutAuthSignup(SpeedrunModel):
     loggedIn: bool
-    tokenChallengeSent: Optional[bool] = None
+    tokenChallengeSent: bool | None = None
 
 class r_PutConversation(SpeedrunModel):
     ok: bool
@@ -628,11 +708,11 @@ class r_GetUserGameBoostData(SpeedrunModel):
     boostAvailableTokens: Int64_
     boostDistinctGamesCount: Int64_
     boostDistinctUsersCount: Int64_
-    boostEndsAt: Optional[Timestamp_] = None
+    boostEndsAt: Timestamp_ | None = None
     boostGiftedCount: Int64_
-    boostLastTokenAt: Optional[Timestamp_] = None
+    boostLastTokenAt: Timestamp_ | None = None
     boostNextTokenAmount: Int64_
-    boostNextTokenAt: Optional[Timestamp_] = None
+    boostNextTokenAt: Timestamp_ | None = None
     boostReceivedCount: Int64_
     gameBoostList: list[GameBoost] = []
     gameList: list[Game] = []

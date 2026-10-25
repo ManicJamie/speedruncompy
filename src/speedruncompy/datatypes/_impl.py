@@ -1,12 +1,15 @@
-from datetime import datetime, tzinfo, timezone
+from datetime import UTC, datetime
 from json import JSONEncoder
-from typing import Any, ClassVar, Mapping, Self, Annotated
+from typing import Annotated, Any, ClassVar, Self
 
-from pydantic import BaseModel, ConfigDict, model_validator, PlainSerializer, WithJsonSchema, BeforeValidator
+from bidict import BidirectionalMapping, frozenbidict
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    PlainSerializer,
+    model_validator,
+)
 
-from bidict import frozenbidict, BidirectionalMapping
-
-from .. import config
 
 class SpeedrunModel(BaseModel, ser_json_timedelta='float', extra='allow'):
     __condenser_map__: ClassVar[BidirectionalMapping[str, str]] = frozenbidict()
@@ -36,7 +39,7 @@ class ModelEncoder(JSONEncoder):
 # Datatypes for transparent conversion
 
 def unix_to_datetime(unix: int) -> datetime:
-    return datetime.fromtimestamp(unix, timezone.utc)
+    return datetime.fromtimestamp(unix, UTC)
 
 def _validate_timestamp(field: datetime | str):
     if isinstance(field, str):
