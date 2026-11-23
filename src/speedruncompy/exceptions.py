@@ -15,6 +15,8 @@ else:
 
             return wrapper
 
+        return deprecated
+
 
 class IncompleteDatatype(Exception):
     """A speedruncompy datatype is missing non-optional fields"""
