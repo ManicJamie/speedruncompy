@@ -701,27 +701,27 @@ class TestPutRequests:
         check_model_coverage(threadPut)
         check_model_coverage(threadDelete)
 
-    @pytest.mark.skip(reason="PutThread put behind Cloudflare challenge.")
+    @pytest.mark.skip(reason="PutThread and PutComment put behind Cloudflare challenge.")
     def test_PutComment_Flow(self, testingThread: Thread):
         """Posts and then deletes a comment"""
-        COMMENT_DESC = "Test comment."
 
-        commentPut = PutComment(testingThread.id, ItemType.THREAD, COMMENT_DESC, _client=self.api).perform_sync()
-        check_model_coverage(commentPut)
+        # COMMENT_DESC = "Test comment."
 
-        commentCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform_sync(autovary=True)
-        check_model_coverage(commentCheck)
-        comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
+        # commentPut = PutComment(testingThread.id, ItemType.THREAD, COMMENT_DESC, _client=self.api).perform_sync()
+        # check_model_coverage(commentPut)
 
-        commentDelete = PutCommentDelete(comment.id, _client=self.api).perform_sync()
-        check_model_coverage(commentDelete)
+        # commentCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform_sync(autovary=True)
+        # check_model_coverage(commentCheck)
+        # comment = next(filter(lambda c: c.text == COMMENT_DESC, commentCheck.commentList))
 
-        commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform_sync(autovary=True)
-        check_model_coverage(commentDelCheck)
-        """
-        with pytest.raises(StopIteration):
-            next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
-        """
+        # commentDelete = PutCommentDelete(comment.id, _client=self.api).perform_sync()
+        # check_model_coverage(commentDelete)
+
+        # commentDelCheck = GetCommentList(testingThread.id, ItemType.THREAD).perform_sync(autovary=True)
+        # check_model_coverage(commentDelCheck)
+
+        # with pytest.raises(StopIteration):
+        #     next(filter(lambda c: c.text == COMMENT_DESC, commentDelCheck.commentList))
 
     def test_PutGameFollowerOrder(self):
         """Reorders the games and compares the result, then resets back to original order"""

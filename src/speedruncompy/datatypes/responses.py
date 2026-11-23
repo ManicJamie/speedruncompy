@@ -91,6 +91,8 @@ class r_GetChallengeRun(SpeedrunModel):
     challengeRun: ChallengeRun
     game: Game
     playerList: list[Player] = []
+    runPlayers: list[SparseUser] = []
+    """A list of player ID objects matching playerList. Appears extraneous."""  # TODO: add testing for this and other list removals.
     userList: list[User] = []
     platformList: list[Platform] = []
 
@@ -385,7 +387,7 @@ class r_GetUserSummary(SpeedrunModel):
     user: User
     userProfile: UserReducedProfile
     userStats: UserStats
-    userGameFollowerStats: list[UserGameFollow] = []
+    userGameFollowerStats: list[UserGameFollowerStats] = []
     """Empty list if the user has set game follows to private."""
     userGameModeratorStats: list[UserModerationStats] = []
     userGameRunnerStats: list[UserGameRunnerStats] = []
@@ -706,6 +708,7 @@ class r_GetUserApiKey(SpeedrunModel):
 
 class r_GetUserGameBoostData(SpeedrunModel):
     boostAvailableTokens: Int64_
+    boostAvailableTokensLimit: Int64_
     boostDistinctGamesCount: Int64_
     boostDistinctUsersCount: Int64_
     boostEndsAt: Timestamp_ | None = None

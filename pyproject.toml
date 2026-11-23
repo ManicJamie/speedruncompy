@@ -14,8 +14,8 @@ classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
 ]
 dependencies = [
-    "aiohttp[speedups]>=3.14.5",
-    "pydantic>=2.14.1",
+    "aiohttp>=3.14.5",
+    "pydantic>=2.14.4",
     "bidict>=0.24.1"
 ]
 dynamic = ["version"]
@@ -26,6 +26,9 @@ dev = [
     "pytest-asyncio",
     "pytest-cov",
     "python-dotenv",
+]
+speedups = [
+    "aiohttp[speedups]"
 ]
 
 [project.scripts]

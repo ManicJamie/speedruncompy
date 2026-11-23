@@ -1,7 +1,20 @@
+import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .api import BaseRequest
+
+if sys.version_info >= (3, 13):
+    from warnings import deprecated
+else:
+
+    def deprecated(message: str, /, *, category: type[Warning] | None = None, stacklevel: int = 1):
+        def deprecated(f):
+            def wrapper(*args, **kwargs):
+                return f(*args, **kwargs)
+
+            return wrapper
+
 
 class IncompleteDatatype(Exception):
     """A speedruncompy datatype is missing non-optional fields"""
@@ -56,3 +69,21 @@ class RateLimitExceeded(ClientException):
 
 class ServerException(APIException):
     """The server threw a 5xx error code, meaning there was an internal exception. These will trigger retries."""
+
+__all__ = [
+    "AIOException",
+    "APIException",
+    "AuthException",
+    "BadRequest",
+    "ClientException",
+    "Forbidden",
+    "IncompleteDatatype",
+    "IncompleteEnum",
+    "MethodNotAllowed",
+    "NotFound",
+    "RateLimitExceeded",
+    "RequestTimeout",
+    "ServerException",
+    "SrcpyException",
+    "Unauthorized",
+]

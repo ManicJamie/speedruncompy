@@ -427,10 +427,10 @@ class UserModerationStats(SpeedrunModel):
     minVerifiedAt: Timestamp_
     maxVerifiedAt: Timestamp_
 
-class UserGameFollow(SpeedrunModel):
+class UserGameFollowerStats(SpeedrunModel):
     gameId: str
     accessCount: Int64_
-    lastAccessDate: int
+    lastAccessedAt: Timestamp_
 
 class UserGameRunnerStats(SpeedrunModel):
     gameId: str
@@ -666,6 +666,12 @@ class ChallengeRun(SpeedrunModel):
     place: Int64_ | None = None
     obsolete: bool | None = None
     videoState: VideoState
+
+class SparseUser(SpeedrunModel):
+    """A user object with only a userId."""
+
+    userId: str
+
 
 class Theme(SpeedrunModel):
     id: str
